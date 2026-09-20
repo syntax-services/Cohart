@@ -4,24 +4,35 @@
 
 @layer base {
   :root {
-    --background: 7 9 14;
-    --foreground: 255 255 255;
+    --background: 6 8 13;
+    --foreground: 248 250 252;
+    --gemini-blue: 56 123 255;
   }
 
   body {
     color: rgb(var(--foreground));
-    background: #07090E;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: #06080D;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     overscroll-behavior-y: none;
+    letter-spacing: -0.01em;
   }
 }
 
-/* Custom scrollbars */
+/* Safe area utilities for PWA mobile viewports */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0.5rem);
+}
+
+/* Minimalist dark scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -29,12 +40,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 240, 255, 0.4);
+  background: rgba(56, 123, 255, 0.4);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -45,25 +56,29 @@
   scrollbar-width: none;
 }
 
-/* Leaflet dark tiles override */
+/* Leaflet dark styling & watermark-free presentation */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background-color: #07090E !important;
+  background-color: #06080D !important;
   font-family: inherit !important;
 }
 
+.leaflet-control-attribution {
+  display: none !important; /* Hide attribution overlay to avoid watermarks per user preference */
+}
+
 .leaflet-control-zoom {
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(56, 123, 255, 0.2) !important;
   border-radius: 12px !important;
   overflow: hidden !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.5) !important;
 }
 
 .leaflet-control-zoom-in,
 .leaflet-control-zoom-out {
-  background-color: rgba(13, 17, 26, 0.95) !important;
-  color: #00F0FF !important;
+  background-color: rgba(11, 15, 24, 0.95) !important;
+  color: #387BFF !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(12px) !important;
   transition: all 0.2s ease !important;
@@ -71,19 +86,12 @@
 
 .leaflet-control-zoom-in:hover,
 .leaflet-control-zoom-out:hover {
-  background-color: rgba(0, 240, 255, 0.15) !important;
+  background-color: rgba(56, 123, 255, 0.15) !important;
   color: #FFFFFF !important;
 }
 
-.leaflet-control-attribution {
-  background: rgba(7, 9, 14, 0.8) !important;
-  color: #64748B !important;
-  font-size: 9px !important;
-  backdrop-filter: blur(8px) !important;
-  border-top-left-radius: 8px !important;
-  padding: 2px 6px !important;
-}
-
-.leaflet-control-attribution a {
-  color: #94A3B8 !important;
+/* Custom text selection styling */
+::selection {
+  background: rgba(56, 123, 255, 0.35);
+  color: #FFFFFF;
 }

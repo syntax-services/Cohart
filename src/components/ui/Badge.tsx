@@ -1,26 +1,35 @@
+'use client';
+
 import React from 'react';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'cyan' | 'slate' | 'azure' | 'emerald';
+  variant?: 'blue' | 'slate' | 'emerald' | 'amber';
   className?: string;
+  size?: 'sm' | 'md';
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   children,
-  variant = 'cyan',
+  variant = 'blue',
   className = '',
+  size = 'md',
 }) => {
-  const styles = {
-    cyan: 'bg-[#00F0FF]/10 text-[#00F0FF] border-[#00F0FF]/30',
-    azure: 'bg-[#0066FF]/15 text-[#38bdf8] border-[#0066FF]/35',
-    slate: 'bg-white/[0.05] text-slate-300 border-white/[0.1]',
-    emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+  const variantStyles = {
+    blue: 'bg-[#387BFF]/10 text-[#60A5FA] border-[#387BFF]/25 shadow-[0_0_12px_rgba(56,123,255,0.15)]',
+    slate: 'bg-white/[0.04] text-slate-300 border-white/[0.08]',
+    emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  };
+
+  const sizeStyles = {
+    sm: 'text-[10px] px-2 py-0.5',
+    md: 'text-xs px-2.5 py-1',
   };
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium font-mono border backdrop-blur-md transition-colors ${styles[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border font-mono font-medium tracking-tight ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
       {children}
     </span>

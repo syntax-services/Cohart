@@ -1,0 +1,273 @@
+import React from 'react';
+
+export type IconName =
+  | 'sparkle'
+  | 'home'
+  | 'reader'
+  | 'calendar'
+  | 'map'
+  | 'user'
+  | 'brain'
+  | 'search'
+  | 'bell'
+  | 'check'
+  | 'clock'
+  | 'compass'
+  | 'wallet'
+  | 'share'
+  | 'zap'
+  | 'chevron-right'
+  | 'chevron-down'
+  | 'close'
+  | 'arrow-right'
+  | 'book-open'
+  | 'graduation-cap'
+  | 'bus'
+  | 'chat'
+  | 'pin'
+  | 'highlight'
+  | 'copy'
+  | 'check-circle'
+  | 'filter'
+  | 'shield-check';
+
+interface GeminiIconProps {
+  name: IconName;
+  className?: string;
+  size?: number;
+  strokeWidth?: number;
+}
+
+export const GeminiIcon: React.FC<GeminiIconProps> = ({
+  name,
+  className = '',
+  size = 20,
+  strokeWidth = 1.5,
+}) => {
+  const commonProps = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    className,
+  };
+
+  switch (name) {
+    case 'sparkle':
+      return (
+        <svg {...commonProps}>
+          <path d="M12 2C12 7.5 16.5 12 22 12C16.5 12 12 16.5 12 22C12 16.5 7.5 12 2 12C7.5 12 12 7.5 12 2Z" />
+        </svg>
+      );
+    case 'home':
+      return (
+        <svg {...commonProps}>
+          <path d="M3 10.5L12 3.5L21 10.5V20C21 20.55 20.55 21 20 21H15V14H9V21H4C3.45 21 3 20.55 3 20V10.5Z" />
+        </svg>
+      );
+    case 'reader':
+    case 'book-open':
+      return (
+        <svg {...commonProps}>
+          <path d="M2 5.5C3.8 4.2 6.5 4 8.5 4C10.5 4 12 4.5 12 6V20C12 18.5 10.5 18 8.5 18C6.5 18 3.8 18.2 2 19.5V5.5Z" />
+          <path d="M22 5.5C20.2 4.2 17.5 4 15.5 4C13.5 4 12 4.5 12 6V20C12 18.5 13.5 18 15.5 18C17.5 18 20.2 18.2 22 19.5V5.5Z" />
+        </svg>
+      );
+    case 'calendar':
+      return (
+        <svg {...commonProps}>
+          <rect x="3" y="4" width="18" height="17" rx="2.5" />
+          <path d="M16 2V5" />
+          <path d="M8 2V5" />
+          <path d="M3 9H21" />
+          <circle cx="8" cy="13" r="0.8" fill="currentColor" />
+          <circle cx="12" cy="13" r="0.8" fill="currentColor" />
+          <circle cx="16" cy="13" r="0.8" fill="currentColor" />
+          <circle cx="8" cy="17" r="0.8" fill="currentColor" />
+          <circle cx="12" cy="17" r="0.8" fill="currentColor" />
+          <circle cx="16" cy="17" r="0.8" fill="currentColor" />
+        </svg>
+      );
+    case 'map':
+    case 'compass':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M15.5 8.5L13.2 13.2L8.5 15.5L10.8 10.8L15.5 8.5Z" />
+        </svg>
+      );
+    case 'pin':
+      return (
+        <svg {...commonProps}>
+          <path d="M12 21C16 16.5 19 13.2 19 9.5C19 5.6 15.9 2.5 12 2.5C8.1 2.5 5 5.6 5 9.5C5 13.2 8 16.5 12 21Z" />
+          <circle cx="12" cy="9.5" r="2.5" />
+        </svg>
+      );
+    case 'user':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M5.5 20.5C5.5 16.9 8.4 14 12 14C15.6 14 18.5 16.9 18.5 20.5" />
+        </svg>
+      );
+    case 'brain':
+      return (
+        <svg {...commonProps}>
+          <path d="M9.5 4C8.2 4 7 4.9 6.8 6.2C5.5 6.6 4.5 7.8 4.5 9.2C4.5 9.8 4.7 10.3 5 10.8C4.4 11.5 4 12.4 4 13.5C4 15 5 16.2 6.3 16.7C6.6 18.3 8 19.5 9.6 19.5C10.4 19.5 11.2 19.2 11.8 18.7" />
+          <path d="M14.5 4C15.8 4 17 4.9 17.2 6.2C18.5 6.6 19.5 7.8 19.5 9.2C19.5 9.8 19.3 10.3 19 10.8C19.6 11.5 20 12.4 20 13.5C20 15 19 16.2 17.7 16.7C17.4 18.3 16 19.5 14.4 19.5C13.6 19.5 12.8 19.2 12.2 18.7" />
+          <path d="M12 4V20" />
+          <path d="M8 9H12" />
+          <path d="M8 14H12" />
+          <path d="M12 9H16" />
+          <path d="M12 14H16" />
+        </svg>
+      );
+    case 'search':
+      return (
+        <svg {...commonProps}>
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20L16 16" />
+        </svg>
+      );
+    case 'bell':
+      return (
+        <svg {...commonProps}>
+          <path d="M18 8.5C18 5.2 15.3 2.5 12 2.5C8.7 2.5 6 5.2 6 8.5C6 14.5 3.5 16.5 3.5 16.5H20.5C20.5 16.5 18 14.5 18 8.5Z" />
+          <path d="M10 19.5C10.5 20.4 11.2 21 12 21C12.8 21 13.5 20.4 14 19.5" />
+        </svg>
+      );
+    case 'check':
+      return (
+        <svg {...commonProps}>
+          <path d="M4.5 12.5L9.5 17.5L19.5 6.5" />
+        </svg>
+      );
+    case 'check-circle':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M7.5 12L10.5 15L16.5 9" />
+        </svg>
+      );
+    case 'clock':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M12 6.5V12L15.5 14" />
+        </svg>
+      );
+    case 'wallet':
+      return (
+        <svg {...commonProps}>
+          <rect x="3" y="5" width="18" height="14" rx="2.5" />
+          <path d="M3 9.5H21" />
+          <circle cx="16" cy="14" r="1.2" fill="currentColor" />
+        </svg>
+      );
+    case 'share':
+      return (
+        <svg {...commonProps}>
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <path d="M8.6 10.7L15.4 6.3" />
+          <path d="M8.6 13.3L15.4 17.7" />
+        </svg>
+      );
+    case 'zap':
+      return (
+        <svg {...commonProps}>
+          <path d="M13 2.5L4.5 13H11.5L10 21.5L19.5 10.5H12.5L13 2.5Z" />
+        </svg>
+      );
+    case 'chevron-right':
+      return (
+        <svg {...commonProps}>
+          <path d="M9 5L16 12L9 19" />
+        </svg>
+      );
+    case 'chevron-down':
+      return (
+        <svg {...commonProps}>
+          <path d="M5 9L12 16L19 9" />
+        </svg>
+      );
+    case 'arrow-right':
+      return (
+        <svg {...commonProps}>
+          <path d="M4 12H20" />
+          <path d="M14 6L20 12L14 18" />
+        </svg>
+      );
+    case 'close':
+      return (
+        <svg {...commonProps}>
+          <path d="M18 6L6 18" />
+          <path d="M6 6L18 18" />
+        </svg>
+      );
+    case 'graduation-cap':
+      return (
+        <svg {...commonProps}>
+          <path d="M2 9.5L12 4.5L22 9.5L12 14.5L2 9.5Z" />
+          <path d="M6 11.8V16.5C6 18.5 8.7 20 12 20C15.3 20 18 18.5 18 16.5V11.8" />
+          <path d="M22 9.5V16" />
+        </svg>
+      );
+    case 'bus':
+      return (
+        <svg {...commonProps}>
+          <rect x="4" y="3.5" width="16" height="15" rx="3" />
+          <path d="M4 10H20" />
+          <circle cx="7.5" cy="14.5" r="1" fill="currentColor" />
+          <circle cx="16.5" cy="14.5" r="1" fill="currentColor" />
+          <path d="M6 18.5V20.5" />
+          <path d="M18 18.5V20.5" />
+        </svg>
+      );
+    case 'chat':
+      return (
+        <svg {...commonProps}>
+          <path d="M20 12C20 16.4 16.4 20 12 20C10.5 20 9.1 19.6 7.9 18.9L3.5 20.5L5.1 16.1C4.4 14.9 4 13.5 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12Z" />
+        </svg>
+      );
+    case 'highlight':
+      return (
+        <svg {...commonProps}>
+          <path d="M14 3.5L20.5 10L10.5 20H4V13.5L14 3.5Z" />
+          <path d="M11 6.5L17.5 13" />
+          <path d="M4 21.5H20" />
+        </svg>
+      );
+    case 'copy':
+      return (
+        <svg {...commonProps}>
+          <rect x="8" y="8" width="12" height="12" rx="2" />
+          <path d="M16 8V5C16 4.4 15.6 4 15 4H5C4.4 4 4 4.4 4 5V15C4 15.6 4.4 16 5 16H8" />
+        </svg>
+      );
+    case 'filter':
+      return (
+        <svg {...commonProps}>
+          <path d="M3 5H21L14 13.5V19L10 20.5V13.5L3 5Z" />
+        </svg>
+      );
+    case 'shield-check':
+      return (
+        <svg {...commonProps}>
+          <path d="M12 3.5L19 6.5V12C19 16.5 16 19.8 12 21C8 19.8 5 16.5 5 12V6.5L12 3.5Z" />
+          <path d="M8.5 11.5L11 14L15.5 9" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+      );
+  }
+};

@@ -1,9 +1,17 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
 export const metadata: Metadata = {
-  title: 'Cohart | Student Lifecycle Platform',
-  description: 'The high-performance student lifecycle and campus navigation companion for OOU students.',
+  title: 'Cohart | Student Lifecycle & Academic Intelligence Engine',
+  description:
+    'Minimalist student lifecycle companion, interactive personalized reader, schedule tracking, and campus navigation.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -17,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#07090E',
+  themeColor: '#06080D',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -31,15 +39,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${inter.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="theme-color" content="#07090E" />
+        <meta name="theme-color" content="#06080D" />
       </head>
-      <body className="min-h-screen bg-[#07090E] text-white antialiased selection:bg-[#00F0FF]/30 selection:text-white">
+      <body className="min-h-screen bg-[#06080D] text-white antialiased font-sans selection:bg-[#387BFF]/30 selection:text-white">
         {children}
 
         {/* Service Worker Registration for PWA */}
@@ -50,10 +58,10 @@ export default function RootLayout({
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js').then(
                     function(registration) {
-                      console.log('[Cohart PWA] ServiceWorker registration successful with scope: ', registration.scope);
+                      console.log('[Cohart PWA] ServiceWorker registered with scope:', registration.scope);
                     },
                     function(err) {
-                      console.log('[Cohart PWA] ServiceWorker registration failed: ', err);
+                      console.log('[Cohart PWA] ServiceWorker registration failed:', err);
                     }
                   );
                 });
