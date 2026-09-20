@@ -53,7 +53,7 @@ export default function AppHomePage() {
   }, [locations, searchFilter]);
 
   return (
-    <div className="min-h-screen bg-[#06080D] text-white flex flex-col font-sans selection:bg-[#387BFF]/30 selection:text-white">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans transition-colors duration-200">
       {/* Top Header */}
       <TopHeader
         profile={profile}

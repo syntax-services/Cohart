@@ -11,34 +11,41 @@ const config: Config = {
     extend: {
       colors: {
         gemini: {
-          bg: "#06080D",
-          surface: "#0B0F18",
-          card: "#101624",
-          elevated: "#161E30",
-          border: "#1E293B",
-          borderLight: "rgba(255, 255, 255, 0.07)",
-          blueBorder: "rgba(59, 130, 246, 0.2)",
-          blue: {
-            DEFAULT: "#387BFF",
-            primary: "#1A73E8",
-            bright: "#387BFF",
-            soft: "#60A5FA",
-            light: "#93C5FD",
-            dark: "#0C2340",
-            deep: "#081326",
+          // Dark theme (Google Gemini official #131314 / #1E1F20)
+          dark: {
+            bg: "#131314",
+            surface: "#1E1F20",
+            elevated: "#282A2C",
+            hover: "#333537",
+            border: "rgba(255, 255, 255, 0.08)",
+            text: "#E3E3E3",
+            muted: "#C4C7C5",
+            subtle: "#8E918F",
+            blue: "#A8C7FA",
+            blueHover: "#8AB4F8",
+            blueContainer: "rgba(168, 199, 250, 0.12)",
           },
-          muted: "#94A3B8",
-          subtle: "#64748B",
+          // Light theme (Google Gemini official #F0F4F9 / #FFFFFF)
+          light: {
+            bg: "#F0F4F9",
+            surface: "#FFFFFF",
+            elevated: "#E9EEF6",
+            hover: "#E1E7F0",
+            border: "rgba(0, 0, 0, 0.08)",
+            text: "#1F1F1F",
+            muted: "#444746",
+            subtle: "#747775",
+            blue: "#0B57D0",
+            blueHover: "#1A73E8",
+            blueContainer: "#D3E3FD",
+          },
         },
       },
-      backgroundImage: {
-        "gemini-radial": "radial-gradient(circle at 50% 0%, rgba(56, 123, 255, 0.18) 0%, rgba(6, 8, 13, 0) 70%)",
-        "gemini-glow": "radial-gradient(circle at 50% 50%, rgba(56, 123, 255, 0.12) 0%, transparent 60%)",
-      },
       boxShadow: {
-        "gemini-blue": "0 0 24px -2px rgba(56, 123, 255, 0.35)",
-        "gemini-subtle": "0 4px 20px -2px rgba(0, 0, 0, 0.5)",
-        "glass": "0 8px 32px 0 rgba(0, 0, 0, 0.4)",
+        "gemini-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "gemini-md": "0 2px 8px -1px rgba(0, 0, 0, 0.08)",
+        "gemini-elevated": "0 4px 16px -2px rgba(0, 0, 0, 0.12)",
+        "gemini-dark-elevated": "0 4px 20px -2px rgba(0, 0, 0, 0.4)",
       },
       fontFamily: {
         sans: [

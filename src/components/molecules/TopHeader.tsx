@@ -5,6 +5,7 @@ import { BrandLogo } from '@/components/brand/BrandLogo';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile } from '@/lib/types';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface TopHeaderProps {
   profile: StudentProfile;
@@ -19,6 +20,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -49,14 +51,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     : 'AJ';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/[0.07] bg-[#06080D]/90 backdrop-blur-2xl">
-      <div className="mx-auto flex h-15 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8 py-2.5">
+    <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] dark:border-white/[0.07] bg-white/90 dark:bg-[#131314]/90 backdrop-blur-xl transition-colors">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8 py-2">
         {/* Brand Identity */}
         <div className="flex items-center gap-4">
-          <BrandLogo size={32} />
+          <BrandLogo size={30} />
           
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.07] text-[11px] font-mono text-slate-400">
-            <GeminiIcon name="sparkle" size={13} className="text-[#387BFF]" />
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
+            <GeminiIcon name="sparkle" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
             <span>AI Core Active</span>
           </div>
         </div>
@@ -64,58 +66,70 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Minimalist Search Bar */}
         <div className="flex-1 max-w-sm mx-3 hidden md:block">
           <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
-              <GeminiIcon name="search" size={15} />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500">
+              <GeminiIcon name="search" size={14} />
             </div>
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
               placeholder="Search lectures, ECO courses, halls..."
-              className="w-full rounded-xl bg-white/[0.03] border border-white/[0.08] pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#387BFF]/60 focus:ring-1 focus:ring-[#387BFF]/30 transition-all font-sans"
+              className="w-full rounded-full bg-neutral-100/80 dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] pl-9 pr-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-all font-sans"
             />
           </div>
         </div>
 
-        {/* Right Status Actions */}
-        <div className="flex items-center gap-2.5">
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
+          {/* Dark / Light Mode Switcher */}
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle dark or light theme"
+            className="flex items-center justify-center h-8 w-8 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:border-black/[0.15] dark:hover:border-white/[0.18] transition-all active:scale-95"
+          >
+            <GeminiIcon
+              name={resolvedTheme === 'dark' ? 'sun' : 'moon'}
+              size={15}
+            />
+          </button>
+
           {/* Network Health Indicator */}
           <div className="hidden xs:flex items-center">
             {isOnline ? (
               <Badge variant="blue" size="sm" className="hidden sm:inline-flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#387BFF] shadow-[0_0_6px_#387BFF]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA]" />
                 <span>PWA Synced</span>
               </Badge>
             ) : (
               <Badge variant="amber" size="sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                 <span>Offline Cache</span>
               </Badge>
             )}
           </div>
 
-          {/* Notifications / Alerts Button */}
+          {/* Notifications Button */}
           <button
-            className="relative rounded-xl border border-white/[0.08] bg-white/[0.03] p-2 text-slate-400 hover:text-white hover:border-white/[0.16] transition-colors active:scale-95"
+            className="relative flex items-center justify-center h-8 w-8 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:border-black/[0.15] dark:hover:border-white/[0.18] transition-colors active:scale-95"
             aria-label="Alerts"
           >
-            <GeminiIcon name="bell" size={17} />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#387BFF] shadow-[0_0_8px_#387BFF]" />
+            <GeminiIcon name="bell" size={15} />
+            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA]" />
           </button>
 
           {/* Student Profile Quick Tab Button */}
           <button
             onClick={onOpenProfile}
-            className="flex items-center gap-2 pl-2 border-l border-white/[0.08] group text-left cursor-pointer"
+            className="flex items-center gap-2 pl-2 border-l border-black/[0.08] dark:border-white/[0.08] group text-left cursor-pointer"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#387BFF]/15 border border-[#387BFF]/30 font-mono text-xs font-semibold text-[#60A5FA] group-hover:border-[#387BFF] transition-all group-hover:shadow-[0_0_12px_rgba(56,123,255,0.3)]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/20 dark:border-[#A8C7FA]/30 font-mono text-[11px] font-semibold text-[#0B57D0] dark:text-[#A8C7FA] group-hover:border-[#0B57D0] dark:group-hover:border-[#A8C7FA] transition-all">
               {initials}
             </div>
             <div className="hidden lg:flex flex-col">
-              <span className="text-xs font-medium text-white group-hover:text-[#60A5FA] transition-colors leading-tight">
+              <span className="text-xs font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors leading-tight">
                 {profile.full_name || 'Student'}
               </span>
-              <span className="text-[10px] font-mono text-slate-400">
+              <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
                 {profile.department} • {profile.level}
               </span>
             </div>

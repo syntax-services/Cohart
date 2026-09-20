@@ -16,10 +16,10 @@ export const Badge: React.FC<BadgeProps> = ({
   size = 'md',
 }) => {
   const variantStyles = {
-    blue: 'bg-[#387BFF]/10 text-[#60A5FA] border-[#387BFF]/25 shadow-[0_0_12px_rgba(56,123,255,0.15)]',
-    slate: 'bg-white/[0.04] text-slate-300 border-white/[0.08]',
-    emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    blue: 'bg-[#0B57D0]/10 text-[#0B57D0] border-[#0B57D0]/20 dark:bg-[#A8C7FA]/10 dark:text-[#A8C7FA] dark:border-[#A8C7FA]/20',
+    slate: 'bg-neutral-100 text-neutral-700 border-neutral-200 dark:bg-white/[0.06] dark:text-neutral-300 dark:border-white/[0.08]',
+    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20',
+    amber: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',
   };
 
   const sizeStyles = {
@@ -29,7 +29,7 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border font-mono font-medium tracking-tight ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border font-mono font-medium tracking-tight transition-colors ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
       {children}
     </span>

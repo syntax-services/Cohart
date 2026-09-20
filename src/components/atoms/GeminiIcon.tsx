@@ -29,7 +29,9 @@ export type IconName =
   | 'copy'
   | 'check-circle'
   | 'filter'
-  | 'shield-check';
+  | 'shield-check'
+  | 'sun'
+  | 'moon';
 
 interface GeminiIconProps {
   name: IconName;
@@ -261,6 +263,26 @@ export const GeminiIcon: React.FC<GeminiIconProps> = ({
         <svg {...commonProps}>
           <path d="M12 3.5L19 6.5V12C19 16.5 16 19.8 12 21C8 19.8 5 16.5 5 12V6.5L12 3.5Z" />
           <path d="M8.5 11.5L11 14L15.5 9" />
+        </svg>
+      );
+    case 'sun':
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="4.5" />
+          <path d="M12 2V4.5" />
+          <path d="M12 19.5V22" />
+          <path d="M4.93 4.93L6.7 6.7" />
+          <path d="M17.3 17.3L19.07 19.07" />
+          <path d="M2 12H4.5" />
+          <path d="M19.5 12H22" />
+          <path d="M4.93 19.07L6.7 17.3" />
+          <path d="M17.3 6.7L19.07 4.93" />
+        </svg>
+      );
+    case 'moon':
+      return (
+        <svg {...commonProps}>
+          <path d="M20.5 14.5C19.5 15.5 18 16 16.5 16C12.4 16 9 12.6 9 8.5C9 7 9.5 5.5 10.5 4.5C6.5 5 3.5 8.4 3.5 12.5C3.5 17.2 7.3 21 12 21C16.1 21 19.5 18 20.5 14.5Z" />
         </svg>
       );
     default:

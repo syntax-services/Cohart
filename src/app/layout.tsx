@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -25,7 +26,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#06080D',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F0F4F9' },
+    { media: '(prefers-color-scheme: dark)', color: '#131314' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -39,16 +43,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`dark ${inter.variable}`}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="theme-color" content="#06080D" />
       </head>
-      <body className="min-h-screen bg-[#06080D] text-white antialiased font-sans selection:bg-[#387BFF]/30 selection:text-white">
-        {children}
+      <body className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] antialiased font-sans">
+        <ThemeProvider>{children}</ThemeProvider>
 
         {/* Service Worker Registration for PWA */}
         <script

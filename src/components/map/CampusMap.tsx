@@ -7,8 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import { Location } from '@/lib/types';
 import { LocationSheet } from './LocationSheet';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
-
-const CARTO_API_KEY = process.env.NEXT_PUBLIC_CARTO_API_KEY || 'cb1_3rjp_1_f8a6fb6d946dbbfeac97230a';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface CampusMapProps {
   locations: Location[];
@@ -36,10 +35,13 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 }) => {
   const [activeLocation, setActiveLocation] = useState<Location | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  // Default to sharp satellite view as requested by the user
+  const [mapLayer, setMapLayer] = useState<'satellite' | 'street'>('satellite');
+  const { resolvedTheme } = useTheme();
 
   // Ago-Iwoye Main Campus default center
   const defaultCenter: [number, number] = [6.9225, 3.8714];
-  const defaultZoom = 16;
+  const defaultZoom = 17;
 
   // Filter locations
   const filteredLocations = useMemo(() => {
@@ -60,38 +62,44 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     }
   }, [selectedLocationId, locations]);
 
-  // Create custom Gemini Blue markers using Leaflet divIcon
+  // Create clean, high-contrast Gemini pins that stand out sharp on satellite view
   const createCustomMarker = (location: Location, isSelected: boolean) => {
     const isEco = location.department === 'Economics';
+    const isSatellite = mapLayer === 'satellite';
+
     return L.divIcon({
       className: 'custom-map-marker',
       html: `
         <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-full cursor-pointer group">
-          <!-- Outer Pulsing Glow -->
-          <span class="absolute -bottom-1 h-3 w-3 rounded-full bg-[#387BFF]/40 animate-ping"></span>
-          
-          <!-- Anchor Pin Body -->
           <div class="relative flex flex-col items-center">
-            <div class="relative flex items-center justify-center h-8 px-2.5 rounded-full backdrop-blur-md transition-all duration-300 ${
+            <div class="relative flex items-center justify-center h-7 px-2.5 rounded-full transition-all duration-150 shadow-md ${
               isSelected
-                ? 'bg-gradient-to-r from-[#1A73E8] to-[#387BFF] text-white font-bold shadow-[0_0_20px_#387BFF] scale-110'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-bold scale-105 border border-white'
                 : isEco
-                ? 'bg-[#080C14]/95 border border-[#387BFF]/80 text-[#60A5FA] shadow-[0_0_12px_rgba(56,123,255,0.4)] hover:scale-105'
-                : 'bg-[#080C14]/90 border border-white/20 text-slate-200 hover:border-[#387BFF]/50'
+                ? isSatellite
+                  ? 'bg-neutral-900/90 text-[#A8C7FA] border border-[#A8C7FA]'
+                  : 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] border border-[#0B57D0]/40 dark:border-[#A8C7FA]/40'
+                : isSatellite
+                ? 'bg-neutral-900/90 text-white border border-white/60'
+                : 'bg-white dark:bg-[#1E1F20] text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700'
             }">
-              <span class="text-[11px] font-mono tracking-tight whitespace-nowrap">
+              <span class="text-[11px] font-mono tracking-tight font-medium whitespace-nowrap">
                 ${location.code || location.name.slice(0, 8)}
               </span>
             </div>
             <!-- Pin Pointer Triangle -->
-            <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] ${
-              isSelected ? 'border-t-[#387BFF]' : isEco ? 'border-t-[#387BFF]' : 'border-t-white/30'
+            <div class="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] ${
+              isSelected
+                ? 'border-t-[#0B57D0] dark:border-t-[#A8C7FA]'
+                : isEco
+                ? 'border-t-[#A8C7FA]'
+                : 'border-t-white/80'
             }"></div>
           </div>
         </div>
       `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 36],
+      iconSize: [36, 36],
+      iconAnchor: [18, 32],
     });
   };
 
@@ -100,29 +108,41 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     if (onSelectLocation) onSelectLocation(loc);
   };
 
+  // Satellite tile: Google Hybrid Satellite (crisp aerial imagery with road and building labels, zero watermark)
+  // Street tile: Vector map depending on dark/light
+  const activeTileUrl = useMemo(() => {
+    if (mapLayer === 'satellite') {
+      return 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+    }
+    return resolvedTheme === 'dark'
+      ? 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
+      : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+  }, [mapLayer, resolvedTheme]);
+
   return (
     <div
-      className={`relative h-full w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-[#06080D] ${className}`}
+      className={`relative h-full w-full overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-neutral-950 ${className}`}
     >
-      {/* Category Pills Bar */}
+      {/* Top Controls Overlay */}
       <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar pointer-events-none">
-        <div className="flex items-center gap-1.5 pointer-events-auto bg-[#080C14]/90 p-1 rounded-xl backdrop-blur-xl border border-white/[0.08] shadow-lg">
+        {/* Category Filter Pills */}
+        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/95 dark:bg-[#1E1F20]/95 p-1 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-sm">
           <button
             onClick={() => setActiveCategory('all')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
               activeCategory === 'all'
-                ? 'bg-gradient-to-r from-[#1A73E8] to-[#387BFF] text-white font-semibold shadow-[0_0_12px_rgba(56,123,255,0.3)]'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
             All Venues
           </button>
           <button
             onClick={() => setActiveCategory('economics')}
-            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded-lg transition-all ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
               activeCategory === 'economics'
-                ? 'bg-gradient-to-r from-[#1A73E8] to-[#387BFF] text-white font-semibold shadow-[0_0_12px_rgba(56,123,255,0.3)]'
-                : 'text-[#60A5FA] hover:bg-[#387BFF]/10'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                : 'text-[#0B57D0] dark:text-[#A8C7FA]'
             }`}
           >
             <GeminiIcon name="sparkle" size={12} />
@@ -130,51 +150,64 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </button>
           <button
             onClick={() => setActiveCategory('lecture_hall')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
               activeCategory === 'lecture_hall'
-                ? 'bg-gradient-to-r from-[#1A73E8] to-[#387BFF] text-white font-semibold shadow-[0_0_12px_rgba(56,123,255,0.3)]'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
             Halls
           </button>
           <button
             onClick={() => setActiveCategory('library')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
               activeCategory === 'library'
-                ? 'bg-gradient-to-r from-[#1A73E8] to-[#387BFF] text-white font-semibold shadow-[0_0_12px_rgba(56,123,255,0.3)]'
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
             Library
           </button>
         </div>
 
-        {/* Quick Focus SMS Complex */}
-        <button
-          onClick={() => {
-            const sms = locations.find((l) => l.code === 'SMS-LT1');
-            if (sms) setActiveLocation(sms);
-          }}
-          className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-xl bg-[#080C14]/90 text-white border border-white/[0.1] backdrop-blur-xl hover:border-[#387BFF]/50 transition-colors shadow-lg"
-        >
-          <GeminiIcon name="compass" size={14} className="text-[#387BFF]" />
-          <span className="hidden sm:inline">Focus SMS</span>
-        </button>
+        {/* Right Action Switchers: Satellite/Map toggle & Focus SMS */}
+        <div className="flex items-center gap-1.5 pointer-events-auto">
+          {/* Satellite / Street Switcher */}
+          <button
+            onClick={() => setMapLayer(mapLayer === 'satellite' ? 'street' : 'satellite')}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-colors shadow-sm"
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="capitalize">{mapLayer}</span>
+          </button>
+
+          {/* Quick Focus SMS Complex */}
+          <button
+            onClick={() => {
+              const sms = locations.find((l) => l.code === 'SMS-LT1');
+              if (sms) setActiveLocation(sms);
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-colors shadow-sm"
+          >
+            <GeminiIcon name="compass" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            <span className="hidden sm:inline">Focus SMS</span>
+          </button>
+        </div>
       </div>
 
-      {/* Map Container without attribution watermark */}
+      {/* Map Container - guaranteed watermark-free with attributionControl={false} */}
       <MapContainer
+        key={`${mapLayer}-${resolvedTheme}`}
         center={defaultCenter}
         zoom={defaultZoom}
         scrollWheelZoom={true}
         attributionControl={false}
         className="h-full w-full z-10"
       >
-        {/* CartoDB Dark Matter with user API Key to prevent watermarks */}
         <TileLayer
-          url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=${CARTO_API_KEY}`}
-          maxZoom={19}
+          url={activeTileUrl}
+          maxZoom={20}
+          subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
         />
 
         {/* Dynamic Focus Controller */}
