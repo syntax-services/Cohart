@@ -54,27 +54,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] dark:border-white/[0.07] bg-white/90 dark:bg-[#131314]/90 backdrop-blur-xl transition-colors">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8 py-2">
         {/* Brand Identity */}
-        <div className="flex items-center gap-4">
-          <BrandLogo size={30} />
-          
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
-            <GeminiIcon name="sparkle" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-            <span>AI Core Active</span>
-          </div>
+        <div className="flex items-center gap-3">
+          <BrandLogo size={28} />
         </div>
 
         {/* Minimalist Search Bar */}
-        <div className="flex-1 max-w-sm mx-3 hidden md:block">
+        <div className="flex-1 max-w-sm mx-4 hidden md:block">
           <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500">
               <GeminiIcon name="search" size={14} />
             </div>
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder="Search lectures, ECO courses, halls..."
-              className="w-full rounded-full bg-neutral-100/80 dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] pl-9 pr-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-all font-sans"
+              placeholder="Search lectures, halls, courses..."
+              className="w-full rounded-full bg-neutral-100/90 dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] pl-9 pr-3.5 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-colors font-sans"
             />
           </div>
         </div>
@@ -84,29 +79,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {/* Dark / Light Mode Switcher */}
           <button
             onClick={toggleTheme}
-            aria-label="Toggle dark or light theme"
-            className="flex items-center justify-center h-8 w-8 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:border-black/[0.15] dark:hover:border-white/[0.18] transition-all active:scale-95"
+            aria-label="Toggle theme"
+            className="flex items-center justify-center h-8 w-8 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors active:scale-95"
           >
             <GeminiIcon
               name={resolvedTheme === 'dark' ? 'sun' : 'moon'}
               size={15}
             />
           </button>
-
-          {/* Network Health Indicator */}
-          <div className="hidden xs:flex items-center">
-            {isOnline ? (
-              <Badge variant="blue" size="sm" className="hidden sm:inline-flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA]" />
-                <span>PWA Synced</span>
-              </Badge>
-            ) : (
-              <Badge variant="amber" size="sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                <span>Offline Cache</span>
-              </Badge>
-            )}
-          </div>
 
           {/* Notifications Button */}
           <button

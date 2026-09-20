@@ -33,19 +33,13 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
   return (
     <div className="space-y-4 sm:space-y-5">
       {/* Schedule Header & Day Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] shadow-sm transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
         <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-xs font-mono font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
-              {profile.department}
-            </span>
-            <span className="text-neutral-300 dark:text-neutral-600">•</span>
-            <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-              {profile.level} Master Timetable
-            </span>
-          </div>
-          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
-            Lecture Schedule & Attendance
+          <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+            {profile.department} • {profile.level}
+          </span>
+          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans mt-0.5">
+            Weekly Schedule
           </h1>
         </div>
 
@@ -67,30 +61,23 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
         </div>
       </div>
 
-      {/* Proactive Attendance Advisor Banner */}
-      <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-[#282A2C] border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20">
-        <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-            <GeminiIcon name="sparkle" size={16} />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
-              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Smart Attendance Advisor</h3>
-              <Badge variant="blue" size="sm">
-                <span>{advice.rate}% CA Readiness</span>
-              </Badge>
-            </div>
-            <p className="text-xs text-neutral-600 dark:text-neutral-300 font-sans leading-relaxed">
-              {advice.text}
-            </p>
-          </div>
+      {/* Attendance Status Bar */}
+      <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2">
+          <GeminiIcon name="check-circle" size={15} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+          <span className="text-neutral-700 dark:text-neutral-300 font-sans">
+            {advice.text}
+          </span>
         </div>
+        <span className="font-mono font-medium text-[#0B57D0] dark:text-[#A8C7FA] shrink-0">
+          {advice.rate}% Logged
+        </span>
       </div>
 
       {/* Toast feedback */}
       {markedToast && (
         <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-mono flex items-center gap-2 animate-in fade-in">
-          <GeminiIcon name="check-circle" size={15} />
+          <GeminiIcon name="check" size={14} />
           <span>{markedToast}</span>
         </div>
       )}
@@ -100,7 +87,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
         {filteredSchedule.length === 0 ? (
           <GeminiCard className="text-center py-10">
             <p className="text-xs font-mono text-neutral-500 dark:text-neutral-400">
-              No scheduled lectures found for {activeDay}.
+              No scheduled lectures for {activeDay}.
             </p>
           </GeminiCard>
         ) : (
@@ -108,7 +95,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
             const hasMarked = hasMarkedToday(lecture.courseCode);
 
             return (
-              <GeminiCard key={lecture.id} glow={lecture.isLiveNow}>
+              <GeminiCard key={lecture.id}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -116,10 +103,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                         {lecture.courseCode}
                       </span>
                       {lecture.isLiveNow && (
-                        <Badge variant="blue" size="sm">
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA]" />
-                          <span>Active Now</span>
-                        </Badge>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
+                          Active Now
+                        </span>
                       )}
                       <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
                         {lecture.time}
@@ -129,8 +115,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                     <h2 className="text-xs sm:text-sm font-medium text-neutral-800 dark:text-neutral-200">
                       {lecture.courseTitle}
                     </h2>
-                    <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-1">
-                      Lecturer: {lecture.lecturer} • Venue: {lecture.venueName}
+                    <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      Lecturer: {lecture.lecturer} • {lecture.venueName}
                     </p>
                   </div>
 
@@ -174,31 +160,31 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                 <GeminiIcon name="bell" size={15} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Upcoming Test Reminders</h3>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Upcoming Assessments</h3>
                 <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Department CA Schedule</p>
               </div>
             </div>
-            <Badge variant="blue" size="sm">2 Upcoming</Badge>
+            <span className="text-xs font-mono text-neutral-500">2 upcoming</span>
           </div>
 
           <div className="space-y-2 text-xs">
-            <div className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.05]">
+            <div className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]">
               <div className="flex justify-between font-mono text-[11px] mb-1">
-                <span className="text-neutral-900 dark:text-neutral-100 font-medium">ECO 201 Continuous Assessment</span>
+                <span className="text-neutral-900 dark:text-neutral-100 font-medium">ECO 201 Test</span>
                 <span className="text-[#0B57D0] dark:text-[#A8C7FA]">Oct 18 • 10:00 AM</span>
               </div>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                Venue: SMS Lecture Theatre 1. Focus: Cournot Equilibrium & Consumer Surplus.
+                SMS Lecture Theatre 1 • Cournot Equilibrium & Consumer Surplus
               </p>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.05]">
+            <div className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]">
               <div className="flex justify-between font-mono text-[11px] mb-1">
-                <span className="text-neutral-900 dark:text-neutral-100 font-medium">ECO 203 Empirical Statistics Quiz</span>
+                <span className="text-neutral-900 dark:text-neutral-100 font-medium">ECO 203 Statistics Quiz</span>
                 <span className="text-[#0B57D0] dark:text-[#A8C7FA]">Oct 24 • 11:30 AM</span>
               </div>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                Venue: ETF Hall A. Scientific calculator & statistical table mandatory.
+                ETF Hall A • Tables & scientific calculators permitted
               </p>
             </div>
           </div>
@@ -212,11 +198,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                 <GeminiIcon name="shield-check" size={15} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Recent Attendance Logs</h3>
-                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Supabase Verified</p>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Recent Attendance</h3>
+                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Verified Logs</p>
               </div>
             </div>
-            <Badge variant="emerald" size="sm">{logs.length} Logged</Badge>
+            <span className="text-xs font-mono text-neutral-500">{logs.length} logged</span>
           </div>
 
           {logs.length === 0 ? (

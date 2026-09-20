@@ -149,23 +149,13 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Reader Control Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] shadow-sm transition-colors">
+      {/* Reader Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
         <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-xs font-mono font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
-              {SAMPLE_CHAPTER.courseCode}
-            </span>
-            <span className="text-neutral-300 dark:text-neutral-600">•</span>
-            <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-              {SAMPLE_CHAPTER.readTimeMinutes} min read
-            </span>
-            <span className="text-neutral-300 dark:text-neutral-600">•</span>
-            <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-              {profile.reading_speed_wpm} WPM Paced
-            </span>
-          </div>
-          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
+          <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+            {SAMPLE_CHAPTER.courseCode} • {SAMPLE_CHAPTER.readTimeMinutes} min read
+          </span>
+          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans mt-0.5">
             {SAMPLE_CHAPTER.title}
           </h1>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">{SAMPLE_CHAPTER.subtitle}</p>
@@ -176,22 +166,21 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
           {/* Bionic Toggle */}
           <button
             onClick={() => setIsBionic(!isBionic)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
               isBionic
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950'
-                : 'bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 border border-black/[0.08] dark:border-white/[0.08]'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
             }`}
           >
-            <GeminiIcon name="zap" size={13} />
-            <span>Bionic {isBionic ? 'On' : 'Off'}</span>
+            <span>Bionic: {isBionic ? 'On' : 'Off'}</span>
           </button>
 
           {/* Font Sizing */}
-          <div className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
+          <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
             <button
               onClick={() => setFontSize('sm')}
               className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs' : 'text-neutral-500'
+                fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
               }`}
             >
               A-
@@ -199,7 +188,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
             <button
               onClick={() => setFontSize('md')}
               className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs' : 'text-neutral-500'
+                fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
               }`}
             >
               A
@@ -207,7 +196,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
             <button
               onClick={() => setFontSize('lg')}
               className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs' : 'text-neutral-500'
+                fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
               }`}
             >
               A+
@@ -218,19 +207,18 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
 
       {/* Floating Highlight Action Capsule when text is selected */}
       {selectedText && (
-        <div className="sticky top-16 z-30 flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-2">
+        <div className="sticky top-16 z-30 flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.1] dark:border-white/[0.1] backdrop-blur-md shadow-md animate-in fade-in">
           <div className="flex items-center gap-2 overflow-hidden text-xs">
-            <GeminiIcon name="sparkle" size={15} className="text-[#0B57D0] dark:text-[#A8C7FA] shrink-0" />
             <span className="text-neutral-800 dark:text-neutral-200 font-sans truncate">
-              "{selectedText.slice(0, 45)}..."
+              "{selectedText.slice(0, 40)}..."
             </span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => handleExplainSelection()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
+              className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
             >
-              <span>Explain</span>
+              Explain
             </button>
             <button
               onClick={() => setSelectedText('')}
@@ -274,15 +262,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
                   )}
                 </p>
 
-                {/* Non-intrusive Active Recall Checkpoint */}
+                {/* Clean Knowledge Checkpoint */}
                 {checkpoint && (
-                  <div className="my-5 p-4 rounded-2xl bg-neutral-50 dark:bg-[#282A2C] border border-black/[0.06] dark:border-white/[0.08]">
+                  <div className="my-5 p-4 rounded-2xl bg-neutral-50 dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                        <GeminiIcon name="brain" size={12} />
-                      </div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
-                        Active Recall Checkpoint
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-500 font-medium">
+                        Checkpoint
                       </span>
                     </div>
 
@@ -420,11 +405,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
               <GeminiIcon name="chat" size={15} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Discussion with Cohart AI</h3>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Contextual to {SAMPLE_CHAPTER.courseCode}</p>
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Ask Cohart AI</h3>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">{SAMPLE_CHAPTER.courseCode} Q&A</p>
             </div>
           </div>
-          <Badge variant="blue" size="sm">Course Aware</Badge>
         </div>
 
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1 mb-3">
@@ -434,11 +418,11 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
               className={`p-3 rounded-2xl text-xs font-sans leading-relaxed ${
                 msg.role === 'user'
                   ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-neutral-900 dark:text-white ml-6'
-                  : 'bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] text-neutral-700 dark:text-neutral-300 mr-6'
+                  : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] text-neutral-700 dark:text-neutral-300 mr-6'
               }`}
             >
               <div className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 mb-0.5">
-                {msg.role === 'user' ? 'You' : 'Cohart Tutor'}
+                {msg.role === 'user' ? 'You' : 'Cohart'}
               </div>
               {msg.text}
             </div>

@@ -46,8 +46,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   // Filter locations
   const filteredLocations = useMemo(() => {
     if (activeCategory === 'all') return locations;
-    if (activeCategory === 'economics') {
-      return locations.filter((l) => l.department === 'Economics' || l.faculty.includes('Social'));
+    if (activeCategory === 'library_lab') {
+      return locations.filter((l) => l.category === 'library' || l.category === 'lab');
     }
     return locations.filter((l) => l.category === activeCategory);
   }, [locations, activeCategory]);
@@ -126,31 +126,20 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       {/* Top Controls Overlay */}
       <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar pointer-events-none">
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/95 dark:bg-[#1E1F20]/95 p-1 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-sm">
+        <div className="flex items-center gap-1 pointer-events-auto bg-white/95 dark:bg-[#1E1F20]/95 p-1 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-sm">
           <button
             onClick={() => setActiveCategory('all')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
               activeCategory === 'all'
                 ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
-            All Venues
-          </button>
-          <button
-            onClick={() => setActiveCategory('economics')}
-            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
-              activeCategory === 'economics'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
-                : 'text-[#0B57D0] dark:text-[#A8C7FA]'
-            }`}
-          >
-            <GeminiIcon name="sparkle" size={12} />
-            <span>Economics (SMS)</span>
+            All
           </button>
           <button
             onClick={() => setActiveCategory('lecture_hall')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
               activeCategory === 'lecture_hall'
                 ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -159,14 +148,34 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             Halls
           </button>
           <button
-            onClick={() => setActiveCategory('library')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-all ${
-              activeCategory === 'library'
+            onClick={() => setActiveCategory('faculty')}
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
+              activeCategory === 'faculty'
                 ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
-            Library
+            Faculties
+          </button>
+          <button
+            onClick={() => setActiveCategory('library_lab')}
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
+              activeCategory === 'library_lab'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            Libraries & Labs
+          </button>
+          <button
+            onClick={() => setActiveCategory('amenity')}
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
+              activeCategory === 'amenity'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            Services
           </button>
         </div>
 

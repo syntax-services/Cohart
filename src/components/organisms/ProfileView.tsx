@@ -145,10 +145,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   return (
     <div className="space-y-4 sm:space-y-5">
       {/* Student Profile Identity Card */}
-      <GeminiCard glow>
+      <GeminiCard>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] font-mono text-base font-bold text-white dark:text-neutral-950">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] font-mono text-sm font-bold text-white dark:text-neutral-950">
               {initials}
             </div>
 
@@ -158,10 +158,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   {profile.full_name}
                 </h1>
                 {profile.is_verified_coordinator && (
-                  <Badge variant="blue" size="sm">
-                    <GeminiIcon name="shield-check" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                    <span>Verified Dept Coordinator</span>
-                  </Badge>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-300">
+                    Dept Rep
+                  </span>
                 )}
               </div>
               <p className="text-xs font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
@@ -175,10 +174,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
           <button
             onClick={() => setIsEditingBasic(!isEditingBasic)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
           >
-            <GeminiIcon name="user" size={14} />
-            <span>{isEditingBasic ? 'Close' : 'Edit Details'}</span>
+            <span>{isEditingBasic ? 'Done' : 'Edit'}</span>
           </button>
         </div>
 
@@ -231,7 +229,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 onClick={handleSaveBasic}
                 className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90"
               >
-                Save Updates
+                Save
               </button>
             </div>
           </div>
@@ -248,7 +246,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div>
               <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Theme & Appearance</h2>
               <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                Choose theme or sync with your browser default
+                Choose theme or sync with system
               </p>
             </div>
           </div>
@@ -264,10 +262,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 className={`py-2 px-3 rounded-xl border text-xs font-sans capitalize transition-all text-center ${
                   isSelected
                     ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0] dark:border-[#A8C7FA] text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
-                    : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
-                {mode === 'system' ? 'Device / OS' : mode}
+                {mode === 'system' ? 'System' : mode}
               </button>
             );
           })}
@@ -282,61 +280,40 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <GeminiIcon name="brain" size={15} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Cognitive Traits & AI Adaptation</h2>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Cognitive Traits</h2>
               <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                How Cohart AI tunes explanations for your manner
+                Tuned: {profile.learning_style.replace('_', ' ')}
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setShowQuestionnaire(true)}
-            className="flex items-center gap-1 text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline"
+            className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline"
           >
-            <GeminiIcon name="sparkle" size={13} />
-            <span>Retake AI Quiz</span>
+            Retake Quiz
           </button>
         </div>
 
-        {/* Learning Style Status */}
-        <div className="p-3 rounded-xl bg-neutral-50 dark:bg-[#282A2C] border border-black/[0.06] dark:border-white/[0.06] mb-3 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-mono text-neutral-500 uppercase">Active AI Explanation Mode</span>
-            <p className="text-xs font-semibold text-neutral-900 dark:text-white mt-0.5 capitalize">
-              {profile.learning_style.replace('_', ' ')}
-            </p>
-          </div>
-          <Badge variant="blue" size="sm">Tuned to You</Badge>
-        </div>
-
         {/* Cognitive Traits Selector Chips */}
-        <div>
-          <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 block mb-2">
-            Select your cognitive traits:
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {cognitiveTraitOptions.map((trait) => {
-              const isSelected = profile.cognitive_traits.includes(trait);
-              return (
-                <button
-                  key={trait}
-                  onClick={() => handleToggleTrait(trait)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans transition-all active:scale-95 ${
-                    isSelected
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/40 dark:border-[#A8C7FA]/40 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
-                      : 'bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                  }`}
-                >
-                  <GeminiIcon
-                    name={isSelected ? 'check' : 'sparkle'}
-                    size={12}
-                    className={isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-400'}
-                  />
-                  <span>{trait}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex flex-wrap gap-1.5">
+          {cognitiveTraitOptions.map((trait) => {
+            const isSelected = profile.cognitive_traits.includes(trait);
+            return (
+              <button
+                key={trait}
+                onClick={() => handleToggleTrait(trait)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans transition-all active:scale-95 ${
+                  isSelected
+                    ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
+                    : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                {isSelected && <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
+                <span>{trait}</span>
+              </button>
+            );
+          })}
         </div>
       </GeminiCard>
 
@@ -348,17 +325,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <GeminiIcon name="wallet" size={15} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Student Referral & Paystack Wallet</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Earn per invited course mate</p>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Referral Balance</h2>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Earn per invited student</p>
             </div>
           </div>
-          <Badge variant="emerald" size="sm">Paystack Verified</Badge>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Balance Widget */}
-          <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-[#282A2C] border border-black/[0.06] dark:border-white/[0.06]">
-            <span className="text-[10px] font-mono text-neutral-500 uppercase">Available Withdrawable Balance</span>
+          <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
+            <span className="text-[10px] font-mono text-neutral-500 uppercase">Balance</span>
             <div className="flex items-baseline gap-1 mt-1">
               <span className="text-2xl font-bold text-neutral-900 dark:text-white font-mono">
                 ₦{(profile.wallet_balance || 0).toLocaleString()}
@@ -366,16 +342,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
             <button
               onClick={() => setShowWithdrawModal(true)}
-              className="mt-3 w-full py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95"
+              className="mt-3 w-full py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
             >
-              Withdraw via Paystack
+              Withdraw
             </button>
           </div>
 
           {/* Referral Code Box */}
-          <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-[#282A2C] border border-black/[0.06] dark:border-white/[0.06] flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] flex flex-col justify-between">
             <div>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase">Your Referral Code</span>
+              <span className="text-[10px] font-mono text-neutral-500 uppercase">Referral Code</span>
               <div className="flex items-center justify-between mt-1 p-2 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.06]">
                 <span className="text-sm font-mono font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
                   {profile.referral_code}
@@ -390,7 +366,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-sans">
-              Earn ₦500 instantly into your balance for each verified departmental student who activates Cohart Pro.
+              ₦500 bonus credited for each course mate who signs up with your code.
             </p>
           </div>
         </div>

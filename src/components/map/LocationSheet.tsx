@@ -60,20 +60,20 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({ location, onClose 
                   <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA]">
                     {location.code || 'VENUE'}
                   </span>
-                  <Badge variant="blue" size="sm">
+                  <span className="text-[11px] font-mono text-neutral-500 capitalize">
                     {location.category.replace('_', ' ')}
-                  </Badge>
+                  </span>
                   {location.capacity && (
-                    <Badge variant="slate" size="sm">
-                      <span>{location.capacity} seats</span>
-                    </Badge>
+                    <span className="text-[11px] font-mono text-neutral-400">
+                      • {location.capacity} capacity
+                    </span>
                   )}
                 </div>
                 <h3 className="text-lg sm:text-xl font-semibold tracking-tight font-sans">
                   {location.name}
                 </h3>
                 <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-                  {location.faculty} {location.department ? `• Dept. of ${location.department}` : ''}
+                  {location.faculty} {location.department ? `• ${location.department}` : ''}
                 </p>
               </div>
 
@@ -93,12 +93,12 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({ location, onClose 
               </p>
 
               {/* Orientation Guide Box */}
-              <div className="rounded-xl border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 bg-[#0B57D0]/[0.03] dark:bg-[#A8C7FA]/[0.04] p-3.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="compass" size={15} />
-                  <span>Resumption Orientation Tip</span>
+              <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+                  <GeminiIcon name="compass" size={14} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+                  <span>Directions & Access</span>
                 </div>
-                <p className="mt-1.5 text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">
+                <p className="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
                   {location.orientation_tips}
                 </p>
               </div>
