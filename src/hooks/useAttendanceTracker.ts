@@ -88,9 +88,10 @@ export function useAttendanceTracker(userId: string) {
         course_code: courseCode,
         venue,
         status: 'present',
-        attended_at: new Date().toISOString(),
       });
-      setLogs((prev) => [newEntry, ...prev]);
+      if (newEntry) {
+        setLogs((prev) => [newEntry, ...prev]);
+      }
       return newEntry;
     } finally {
       setIsSubmitting(false);

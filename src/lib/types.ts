@@ -6,6 +6,12 @@ export type LocationCategory =
   | 'lab'
   | 'amenity';
 
+export interface LocationImage {
+  url: string;
+  caption: string;
+  year?: string;
+}
+
 export interface Location {
   id: string;
   name: string;
@@ -18,6 +24,7 @@ export interface Location {
   longitude: number;
   capacity?: number;
   orientation_tips: string;
+  images?: LocationImage[];
   is_active?: boolean;
 }
 

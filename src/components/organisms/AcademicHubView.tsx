@@ -70,7 +70,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
 
       {/* Primary Highlights Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* Today's Schedule Highlight */}
+        {/* Resumption Guidance Highlight */}
         <div className="md:col-span-7">
           <GeminiCard className="h-full flex flex-col justify-between">
             <div>
@@ -80,60 +80,58 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
                     <GeminiIcon name="calendar" size={15} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Today's Lectures</h2>
-                    <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Monday Schedule</p>
+                    <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Resumption Orientation</h2>
+                    <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Pre-Lecture Protocol</p>
                   </div>
                 </div>
-                <Badge variant="blue" size="sm">Active</Badge>
+                <Badge variant="blue" size="sm">First Semester</Badge>
               </div>
 
-              {/* Active Lecture Box */}
+              {/* Resumption Notice Box */}
               <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] mb-3">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-neutral-900 dark:text-white tracking-tight">ECO 201</span>
-                      <span className="text-[10px] font-mono text-[#0B57D0] dark:text-[#A8C7FA]">08:00 - 10:00</span>
+                      <span className="text-sm font-bold text-neutral-900 dark:text-white tracking-tight">Portal & Clearance Period</span>
+                      <span className="text-[10px] font-mono text-[#0B57D0] dark:text-[#A8C7FA]">Active</span>
                     </div>
-                    <p className="text-xs text-neutral-700 dark:text-neutral-200 mt-0.5">Principles of Microeconomics II</p>
-                    <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">Dr. K. Balogun</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300">SMS LT1</span>
+                    <p className="text-xs text-neutral-700 dark:text-neutral-200 mt-1 leading-relaxed">
+                      All returning and fresh students are advised to complete online course registrations, pay departmental dues, and print four (4) green copies of course forms before physical lectures begin.
+                    </p>
                   </div>
                 </div>
 
                 <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-xs">
-                  <span className="text-[11px] text-neutral-500 dark:text-neutral-400">Ground floor, East wing</span>
+                  <span className="text-[11px] text-neutral-500 dark:text-neutral-400">Lectures commence post-verification</span>
                   <button
-                    onClick={() => onSelectVenue('SMS-LT1')}
+                    onClick={onOpenSchedule}
                     className="flex items-center gap-1 text-[11px] font-medium text-[#0B57D0] dark:text-[#A8C7FA] hover:underline"
                   >
-                    <span>View Map</span>
+                    <span>Check Schedule</span>
                     <GeminiIcon name="arrow-right" size={13} />
                   </button>
                 </div>
               </div>
 
-              {/* Next Lecture */}
+              {/* Early Preparation Note */}
               <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] flex justify-between items-center text-xs">
                 <div>
-                  <span className="font-semibold text-neutral-800 dark:text-neutral-200">ECO 203: Applied Statistics</span>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">11:00 - 13:00 • ETF Complex Hall A</p>
+                  <span className="font-semibold text-neutral-800 dark:text-neutral-200">First 2 Topics Course Prep</span>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Read foundational chapters in Interactive Reader</p>
                 </div>
                 <button
-                  onClick={onOpenSchedule}
+                  onClick={onOpenReader}
                   className="text-xs text-[#0B57D0] dark:text-[#A8C7FA] hover:underline font-mono"
                 >
-                  Timetable &rarr;
+                  Start Reading &rarr;
                 </button>
               </div>
             </div>
 
             <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-              <span>Departmental Timetable</span>
-              <button onClick={onOpenSchedule} className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline">
-                Mark Attendance
+              <span>Academic Session 2024/2025</span>
+              <button onClick={() => onSelectVenue('LLT-1')} className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline">
+                Locate LLT 1
               </button>
             </div>
           </GeminiCard>

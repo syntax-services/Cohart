@@ -11,14 +11,26 @@ import { CampusMapWrapper } from '@/components/map/CampusMapWrapper';
 import { Location } from '@/lib/types';
 import { fetchLocations } from '@/lib/supabase';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 export default function AppHomePage() {
-  const [activeTab, setActiveTab] = useState<NavTab>('hub');
+  const [activeTab, setActiveTab] = useState<NavTab>('map');
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [pendingTab, setPendingTab] = useState<NavTab | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const { profile, saveProfile } = useStudentProfile();
+
+  useEffect(() => {
+    // Check local authentication state
+    const storedUser = localStorage.getItem('cohart_auth_user');
+    if (storedUser) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   useEffect(() => {
     async function loadLocations() {
@@ -27,6 +39,40 @@ export default function AppHomePage() {
     }
     loadLocations();
   }, []);
+
+  // Intercept navigation for unauthenticated guests
+  const handleTabChange = (targetTab: NavTab) => {
+    if (targetTab === 'map') {
+      setActiveTab('map');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setPendingTab(targetTab);
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    setActiveTab(targetTab);
+  };
+
+  const handleAuthSuccess = (fullName: string, email: string) => {
+    setIsAuthenticated(true);
+    localStorage.setItem(
+      'cohart_auth_user',
+      JSON.stringify({ fullName, email, timestamp: new Date().toISOString() })
+    );
+    saveProfile({
+      full_name: fullName,
+      email,
+    });
+    if (pendingTab) {
+      setActiveTab(pendingTab);
+      setPendingTab(null);
+    } else {
+      setActiveTab('hub');
+    }
+  };
 
   const handleSelectVenue = (locationCode: string) => {
     const target = locations.find(
@@ -104,7 +150,14 @@ export default function AppHomePage() {
       </main>
 
       {/* PWA Floating Bottom Navigation Bar */}
-      <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
+      <BottomNav activeTab={activeTab} onChangeTab={handleTabChange} />
+
+      {/* Guest Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 }

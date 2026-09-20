@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
-import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile } from '@/lib/types';
-import { useTheme } from '@/components/ThemeProvider';
 
 interface TopHeaderProps {
   profile: StudentProfile;
@@ -20,7 +18,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const { resolvedTheme, toggleTheme } = useTheme();
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -76,43 +73,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          {/* Dark / Light Mode Switcher */}
-          <button
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="flex items-center justify-center h-8 w-8 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors active:scale-95"
-          >
-            <GeminiIcon
-              name={resolvedTheme === 'dark' ? 'sun' : 'moon'}
-              size={15}
-            />
-          </button>
-
-          {/* Notifications Button */}
-          <button
-            className="relative flex items-center justify-center h-8 w-8 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:border-black/[0.15] dark:hover:border-white/[0.18] transition-colors active:scale-95"
-            aria-label="Alerts"
-          >
-            <GeminiIcon name="bell" size={15} />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA]" />
-          </button>
-
-          {/* Student Profile Quick Tab Button */}
+          {/* Account / Profile Quick Action */}
           <button
             onClick={onOpenProfile}
-            className="flex items-center gap-2 pl-2 border-l border-black/[0.08] dark:border-white/[0.08] group text-left cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-800 dark:text-neutral-200 transition-all active:scale-95 text-xs font-medium"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/20 dark:border-[#A8C7FA]/30 font-mono text-[11px] font-semibold text-[#0B57D0] dark:text-[#A8C7FA] group-hover:border-[#0B57D0] dark:group-hover:border-[#A8C7FA] transition-all">
-              {initials}
-            </div>
-            <div className="hidden lg:flex flex-col">
-              <span className="text-xs font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors leading-tight">
-                {profile.full_name || 'Student'}
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                {profile.department} • {profile.level}
-              </span>
-            </div>
+            <GeminiIcon name="user" size={14} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            <span className="hidden sm:inline font-sans">{profile.full_name?.split(' ')[0] || 'Account'}</span>
           </button>
         </div>
       </div>

@@ -86,6 +86,44 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({ location, onClose 
               </button>
             </div>
 
+            {/* Chronological Photo Gallery (Newest till Oldest) */}
+            {location.images && location.images.length > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                    Architectural Records ({location.images.length} photos • newest first)
+                  </span>
+                </div>
+                <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1 snap-x">
+                  {location.images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative shrink-0 w-64 sm:w-72 h-36 sm:h-40 rounded-xl overflow-hidden border border-black/[0.08] dark:border-white/[0.1] bg-black/[0.04] dark:bg-white/[0.04] snap-start group"
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.caption}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-2.5 text-white">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          {img.year && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/20 backdrop-blur-xs font-semibold">
+                              {img.year} {idx === 0 ? '• Recent' : '• Archive'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] font-sans font-medium line-clamp-1 leading-tight">
+                          {img.caption}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Description & Orientation Tips */}
             <div className="mt-4 space-y-3">
               <p className="text-xs leading-relaxed text-neutral-700 dark:text-neutral-300">

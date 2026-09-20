@@ -8,7 +8,9 @@ import { formatBionicText } from '@/lib/bionic';
 import { StudentProfile, ReaderChapter } from '@/lib/types';
 import { saveExplanation } from '@/lib/supabase';
 
-const SAMPLE_CHAPTER: ReaderChapter = {
+import { CampusAiAssistant } from './CampusAiAssistant';
+
+const TOPIC_1: ReaderChapter = {
   id: 'chap_eco_201_oligopoly',
   courseCode: 'ECO 201',
   title: 'Cournot Equilibrium & Strategic Interdependence',
@@ -53,11 +55,46 @@ const SAMPLE_CHAPTER: ReaderChapter = {
   ],
 };
 
+const TOPIC_2: ReaderChapter = {
+  id: 'chap_eco_201_bertrand',
+  courseCode: 'ECO 201',
+  title: 'Bertrand Price Competition & The Bertrand Paradox',
+  subtitle: 'Price War Dynamics, Homogeneous Products & Marginal Cost Equilibrium',
+  readTimeMinutes: 4,
+  paragraphs: [
+    'Joseph Bertrand presented a critical alternative to Cournot by stipulating that firms in an oligopoly compete on price rather than output quantities. When consumers view products as identical and have zero switching costs, they purchase exclusively from the firm offering the lower price.',
+    'This pricing dynamic triggers a fierce downward price-cutting spiral. If Firm A charges even slightly higher than Firm B, Firm A faces zero consumer demand, creating continuous incentives for each firm to undercut its competitor.',
+    'The theoretical equilibrium terminates when both firms set price equal to marginal cost (P = MC). This conclusion is famously termed the "Bertrand Paradox": even with as few as two firms in the industry, the market replicates the perfectly competitive pricing outcome with zero economic profit.',
+    'In real-world Nigerian markets, this paradox is resolved by capacity constraints, brand differentiation, consumer loyalty, and geographic transportation frictions, enabling firms to sustain positive profit margins.',
+  ],
+  checkpoints: [
+    {
+      id: 'chk_b1',
+      paragraphIndex: 2,
+      prompt: 'Quick Recall: What is the outcome of the Bertrand Paradox with homogeneous goods?',
+      options: [
+        'Both firms charge monopoly prices',
+        'Price equals marginal cost (P = MC) with zero economic profit',
+        'Firms divide the market into geographical cartels',
+        'Both firms merge into a conglomerate',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Correct. The Bertrand Paradox demonstrates that price drops down to marginal cost, yielding zero economic profit even with only two firms.',
+    },
+  ],
+};
+
 interface InteractiveReaderProps {
   profile: StudentProfile;
+  onLocateVenue?: (code: string) => void;
 }
 
-export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile }) => {
+export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, onLocateVenue }) => {
+  const [activeView, setActiveView] = useState<'reader' | 'ai'>('reader');
+  const [activeTopicIndex, setActiveTopicIndex] = useState<0 | 1>(0);
+  const currentChapter = activeTopicIndex === 0 ? TOPIC_1 : TOPIC_2;
+
   const [isBionic, setIsBionic] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [selectedText, setSelectedText] = useState<string>('');
@@ -116,10 +153,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
   const handleSaveToVault = async () => {
     if (!aiExplanation || !selectedText) return;
     await saveExplanation({
-      course_code: SAMPLE_CHAPTER.courseCode,
+      course_code: currentChapter.courseCode,
       selected_text: selectedText,
       ai_explanation: aiExplanation,
-      context_topic: SAMPLE_CHAPTER.title,
+      context_topic: currentChapter.title,
     });
     setIsSaved(true);
   };
@@ -135,7 +172,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
         ...prev,
         {
           role: 'assistant',
-          text: `In relation to ${SAMPLE_CHAPTER.courseCode}: When analyzing '${query}', remember that firm output decisions depend directly on rival assumptions. At Cournot equilibrium, the reaction curves r₁(q₂) and r₂(q₁) cross, so both firms are optimizing simultaneously.`,
+          text: `In relation to ${currentChapter.courseCode}: When analyzing '${query}', remember that firm decisions depend directly on market conditions. At equilibrium, neither firm has an incentive to unilaterally deviate.`,
         },
       ]);
     }, 450);
@@ -149,303 +186,341 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile })
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Reader Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
-        <div>
-          <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-            {SAMPLE_CHAPTER.courseCode} • {SAMPLE_CHAPTER.readTimeMinutes} min read
-          </span>
-          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans mt-0.5">
-            {SAMPLE_CHAPTER.title}
-          </h1>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">{SAMPLE_CHAPTER.subtitle}</p>
-        </div>
-
-        {/* Reader Customizer Actions */}
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          {/* Bionic Toggle */}
+      {/* Top Segmented Mode Selector: Course Reader vs Campus AI */}
+      <div className="flex items-center justify-between p-1.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08]">
+        <div className="flex items-center gap-1 w-full sm:w-auto">
           <button
-            onClick={() => setIsBionic(!isBionic)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
-              isBionic
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
-                : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
+            onClick={() => setActiveView('reader')}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+              activeView === 'reader'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
-            <span>Bionic: {isBionic ? 'On' : 'Off'}</span>
+            <GeminiIcon name="reader" size={14} />
+            <span>Course Reader (Early Prep)</span>
           </button>
 
-          {/* Font Sizing */}
-          <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
-            <button
-              onClick={() => setFontSize('sm')}
-              className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
-              }`}
-            >
-              A-
-            </button>
-            <button
-              onClick={() => setFontSize('md')}
-              className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
-              }`}
-            >
-              A
-            </button>
-            <button
-              onClick={() => setFontSize('lg')}
-              className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
-              }`}
-            >
-              A+
-            </button>
-          </div>
+          <button
+            onClick={() => setActiveView('ai')}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+              activeView === 'ai'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            <GeminiIcon name="sparkle" size={14} />
+            <span>Campus AI Assistant</span>
+          </button>
         </div>
       </div>
 
-      {/* Floating Highlight Action Capsule when text is selected */}
-      {selectedText && (
-        <div className="sticky top-16 z-30 flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.1] dark:border-white/[0.1] backdrop-blur-md shadow-md animate-in fade-in">
-          <div className="flex items-center gap-2 overflow-hidden text-xs">
-            <span className="text-neutral-800 dark:text-neutral-200 font-sans truncate">
-              "{selectedText.slice(0, 40)}..."
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+      {activeView === 'ai' ? (
+        <CampusAiAssistant profile={profile} onSelectVenue={onLocateVenue} />
+      ) : (
+        <>
+          {/* 2-Topic Prep Selector */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
             <button
-              onClick={() => handleExplainSelection()}
-              className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
+              onClick={() => setActiveTopicIndex(0)}
+              className={`px-3.5 py-1.5 rounded-full font-mono transition-all shrink-0 ${
+                activeTopicIndex === 0
+                  ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                  : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
+              }`}
             >
-              Explain
+              Topic 1: Cournot Oligopoly
             </button>
             <button
-              onClick={() => setSelectedText('')}
-              className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+              onClick={() => setActiveTopicIndex(1)}
+              className={`px-3.5 py-1.5 rounded-full font-mono transition-all shrink-0 ${
+                activeTopicIndex === 1
+                  ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                  : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
+              }`}
             >
-              <GeminiIcon name="close" size={14} />
+              Topic 2: Bertrand Price War
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Main Chapter Text Layout */}
-      <GeminiCard className="p-5 sm:p-7">
-        <div
-          onMouseUp={handleMouseUp}
-          className={`space-y-5 text-neutral-800 dark:text-neutral-200 font-sans ${fontSizeClasses[fontSize]}`}
-        >
-          {SAMPLE_CHAPTER.paragraphs.map((para, index) => {
-            const checkpoint = SAMPLE_CHAPTER.checkpoints.find(
-              (c) => c.paragraphIndex === index
-            );
+          {/* Reader Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
+            <div>
+              <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                {currentChapter.courseCode} • {currentChapter.readTimeMinutes} min read
+              </span>
+              <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans mt-0.5">
+                {currentChapter.title}
+              </h1>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">{currentChapter.subtitle}</p>
+            </div>
 
-            return (
-              <React.Fragment key={index}>
-                <p className="tracking-normal select-text">
-                  {isBionic ? (
-                    <span>
-                      {formatBionicText(para).map((token) => (
-                        <span key={token.id} className="inline">
-                          <strong className="font-semibold text-neutral-950 dark:text-white font-sans">
-                            {token.bold}
-                          </strong>
-                          <span className="text-neutral-700 dark:text-neutral-300 font-normal">
-                            {token.regular}
-                          </span>
+            {/* Reader Customizer Actions */}
+            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+              {/* Bionic Toggle */}
+              <button
+                onClick={() => setIsBionic(!isBionic)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
+                  isBionic
+                    ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                    : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
+                }`}
+              >
+                <span>Bionic: {isBionic ? 'On' : 'Off'}</span>
+              </button>
+
+              {/* Font Sizing */}
+              <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
+                <button
+                  onClick={() => setFontSize('sm')}
+                  className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                    fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                  }`}
+                >
+                  A-
+                </button>
+                <button
+                  onClick={() => setFontSize('md')}
+                  className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                    fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                  }`}
+                >
+                  A
+                </button>
+                <button
+                  onClick={() => setFontSize('lg')}
+                  className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                    fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                  }`}
+                >
+                  A+
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Highlight Action Capsule when text is selected */}
+          {selectedText && (
+            <div className="sticky top-16 z-30 flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.1] dark:border-white/[0.1] backdrop-blur-md shadow-md animate-in fade-in">
+              <div className="flex items-center gap-2 overflow-hidden text-xs">
+                <span className="text-neutral-800 dark:text-neutral-200 font-sans truncate">
+                  "{selectedText.slice(0, 40)}..."
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => handleExplainSelection()}
+                  className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
+                >
+                  Explain
+                </button>
+                <button
+                  onClick={() => setSelectedText('')}
+                  className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                >
+                  <GeminiIcon name="close" size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Main Chapter Text Layout */}
+          <GeminiCard className="p-5 sm:p-7">
+            <div
+              onMouseUp={handleMouseUp}
+              className={`space-y-5 text-neutral-800 dark:text-neutral-200 font-sans ${fontSizeClasses[fontSize]}`}
+            >
+              {currentChapter.paragraphs.map((para, index) => {
+                const checkpoint = currentChapter.checkpoints.find(
+                  (c) => c.paragraphIndex === index
+                );
+
+                return (
+                  <React.Fragment key={index}>
+                    <p className="tracking-normal select-text">
+                      {isBionic ? (
+                        <span>
+                          {formatBionicText(para).map((token) => (
+                            <span key={token.id} className="inline">
+                              <strong className="font-semibold text-neutral-950 dark:text-white">
+                                {token.bold}
+                              </strong>
+                              {token.regular}{token.space ? ' ' : ''}
+                            </span>
+                          ))}
                         </span>
-                      ))}
-                    </span>
-                  ) : (
-                    para
-                  )}
-                </p>
-
-                {/* Clean Knowledge Checkpoint */}
-                {checkpoint && (
-                  <div className="my-5 p-4 rounded-2xl bg-neutral-50 dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-500 font-medium">
-                        Checkpoint
-                      </span>
-                    </div>
-
-                    <p className="text-xs sm:text-sm font-medium text-neutral-900 dark:text-white mb-3">
-                      {checkpoint.prompt}
+                      ) : (
+                        para
+                      )}
                     </p>
 
-                    <div className="space-y-2">
-                      {checkpoint.options.map((opt, oIdx) => {
-                        const isSelected = answers[checkpoint.id] === oIdx;
-                        const isCorrect = oIdx === checkpoint.correctIndex;
-                        const isRev = revealed[checkpoint.id];
+                    {/* Checkpoint recall quiz */}
+                    {checkpoint && (
+                      <div className="my-5 p-4 rounded-2xl bg-[#0B57D0]/[0.03] dark:bg-[#A8C7FA]/[0.05] border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 text-xs">
+                        <div className="flex items-center gap-2 mb-2 font-mono text-[11px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                          <GeminiIcon name="sparkle" size={14} />
+                          <span>Active Recall Checkpoint</span>
+                        </div>
+                        <p className="font-medium text-neutral-900 dark:text-white mb-3">
+                          {checkpoint.prompt}
+                        </p>
 
-                        let btnStyle = 'bg-white dark:bg-[#1E1F20] border-black/[0.08] dark:border-white/[0.08] text-neutral-800 dark:text-neutral-200';
-                        if (isRev) {
-                          if (isCorrect) {
-                            btnStyle = 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-300 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300';
-                          } else if (isSelected) {
-                            btnStyle = 'bg-rose-50 dark:bg-rose-500/15 border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300';
-                          }
-                        } else if (isSelected) {
-                          btnStyle = 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 text-neutral-900 dark:text-white';
-                        }
+                        <div className="space-y-2">
+                          {checkpoint.options.map((opt, oIdx) => {
+                            const isAnswered = answers[checkpoint.id] === oIdx;
+                            const isCorrect = checkpoint.correctIndex === oIdx;
+                            const showResult = revealed[checkpoint.id];
 
-                        return (
-                          <button
-                            key={oIdx}
-                            disabled={isRev}
-                            onClick={() => {
-                              setAnswers((prev) => ({ ...prev, [checkpoint.id]: oIdx }));
-                              setRevealed((prev) => ({ ...prev, [checkpoint.id]: true }));
-                            }}
-                            className={`w-full text-left p-2.5 rounded-xl border text-xs font-sans transition-all flex items-center justify-between ${btnStyle}`}
-                          >
-                            <span>{opt}</span>
-                            {isRev && isCorrect && (
-                              <GeminiIcon name="check" size={14} className="text-emerald-600 dark:text-emerald-400" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                            let btnStyle = 'bg-white dark:bg-white/[0.04] border-black/[0.08] dark:border-white/[0.08]';
+                            if (showResult && isCorrect) {
+                              btnStyle = 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-400 text-emerald-900 dark:text-emerald-300';
+                            } else if (showResult && isAnswered && !isCorrect) {
+                              btnStyle = 'bg-rose-50 dark:bg-rose-500/20 border-rose-400 text-rose-900 dark:text-rose-300';
+                            }
 
-                    {revealed[checkpoint.id] && (
-                      <p className="mt-2.5 text-[11px] text-[#0B57D0] dark:text-[#A8C7FA] font-mono leading-relaxed">
-                        {checkpoint.explanation}
-                      </p>
+                            return (
+                              <button
+                                key={oIdx}
+                                onClick={() => {
+                                  setAnswers((prev) => ({ ...prev, [checkpoint.id]: oIdx }));
+                                  setRevealed((prev) => ({ ...prev, [checkpoint.id]: true }));
+                                }}
+                                className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all ${btnStyle}`}
+                              >
+                                {opt}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {revealed[checkpoint.id] && (
+                          <p className="mt-2.5 text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
+                            {checkpoint.explanation}
+                          </p>
+                        )}
+                      </div>
                     )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </GeminiCard>
+
+          {/* AI Explanation Modal */}
+          {showAiSheet && (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-3">
+              <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                      <GeminiIcon name="sparkle" size={15} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Cohart Personalized Insight</h3>
+                      <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                        Adapted to: {profile.learning_style.replace('_', ' ')}
+                      </p>
+                    </div>
                   </div>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
+                  <button
+                    onClick={() => setShowAiSheet(false)}
+                    className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                  >
+                    <GeminiIcon name="close" size={15} />
+                  </button>
+                </div>
 
-        {/* Highlight Helper Tip */}
-        <div className="mt-6 pt-3 border-t border-black/[0.06] dark:border-white/[0.07] flex items-center justify-between text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-          <div className="flex items-center gap-1.5">
-            <GeminiIcon name="highlight" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-            <span>Select any sentence to explain with your cognitive AI style</span>
-          </div>
-          <span className="text-[#0B57D0] dark:text-[#A8C7FA]">Chapter 4 Completed</span>
-        </div>
-      </GeminiCard>
+                <div className="p-3 rounded-xl bg-neutral-50 dark:bg-black/[0.2] border border-black/[0.06] dark:border-white/[0.06] text-xs text-neutral-600 dark:text-neutral-300 mb-3 italic">
+                  "{selectedText}"
+                </div>
 
-      {/* AI Explanation Modal */}
-      {showAiSheet && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-3">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
+                <div className="min-h-[90px] text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed font-sans mb-4">
+                  {isExplaining ? (
+                    <div className="flex items-center gap-2 text-neutral-500 py-6 justify-center">
+                      <div className="h-4 w-4 rounded-full border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent animate-spin" />
+                      <span className="font-mono text-xs">Synthesizing personalized analogy...</span>
+                    </div>
+                  ) : (
+                    aiExplanation
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-black/[0.06] dark:border-white/[0.07]">
+                  <button
+                    onClick={handleSaveToVault}
+                    disabled={isSaved || isExplaining}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium transition-all ${
+                      isSaved
+                        ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30'
+                        : 'bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.1]'
+                    }`}
+                  >
+                    <GeminiIcon name={isSaved ? 'check' : 'copy'} size={13} />
+                    <span>{isSaved ? 'Saved to Vault' : 'Save to Study Vault'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowAiSheet(false)}
+                    className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
+                  >
+                    Got It
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Socratic Dialogue Section */}
+          <GeminiCard>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="sparkle" size={15} />
+                  <GeminiIcon name="chat" size={15} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Cohart Personalized Insight</h3>
-                  <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                    Adapted to: {profile.learning_style.replace('_', ' ')}
-                  </p>
+                  <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Ask Course AI</h3>
+                  <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">{currentChapter.courseCode} Q&A</p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowAiSheet(false)}
-                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
-              >
-                <GeminiIcon name="close" size={15} />
-              </button>
             </div>
 
-            <div className="p-3 rounded-xl bg-neutral-50 dark:bg-black/[0.2] border border-black/[0.06] dark:border-white/[0.06] text-xs text-neutral-600 dark:text-neutral-300 mb-3 italic">
-              "{selectedText}"
-            </div>
-
-            <div className="min-h-[90px] text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed font-sans mb-4">
-              {isExplaining ? (
-                <div className="flex items-center gap-2 text-neutral-500 py-6 justify-center">
-                  <div className="h-4 w-4 rounded-full border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent animate-spin" />
-                  <span className="font-mono text-xs">Synthesizing personalized analogy...</span>
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 mb-3">
+              {chatMessages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`p-3 rounded-2xl text-xs font-sans leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-neutral-900 dark:text-white ml-6'
+                      : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] text-neutral-700 dark:text-neutral-300 mr-6'
+                  }`}
+                >
+                  <div className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 mb-0.5">
+                    {msg.role === 'user' ? 'You' : 'Cohart'}
+                  </div>
+                  {msg.text}
                 </div>
-              ) : (
-                aiExplanation
-              )}
+              ))}
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-black/[0.06] dark:border-white/[0.07]">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={inputQuestion}
+                onChange={(e) => setInputQuestion(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
+                placeholder="Ask about reactions, Cournot vs Bertrand..."
+                className="flex-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] px-3.5 py-2 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+              />
               <button
-                onClick={handleSaveToVault}
-                disabled={isSaved || isExplaining}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium transition-all ${
-                  isSaved
-                    ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30'
-                    : 'bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.1]'
-                }`}
+                onClick={handleSendChat}
+                className="p-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 hover:opacity-90 transition-opacity"
               >
-                <GeminiIcon name={isSaved ? 'check' : 'copy'} size={13} />
-                <span>{isSaved ? 'Saved to Vault' : 'Save to Study Vault'}</span>
-              </button>
-
-              <button
-                onClick={() => setShowAiSheet(false)}
-                className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
-              >
-                Got It
+                <GeminiIcon name="arrow-right" size={15} />
               </button>
             </div>
-          </div>
-        </div>
+          </GeminiCard>
+        </>
       )}
-
-      {/* Socratic Dialogue Section */}
-      <GeminiCard>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-              <GeminiIcon name="chat" size={15} />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Ask Cohart AI</h3>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">{SAMPLE_CHAPTER.courseCode} Q&A</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2 max-h-48 overflow-y-auto pr-1 mb-3">
-          {chatMessages.map((msg, i) => (
-            <div
-              key={i}
-              className={`p-3 rounded-2xl text-xs font-sans leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-neutral-900 dark:text-white ml-6'
-                  : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] text-neutral-700 dark:text-neutral-300 mr-6'
-              }`}
-            >
-              <div className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 mb-0.5">
-                {msg.role === 'user' ? 'You' : 'Cohart'}
-              </div>
-              {msg.text}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={inputQuestion}
-            onChange={(e) => setInputQuestion(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
-            placeholder="Ask about Cournot reaction curves, Nash points..."
-            className="flex-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] px-3.5 py-2 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-          />
-          <button
-            onClick={handleSendChat}
-            className="p-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 hover:opacity-90 transition-opacity"
-          >
-            <GeminiIcon name="arrow-right" size={15} />
-          </button>
-        </div>
-      </GeminiCard>
     </div>
   );
 };

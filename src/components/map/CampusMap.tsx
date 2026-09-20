@@ -62,44 +62,59 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     }
   }, [selectedLocationId, locations]);
 
-  // Create clean, high-contrast Gemini pins that stand out sharp on satellite view
+  // Create clean, high-contrast Gemini-style pins calibrated precisely to satellite coordinates
   const createCustomMarker = (location: Location, isSelected: boolean) => {
     const isEco = location.department === 'Economics';
     const isSatellite = mapLayer === 'satellite';
+    const code = location.code || location.name.slice(0, 4);
 
+    // Exact Leaflet anchor: icon is 30px wide, 38px tall; anchor is bottom center [15, 38]
     return L.divIcon({
       className: 'custom-map-marker',
       html: `
-        <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-full cursor-pointer group">
-          <div class="relative flex flex-col items-center">
-            <div class="relative flex items-center justify-center h-7 px-2.5 rounded-full transition-all duration-150 shadow-md ${
-              isSelected
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-bold scale-105 border border-white'
-                : isEco
-                ? isSatellite
-                  ? 'bg-neutral-900/90 text-[#A8C7FA] border border-[#A8C7FA]'
-                  : 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] border border-[#0B57D0]/40 dark:border-[#A8C7FA]/40'
-                : isSatellite
-                ? 'bg-neutral-900/90 text-white border border-white/60'
-                : 'bg-white dark:bg-[#1E1F20] text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700'
-            }">
-              <span class="text-[11px] font-mono tracking-tight font-medium whitespace-nowrap">
-                ${location.code || location.name.slice(0, 8)}
-              </span>
+        <div class="relative flex flex-col items-center cursor-pointer group" style="width: 30px; height: 38px;">
+          <!-- Floating Label Badge on hover or when selected -->
+          <div class="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-150 z-20 ${
+            isSelected ? 'opacity-100 scale-100' : 'opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100'
+          }">
+            <div class="px-2 py-0.5 rounded-md bg-neutral-950/90 text-white text-[10px] font-mono tracking-tight whitespace-nowrap shadow-md border border-white/10 backdrop-blur-sm">
+              ${location.name}
             </div>
-            <!-- Pin Pointer Triangle -->
-            <div class="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] ${
-              isSelected
-                ? 'border-t-[#0B57D0] dark:border-t-[#A8C7FA]'
-                : isEco
-                ? 'border-t-[#A8C7FA]'
-                : 'border-t-white/80'
-            }"></div>
           </div>
+
+          <!-- Precision Teardrop / Circular Pin -->
+          <div class="relative flex items-center justify-center w-[30px] h-[30px] rounded-full shadow-lg transition-transform duration-150 ${
+            isSelected
+              ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 scale-110 ring-2 ring-white'
+              : isEco
+              ? isSatellite
+                ? 'bg-[#0B57D0] text-white border border-[#A8C7FA]'
+                : 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] border border-[#0B57D0]'
+              : isSatellite
+              ? 'bg-neutral-900/90 text-white border border-white/70'
+              : 'bg-white dark:bg-[#1E1F20] text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700'
+          }">
+            <span class="text-[10px] font-mono font-bold tracking-tighter uppercase leading-none">
+              ${code.slice(0, 3)}
+            </span>
+          </div>
+
+          <!-- Pin Stem pointing directly to coordinate -->
+          <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] -mt-[1px] ${
+            isSelected
+              ? 'border-t-[#0B57D0] dark:border-t-[#A8C7FA]'
+              : isEco
+              ? isSatellite
+                ? 'border-t-[#0B57D0]'
+                : 'border-t-[#0B57D0] dark:border-t-[#A8C7FA]'
+              : isSatellite
+              ? 'border-t-neutral-900'
+              : 'border-t-white dark:border-t-[#1E1F20]'
+          }"></div>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 32],
+      iconSize: [30, 38],
+      iconAnchor: [15, 38],
     });
   };
 
