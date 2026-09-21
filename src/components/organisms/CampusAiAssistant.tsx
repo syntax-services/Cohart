@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GeminiCard } from '@/components/ui/GeminiCard';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
+import { MarkdownText } from '@/components/atoms/MarkdownText';
 import { StudentProfile, Location } from '@/lib/types';
 
 interface CampusAiAssistantProps {
@@ -10,6 +10,9 @@ interface CampusAiAssistantProps {
   locations?: Location[];
   onSelectVenue?: (code: string) => void;
   onExitFullscreen?: () => void;
+  onMilestoneAction?: (actionId: string) => void;
+  initialMode?: 'general' | 'grill_mode';
+  initialPrompt?: string;
 }
 
 interface Message {
@@ -63,11 +66,11 @@ const KNOWLEDGE_BASE: Record<string, { reply: string; venueCode?: string; refere
   },
 };
 
-// Auto-derive a smart, concise title from the user's first query
 function generateConversationTitle(query: string): string {
   const clean = query.trim();
   const lower = clean.toLowerCase();
 
+  if (lower.includes('grill') || lower.includes('exam test')) return '🔥 Exam Readiness Grill';
   if (lower.includes('llt1') || lower.includes('llt 1')) return 'LLT 1 Walking Route';
   if (lower.includes('llt2') || lower.includes('llt 2')) return 'LLT 2 Hall Location';
   if (lower.includes('llt3') || lower.includes('llt 3')) return 'LLT 3 Motion Ground';
@@ -79,7 +82,6 @@ function generateConversationTitle(query: string): string {
   if (lower.includes('market') || lower.includes('motion')) return 'Saburi Market & Motion Ground';
   if (lower.includes('exam') || lower.includes('test') || lower.includes('ca')) return 'Continuous Assessment Prep';
 
-  // Fallback: take first 4 words cleanly
   const words = clean.split(/\s+/).slice(0, 4).join(' ');
   return words.length > 28 ? words.slice(0, 25) + '...' : words;
 }
@@ -88,22 +90,27 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   profile,
   onSelectVenue,
   onExitFullscreen,
+  onMilestoneAction,
+  initialMode = 'general',
+  initialPrompt,
 }) => {
   const studentName = profile.full_name?.trim() ? profile.full_name.trim().split(' ')[0] : 'Scholar';
+  const [currentMode, setCurrentMode] = useState<'general' | 'grill_mode'>(initialMode);
 
   const defaultInitialMessage: Message = {
     id: 'msg_welcome',
     role: 'assistant',
-    content: `Hello ${studentName}, I'm Cohart AI, your OOU academic & campus copilot. Ask me any course questions (e.g. "Explain Cournot oligopoly with a Nigerian market analogy"), verify exam concepts, or ask for walking routes across Ago-Iwoye PS (e.g. "How do I get to LLT1 from Main Gate?").\n\n📖 *Course Reference: OOU Academic Core & PS Campus Map*`,
+    content: initialMode === 'grill_mode'
+      ? `Welcome ${studentName}. I am in **OOU Socratic Grill Mode**. I will evaluate your command of core curriculum theorems. Answer concisely and cite your foundational models.\n\nReady for your first examination curveball? Type "Ready" or provide your solution to begin.\n\n🔥 *Discussion Context: Examination Assessment Board*`
+      : `Hello ${studentName}, I'm Cohart AI, your OOU academic copilot. Ask me any course questions (e.g. "Explain Cournot oligopoly with a Nigerian market analogy"), verify exam concepts, or ask for walking routes across Ago-Iwoye PS (e.g. "How do I get to LLT1 from Main Gate?").\n\n📖 *Course Reference: OOU Academic Core & PS Campus Map*`,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
 
-  // State: Sidebar & Multi-session conversations
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([defaultInitialMessage]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialPrompt || '');
   const [isTyping, setIsTyping] = useState(false);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -121,11 +128,10 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       }
     }
 
-    // New conversation session for this refresh
     const newSessionId = `conv_${Date.now()}`;
     const newSession: Conversation = {
       id: newSessionId,
-      title: 'New Conversation',
+      title: initialMode === 'grill_mode' ? '🔥 Exam Readiness Grill' : 'New Conversation',
       createdAt: new Date().toISOString(),
       messages: [defaultInitialMessage],
     };
@@ -135,9 +141,12 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     setActiveConvId(newSessionId);
     setMessages([defaultInitialMessage]);
     localStorage.setItem('cohart_ai_conversations', JSON.stringify(updatedList));
-  }, [studentName]);
 
-  // Smooth scroll within the chat container ONLY (avoids window jump glitch)
+    if (initialPrompt) {
+      setTimeout(() => handleSend(initialPrompt), 400);
+    }
+  }, [studentName, initialMode]);
+
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
@@ -151,14 +160,23 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     scrollToBottom();
   }, [messages, isTyping, scrollToBottom]);
 
-  // Create a brand new chat session manually
-  const handleStartNewChat = () => {
+  const handleStartNewChat = (mode: 'general' | 'grill_mode' = 'general') => {
+    setCurrentMode(mode);
     const newSessionId = `conv_${Date.now()}`;
+    const newInitialMsg: Message = {
+      id: `msg_${Date.now()}`,
+      role: 'assistant',
+      content: mode === 'grill_mode'
+        ? `Socratic Grill Mode activated. I will probe your theoretical reasoning and award marks out of 10. Let's begin.`
+        : defaultInitialMessage.content,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
     const newSession: Conversation = {
       id: newSessionId,
-      title: 'New Conversation',
+      title: mode === 'grill_mode' ? '🔥 Exam Readiness Grill' : 'New Conversation',
       createdAt: new Date().toISOString(),
-      messages: [defaultInitialMessage],
+      messages: [newInitialMsg],
     };
 
     setConversations((prev) => {
@@ -167,12 +185,11 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       return updated;
     });
     setActiveConvId(newSessionId);
-    setMessages([defaultInitialMessage]);
+    setMessages([newInitialMsg]);
     setIsSidebarOpen(false);
     setTimeout(() => inputRef.current?.focus(), 150);
   };
 
-  // Switch to a previous conversation from history
   const handleSelectConversation = (conv: Conversation) => {
     setActiveConvId(conv.id);
     setMessages(conv.messages);
@@ -180,7 +197,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     setTimeout(() => inputRef.current?.focus(), 150);
   };
 
-  // Delete a conversation from history
   const handleDeleteConversation = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const filtered = conversations.filter((c) => c.id !== id);
@@ -227,22 +243,27 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
     try {
       let replyContent = '';
+      let detectedMilestone: string | null = null;
 
-      // Tier 1: Local /api/ai Next.js route
+      // Tier 1: Local /api/ai Next.js route with Multi-Turn History
       try {
         const res = await fetch('/api/ai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             prompt: query,
-            context: 'campus_navigation',
+            context: currentMode,
             studentProfile: profile,
+            messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
           }),
         });
 
         if (res.ok) {
           const data = await res.json();
           replyContent = data.reply;
+          if (data.milestoneAction) {
+            detectedMilestone = data.milestoneAction;
+          }
         }
       } catch {
         // Fallback to Tier 2
@@ -259,8 +280,9 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             },
             body: JSON.stringify({
               prompt: query,
-              context: 'campus_navigation',
+              context: currentMode,
               studentProfile: profile,
+              messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
             }),
           });
           if (edgeRes.ok) {
@@ -284,7 +306,11 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       }
 
       if (!replyContent) {
-        replyContent = `Here is the guidance for your query: "${query}".\n\nFor academic principles in ${profile.department || 'Economics'}, review core models systematically.\n\n📖 *Course Reference: ${profile.department || 'General Studies'} • 2024/2025 Syllabus*`;
+        replyContent = `Here is the academic guidance for your query: "${query}".\n\nFor course models in ${profile.department || 'General Studies'}, follow standard textbook derivations.\n\n📖 *Course Reference: ${profile.department || 'Academic'} Curriculum & Handbook*`;
+      }
+
+      if (detectedMilestone && onMilestoneAction) {
+        onMilestoneAction(detectedMilestone);
       }
 
       // Detect venue match for direct map pin button
@@ -302,13 +328,12 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         role: 'assistant',
         content: replyContent,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestedAction: venueCode ? { label: `Show ${venueCode} on Map`, venueCode } : undefined,
+        suggestedAction: venueCode ? { label: `Locate ${venueCode} on Map`, venueCode } : undefined,
       };
 
       const finalMessages = [...newMessages, assistantMsg];
       setMessages(finalMessages);
 
-      // Persist updated conversation
       setConversations((prev) => {
         const updated = prev.map((c) => {
           if (c.id === activeConvId) {
@@ -336,49 +361,57 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   const activeConversation = conversations.find((c) => c.id === activeConvId);
 
   return (
-    <div className="relative flex h-full w-full overflow-hidden bg-[#06080D] text-white font-sans select-none">
+    <div className="relative flex h-full w-full overflow-hidden bg-[var(--bg-main)] text-[var(--text-primary)] font-sans select-none transition-colors duration-200">
       {/* Sleek Left Slide-Out Sidebar */}
       {isSidebarOpen && (
         <div
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 z-40 bg-black/50 dark:bg-black/70 backdrop-blur-xs transition-opacity"
         />
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 sm:w-80 bg-[#0A0D14] border-r border-white/[0.08] flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 sm:w-80 bg-white/95 dark:bg-[#10131B]/95 border-r border-black/[0.08] dark:border-white/[0.08] flex flex-col justify-between backdrop-blur-xl transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="p-4 flex flex-col h-full overflow-hidden">
           {/* Sidebar Top: Branding & Close */}
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/20 text-[#A8C7FA]">
-                <GeminiIcon name="sparkle" size={15} />
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                <GeminiIcon name="sparkle" size={17} />
               </div>
               <div>
-                <h3 className="text-xs font-semibold tracking-tight text-white">Cohart AI</h3>
-                <p className="text-[10px] font-mono text-neutral-400">Conversations</p>
+                <h3 className="text-xs font-semibold tracking-tight text-neutral-900 dark:text-white">Cohart AI</h3>
+                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Sessions</p>
               </div>
             </div>
 
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
             >
-              <GeminiIcon name="close" size={15} />
+              <GeminiIcon name="close" size={16} />
             </button>
           </div>
 
-          {/* New Chat Action Button */}
-          <button
-            onClick={handleStartNewChat}
-            className="mt-3 flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-sm"
-          >
-            <span className="text-sm font-bold">+</span>
-            <span>New Chat</span>
-          </button>
+          {/* New Chat Actions */}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handleStartNewChat('general')}
+              className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-xs"
+            >
+              <span className="text-sm font-bold leading-none">+</span>
+              <span>New Chat</span>
+            </button>
+            <button
+              onClick={() => handleStartNewChat('grill_mode')}
+              className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium transition-all active:scale-95 cursor-pointer"
+            >
+              <span>🔥 Grill Mode</span>
+            </button>
+          </div>
 
           {/* Conversations History List */}
           <div className="mt-4 flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
@@ -395,27 +428,27 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   <div
                     key={c.id}
                     onClick={() => handleSelectConversation(c)}
-                    className={`group flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition-all ${
+                    className={`group flex items-center justify-between p-2.5 rounded-xl text-xs cursor-pointer transition-all ${
                       isActive
-                        ? 'bg-white/[0.08] text-white border border-white/[0.1]'
-                        : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.03]'
+                        ? 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-900 dark:text-white font-medium border border-black/[0.08] dark:border-white/[0.1]'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
                     }`}
                   >
                     <div className="min-w-0 flex-1 flex items-center gap-2">
                       <GeminiIcon
-                        name="chat"
-                        size={13}
-                        className={isActive ? 'text-[#A8C7FA]' : 'text-neutral-500'}
+                        name={c.title.includes('🔥') ? 'zap' : 'chat'}
+                        size={14}
+                        className={isActive ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-400'}
                       />
-                      <span className="truncate font-medium text-xs">{c.title}</span>
+                      <span className="truncate text-xs">{c.title}</span>
                     </div>
 
                     <button
                       onClick={(e) => handleDeleteConversation(e, c.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-neutral-500 hover:text-rose-400 transition-opacity cursor-pointer ml-1"
+                      className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-rose-500 transition-opacity cursor-pointer ml-1"
                       title="Delete chat"
                     >
-                      <GeminiIcon name="trash" size={12} />
+                      <GeminiIcon name="trash" size={13} />
                     </button>
                   </div>
                 );
@@ -423,14 +456,14 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             )}
           </div>
 
-          {/* Sidebar Footer: Back to Course Reader */}
+          {/* Sidebar Footer: Return to Reader */}
           {onExitFullscreen && (
-            <div className="pt-3 border-t border-white/[0.08]">
+            <div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08]">
               <button
                 onClick={onExitFullscreen}
-                className="flex items-center gap-2 w-full p-2 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-neutral-300 text-xs font-medium transition-colors cursor-pointer"
+                className="flex items-center gap-2 w-full p-2.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs font-medium transition-colors cursor-pointer"
               >
-                <GeminiIcon name="reader" size={14} />
+                <GeminiIcon name="reader" size={15} />
                 <span>Return to Course Reader</span>
               </button>
             </div>
@@ -440,21 +473,21 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
       {/* Main Full-Screen AI Content Workstation */}
       <div className="flex-1 flex flex-col h-full min-w-0">
-        {/* Minimalist Top Bar */}
-        <header className="h-13 px-4 shrink-0 flex items-center justify-between border-b border-white/[0.08] bg-[#0A0D14]/80 backdrop-blur-xl">
+        {/* Minimalist Top Bar matching site theme */}
+        <header className="h-14 px-4 shrink-0 flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] bg-white/80 dark:bg-[#10131B]/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             {/* Custom 2-Sleek-Lines Menu Button */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-1 rounded-xl text-neutral-300 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer flex items-center justify-center"
+              className="p-2 -ml-1 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer flex items-center justify-center"
               title="Open Chat Sessions"
             >
-              <GeminiIcon name="two-lines" size={18} />
+              <GeminiIcon name="two-lines" size={19} />
             </button>
 
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <h2 className="text-xs sm:text-sm font-semibold text-white truncate max-w-[200px] sm:max-w-xs font-sans">
+              <span className={`h-2 w-2 rounded-full ${currentMode === 'grill_mode' ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
+              <h2 className="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate max-w-[180px] sm:max-w-xs font-sans">
                 {activeConversation?.title || 'Cohart AI'}
               </h2>
             </div>
@@ -462,19 +495,23 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={handleStartNewChat}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-xs text-neutral-200 transition-colors cursor-pointer"
+              onClick={() => handleStartNewChat(currentMode === 'grill_mode' ? 'general' : 'grill_mode')}
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer border ${
+                currentMode === 'grill_mode'
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                  : 'bg-black/[0.03] dark:bg-white/[0.04] border-black/[0.08] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300'
+              }`}
             >
-              <span className="text-sm leading-none font-bold">+</span>
-              <span>New Chat</span>
+              <GeminiIcon name={currentMode === 'grill_mode' ? 'zap' : 'sparkle'} size={13} />
+              <span>{currentMode === 'grill_mode' ? 'Exit Grill Mode' : 'Grill Mode'}</span>
             </button>
 
             {onExitFullscreen && (
               <button
                 onClick={onExitFullscreen}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0B57D0]/20 hover:bg-[#0B57D0]/30 border border-[#0B57D0]/30 text-[#A8C7FA] text-xs font-medium transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 dark:bg-[#A8C7FA]/10 dark:hover:bg-[#A8C7FA]/20 border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA] text-xs font-medium transition-colors cursor-pointer"
               >
-                <GeminiIcon name="reader" size={13} />
+                <GeminiIcon name="reader" size={14} />
                 <span className="hidden sm:inline">Back to Reader</span>
                 <span className="sm:hidden">Reader</span>
               </button>
@@ -485,7 +522,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         {/* Scrollable Chat Message Stream */}
         <div
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 max-w-4xl w-full mx-auto"
+          className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 max-w-3xl w-full mx-auto"
         >
           {messages.map((m) => {
             const isUser = m.role === 'user';
@@ -495,25 +532,28 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[88%] sm:max-w-[82%] rounded-2xl p-4 text-xs sm:text-[13px] leading-relaxed transition-all shadow-xs ${
+                  className={`max-w-[90%] sm:max-w-[85%] rounded-2xl p-4 text-xs sm:text-[13px] leading-relaxed transition-all shadow-xs ${
                     isUser
                       ? 'bg-[#0B57D0] text-white rounded-br-xs'
-                      : 'bg-[#121824] border border-white/[0.08] text-neutral-200 rounded-bl-xs'
+                      : 'bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 rounded-bl-xs backdrop-blur-md'
                   }`}
                 >
-                  <div className="text-[10px] font-mono opacity-50 mb-1 flex items-center justify-between gap-4">
-                    <span>{isUser ? 'You' : 'Cohart AI'}</span>
-                    <span>{m.timestamp}</span>
+                  <div className={`text-[10px] font-mono mb-1 ${isUser ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'}`}>
+                    {isUser ? 'You' : 'Cohart AI'} • {m.timestamp}
                   </div>
 
-                  <p className="whitespace-pre-line font-sans leading-relaxed">{m.content}</p>
+                  {isUser ? (
+                    <p className="whitespace-pre-wrap">{m.content}</p>
+                  ) : (
+                    <MarkdownText content={m.content} />
+                  )}
 
                   {/* Suggested Map Action Pin */}
                   {m.suggestedAction && onSelectVenue && (
-                    <div className="mt-3 pt-2.5 border-t border-white/[0.1]">
+                    <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
                       <button
                         onClick={() => onSelectVenue(m.suggestedAction!.venueCode)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A8C7FA] text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
                       >
                         <GeminiIcon name="pin" size={12} />
                         <span>{m.suggestedAction.label}</span>
@@ -526,37 +566,43 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           })}
 
           {isTyping && (
-            <div className="flex items-center gap-1.5 p-3 rounded-2xl bg-[#121824] border border-white/[0.08] w-20">
-              <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 animate-bounce" />
-              <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 animate-bounce [animation-delay:0.2s]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 animate-bounce [animation-delay:0.4s]" />
+            <div className="flex items-center gap-1.5 p-3 rounded-2xl bg-white/80 dark:bg-[#181B24]/80 border border-black/[0.06] dark:border-white/[0.08] w-20 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-bounce" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-bounce [animation-delay:0.2s]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-bounce [animation-delay:0.4s]" />
             </div>
           )}
         </div>
 
-        {/* Floating Bottom Input Dock */}
-        <footer className="p-3 sm:p-4 border-t border-white/[0.08] bg-[#0A0D14]/90 backdrop-blur-xl shrink-0">
-          <div className="max-w-4xl mx-auto space-y-2">
+        {/* Floating Bottom Input Dock with Liquid Glass */}
+        <footer className="p-3 sm:p-4 border-t border-black/[0.06] dark:border-white/[0.08] bg-white/85 dark:bg-[#10131B]/85 backdrop-blur-xl shrink-0">
+          <div className="max-w-3xl mx-auto space-y-2">
             {/* Quick Context Prompt Chips */}
             {messages.length <= 2 && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
                 <button
                   onClick={() => handleSend('Explain Cournot equilibrium with an Ago-Iwoye market analogy')}
-                  className="px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   💡 Cournot Market Analogy
                 </button>
                 <button
                   onClick={() => handleSend('How do I get to LLT1 from the Main Gate?')}
-                  className="px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   📍 Route to LLT1
                 </button>
                 <button
                   onClick={() => handleSend('Where is LLT3 located?')}
-                  className="px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   🏛️ LLT3 Location
+                </button>
+                <button
+                  onClick={() => handleStartNewChat('grill_mode')}
+                  className="px-3 py-1 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                >
+                  🔥 Test Me in Grill Mode
                 </button>
               </div>
             )}
@@ -574,21 +620,25 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                     handleSend();
                   }
                 }}
-                placeholder="Ask Cohart AI any academic concept or campus navigation..."
-                className="w-full rounded-2xl bg-[#121824] border border-white/[0.1] px-4 py-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] transition-colors pr-12 font-sans"
+                placeholder={
+                  currentMode === 'grill_mode'
+                    ? 'Submit your answer to the examination question...'
+                    : 'Ask Cohart AI any academic concept or campus navigation...'
+                }
+                className="w-full rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] px-4 py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-colors pr-12 font-sans"
               />
 
               <button
                 onClick={() => handleSend()}
                 disabled={!input.trim()}
-                className="absolute right-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-sm"
+                className="absolute right-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-xs"
               >
-                <GeminiIcon name="arrow-right" size={14} />
+                <GeminiIcon name="arrow-right" size={15} />
               </button>
             </div>
 
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 px-1">
-              <span>Cohart v2.4 • Grounded with OOU Academic Materials</span>
+              <span>{currentMode === 'grill_mode' ? '🔥 Socratic Examiner Mode' : 'Cohart v2.5 • Grounded with OOU Academic Materials'}</span>
               <span>Press Enter to send</span>
             </div>
           </div>

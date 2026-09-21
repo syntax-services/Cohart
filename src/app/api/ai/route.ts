@@ -29,7 +29,7 @@ function logDailyLearning(entry: {
   userId?: string;
   department?: string;
   query: string;
-  category: 'reader_explanation' | 'campus_navigation' | 'general';
+  category: 'reader_explanation' | 'campus_navigation' | 'general' | 'grill_mode';
   timestamp: string;
 }) {
   try {
@@ -53,10 +53,11 @@ export async function POST(req: NextRequest) {
       context = 'campus_navigation',
       studentProfile,
       highlightedText,
+      messages,
     } = body;
 
-    if (!prompt && !highlightedText) {
-      return NextResponse.json({ error: 'Prompt or highlighted text is required.' }, { status: 400 });
+    if (!prompt && !highlightedText && (!messages || messages.length === 0)) {
+      return NextResponse.json({ error: 'Prompt or conversation messages required.' }, { status: 400 });
     }
 
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
@@ -91,13 +92,53 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Cognitive Trait Adaptations
+    const traits = studentProfile?.cognitive_traits || [];
+    let cognitiveDirectives = '';
+    if (traits.includes('ADHD / Fast Context Switches')) {
+      cognitiveDirectives += '\n- ADHD Adaptations: Use bold anchor words, keep explanations in bite-sized bulleted points (max 3-4 lines per point), eliminate long monolithic paragraphs, and maintain a fast, stimulating rhythm.';
+    }
+    if (traits.includes('Exam Anxiety Sensitivity')) {
+      cognitiveDirectives += '\n- Exam Anxiety Care: Use an encouraging, calm, reassuring tone. Break down daunting theorems into step-by-step stress-free logic so the student feels confident.';
+    }
+    if (traits.includes('Analogies & Real-World Models')) {
+      cognitiveDirectives += '\n- Real-World Analogy Requirement: Anchor concepts in practical Nigerian market dynamics (e.g. Saburi market commodity pricing, Ogun state transportation, Dangote vs BUA, telecom tariffs).';
+    }
+    if (traits.includes('Dyslexia-Friendly Spacing')) {
+      cognitiveDirectives += '\n- Dyslexia Accommodations: Use clean bulleted lists, high structural contrast, short clauses, and avoid dense sentence structures.';
+    }
+    if (traits.includes('Deep First Principles')) {
+      cognitiveDirectives += '\n- First Principles: State the fundamental mathematical/economic axioms first before building up to the theorem.';
+    }
+
+    // Socratic Grill Mode
+    let grillDirective = '';
+    if (context === 'grill_mode') {
+      grillDirective = `\n🔥 Socratic Grill Mode (OOU Exam Readiness):
+You are acting as an experienced, sharp OOU Examination Board Professor.
+Evaluate the student's answer critically. If their previous response was incomplete or flawed, point out the exact theoretical error and award marks out of 10. Then immediately pose ONE targeted, challenging examination question to test their deeper understanding.
+Keep questions rigorous, realistic to OOU past questions, and engaging.`;
+    }
+
+    const milestoneDirective = `\nMilestone Syncing:
+If the student explicitly mentions completing an academic milestone, append one of these tags at the end of your response:
+- "[MILESTONE_ACTION:profile_complete]" if they finished setting up their profile.
+- "[MILESTONE_ACTION:course_form]" if they verified their course forms.
+- "[MILESTONE_ACTION:advisor_sign]" if they got their faculty advisor's signature.
+- "[MILESTONE_ACTION:ca_target]" if they achieved their continuous assessment / attendance target.
+- "[MILESTONE_ACTION:reader_quiz]" if they mastered their course reading chapters.`;
+
     // Cohart Context & Persona Injection
     const systemPrompt = `You are Cohart AI, the premier academic copilot designed exclusively for students of Olabisi Onabanjo University (OOU), Ago-Iwoye, Ogun State, Nigeria.
 
 Student Profile:
 - Name: ${studentProfile?.full_name || 'Scholar'}
 - Department: ${studentProfile?.department || 'General Studies'} (${studentProfile?.level || 'Undergraduate'})
-- Cognitive & Learning Style: ${studentProfile?.learning_style || 'visual_analogies'} (ADHD-friendly micro-breakdowns, real-world Nigerian market analogies like Ago-Iwoye Saburi market, clear formula derivations).
+- Cognitive & Learning Style: ${studentProfile?.learning_style || 'visual_analogies'}
+
+Cognitive & Psychological Adaptations:${cognitiveDirectives || '\n- Provide clear, engaging, and structured explanations with Nigerian analogies.'}
+${grillDirective}
+${milestoneDirective}
 
 Campus Geography Ground-Truth:
 - LLT 3 (Law Lecture Theatre 3) is at Motion Ground on the southern campus belt, directly next to New Motion commercial hub and ICAN Building.
@@ -123,6 +164,42 @@ Mandatory Response Directives:
 Follow-up context or question: ${prompt || 'Break this down simply.'}`;
     }
 
+    // Multi-turn Gemini Contents Array
+    let contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+
+    if (messages && Array.isArray(messages) && messages.length > 0) {
+      // Take last 8 turns to preserve context while keeping token usage fast
+      const recent = messages.slice(-8);
+      contents = recent.map((m: { role: 'user' | 'assistant'; content: string }, idx: number) => {
+        const role: 'user' | 'model' = m.role === 'assistant' ? 'model' : 'user';
+        if (idx === 0 && role === 'user') {
+          return {
+            role: 'user',
+            parts: [{ text: `${systemPrompt}\n\nUser Question:\n${m.content}` }],
+          };
+        }
+        return {
+          role,
+          parts: [{ text: m.content }],
+        };
+      });
+
+      // Ensure the very first turn is a user turn with system prompt
+      if (contents.length > 0 && contents[0].role !== 'user') {
+        contents.unshift({
+          role: 'user',
+          parts: [{ text: `${systemPrompt}\n\nLet us begin.` }],
+        });
+      }
+    } else {
+      contents = [
+        {
+          role: 'user',
+          parts: [{ text: `${systemPrompt}\n\nUser Question:\n${userContent}` }],
+        },
+      ];
+    }
+
     let replyText = '';
     let usedModel = 'gemini-3.6-flash';
 
@@ -134,15 +211,10 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: `${systemPrompt}\n\nUser Question:\n${userContent}` }],
-              },
-            ],
+            contents,
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 400,
+              maxOutputTokens: 600,
             },
           }),
         }
@@ -156,7 +228,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
       // Primary model fetch failed, try fallback
     }
 
-    // Fallback: Gemini 3.5 Flash Lite or Supabase Edge Function
+    // Fallback: Gemini 3.5 Flash Lite
     if (!replyText) {
       try {
         const fbRes = await fetch(
@@ -165,22 +237,18 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: `${systemPrompt}\n\nUser Question:\n${userContent}` }],
-                },
-              ],
+              contents,
               generationConfig: {
                 temperature: 0.3,
-                maxOutputTokens: 350,
+                maxOutputTokens: 600,
               },
             }),
           }
         );
+
         if (fbRes.ok) {
-          const data = await fbRes.json();
-          replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const fbData = await fbRes.json();
+          replyText = fbData.candidates?.[0]?.content?.parts?.[0]?.text || '';
           usedModel = 'gemini-3.5-flash-lite';
         }
       } catch {
@@ -188,7 +256,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
       }
     }
 
-    // Last line of defense: Live Supabase Edge Function
+    // Fallback: Supabase Edge Function
     if (!replyText) {
       try {
         const edgeRes = await fetch(
@@ -204,39 +272,56 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
               context,
               studentProfile,
               highlightedText,
+              messages,
             }),
           }
         );
+
         if (edgeRes.ok) {
-          const data = await edgeRes.json();
-          replyText = data.reply || '';
+          const edgeData = await edgeRes.json();
+          replyText = edgeData.reply || '';
           usedModel = 'supabase-edge-ai';
         }
       } catch {
-        // Continue
+        // Edge function also failed
       }
     }
 
     if (!replyText) {
-      replyText = "I'm here to assist your academic journey at OOU. Could you please rephrase your request?";
+      replyText = `Cohart AI is currently updating its campus cache. For ${studentProfile?.department || 'your course'}, please consult the departmental handbook and verified faculty notes.\n\n📖 *Course Reference: ${studentProfile?.department || 'Academic'} Core Handbook*`;
     }
 
-    // Asynchronously log for daily learning digest
+    // Parse any milestone action tags
+    let milestoneAction: string | null = null;
+    const milestoneMatch = replyText.match(/\[MILESTONE_ACTION:([a-z_]+)\]/);
+    if (milestoneMatch) {
+      milestoneAction = milestoneMatch[1];
+      replyText = replyText.replace(/\[MILESTONE_ACTION:[a-z_]+\]/g, '').trim();
+    }
+
+    // Log query for continuous improvement
     logDailyLearning({
       userId: studentProfile?.id,
       department: studentProfile?.department,
-      query: userContent.slice(0, 200),
-      category: context,
+      query: prompt || highlightedText || 'multi-turn interaction',
+      category: context as any,
       timestamp: new Date().toISOString(),
     });
 
     return NextResponse.json({
       reply: replyText,
-      remaining,
       model: usedModel,
+      milestoneAction,
+      remaining,
     });
   } catch (error) {
-    console.error('API route error:', error);
-    return NextResponse.json({ error: 'Internal server error processing AI query.' }, { status: 500 });
+    console.error('API /api/ai route error:', error);
+    return NextResponse.json(
+      {
+        reply: 'An internal network error occurred. Please verify your internet connection and retry.\n\n💬 *Discussion Context: Connection Diagnostics*',
+        error: 'AI service temporarily unavailable.',
+      },
+      { status: 500 }
+    );
   }
 }

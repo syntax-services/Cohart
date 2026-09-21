@@ -47,7 +47,7 @@ export const GeminiIcon: React.FC<GeminiIconProps> = ({
   name,
   className = '',
   size = 20,
-  strokeWidth = 1.5,
+  strokeWidth = 2.1,
 }) => {
   const commonProps = {
     width: size,

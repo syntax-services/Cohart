@@ -89,12 +89,14 @@ interface InteractiveReaderProps {
   profile: StudentProfile;
   onLocateVenue?: (code: string) => void;
   onAiModeChange?: (isAi: boolean) => void;
+  onMilestoneAction?: (actionId: string) => void;
 }
 
 export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   profile,
   onLocateVenue,
   onAiModeChange,
+  onMilestoneAction,
 }) => {
   const [activeView, setActiveView] = useState<'reader' | 'ai' | 'vault'>(() => {
     if (typeof window !== 'undefined') {
@@ -103,6 +105,9 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     }
     return 'reader';
   });
+
+  const [activeAiMode, setActiveAiMode] = useState<'general' | 'grill_mode'>('general');
+  const [activeAiPrompt, setActiveAiPrompt] = useState<string | undefined>(undefined);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -370,8 +375,13 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
         <CampusAiAssistant
           profile={profile}
           onSelectVenue={onLocateVenue}
+          onMilestoneAction={onMilestoneAction}
+          initialMode={activeAiMode}
+          initialPrompt={activeAiPrompt}
           onExitFullscreen={() => {
             setActiveView('reader');
+            setActiveAiMode('general');
+            setActiveAiPrompt(undefined);
             onAiModeChange?.(false);
           }}
         />
@@ -730,19 +740,25 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                           {checkpoint.options.map((opt, oIdx) => {
                             const isAnswered = answers[checkpoint.id] === oIdx;
                             const isCorrect = checkpoint.correctIndex === oIdx;
-                            const showResult = revealed[checkpoint.id];
+                            const isLocked = revealed[checkpoint.id] === true;
 
-                            let btnStyle = 'bg-white dark:bg-white/[0.04] border-black/[0.08] dark:border-white/[0.08]';
-                            if (showResult && isCorrect) {
-                              btnStyle = 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-400 text-emerald-900 dark:text-emerald-300';
-                            } else if (showResult && isAnswered && !isCorrect) {
-                              btnStyle = 'bg-rose-50 dark:bg-rose-500/20 border-rose-400 text-rose-900 dark:text-rose-300';
+                            let btnStyle = 'bg-white dark:bg-white/[0.04] border-black/[0.08] dark:border-white/[0.08] hover:border-[#0B57D0]/50';
+                            if (isLocked) {
+                              if (isCorrect) {
+                                btnStyle = 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-500 text-emerald-900 dark:text-emerald-300 font-semibold cursor-default';
+                              } else if (isAnswered) {
+                                btnStyle = 'bg-rose-50 dark:bg-rose-500/20 border-rose-500 text-rose-900 dark:text-rose-300 line-through cursor-default';
+                              } else {
+                                btnStyle = 'opacity-40 border-black/[0.04] dark:border-white/[0.04] text-neutral-400 cursor-default';
+                              }
                             }
 
                             return (
                               <button
                                 key={oIdx}
+                                disabled={isLocked}
                                 onClick={() => {
+                                  if (isLocked) return;
                                   setAnswers((prev) => ({ ...prev, [checkpoint.id]: oIdx }));
                                   setRevealed((prev) => ({ ...prev, [checkpoint.id]: true }));
                                 }}
@@ -755,15 +771,63 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         </div>
 
                         {revealed[checkpoint.id] && (
-                          <p className="mt-2.5 text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
+                          <div className="mt-2.5 pt-2 border-t border-black/[0.05] dark:border-white/[0.05] text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
                             {checkpoint.explanation}
-                          </p>
+                          </div>
                         )}
                       </div>
                     )}
                   </React.Fragment>
                 );
               })}
+
+              {/* Chapter Mastery & Exam Readiness Assessment Score Banner */}
+              {(() => {
+                const totalCheckpoints = currentChapter.checkpoints.length;
+                const answeredCheckpoints = currentChapter.checkpoints.filter((c) => revealed[c.id]);
+                const correctCheckpoints = currentChapter.checkpoints.filter((c) => answers[c.id] === c.correctIndex);
+                const isChapterCompleted = answeredCheckpoints.length === totalCheckpoints;
+
+                if (!isChapterCompleted) return null;
+
+                return (
+                  <div className="mt-6 pt-5 border-t border-black/[0.06] dark:border-white/[0.08] animate-in fade-in">
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#0B57D0]/[0.08] via-purple-500/[0.04] to-emerald-500/[0.08] border border-[#0B57D0]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                          <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0B57D0]/15 text-[#0B57D0] dark:text-[#A8C7FA] font-bold">
+                            Chapter Recall Completed
+                          </span>
+                          <span className="text-xs font-mono font-semibold text-neutral-900 dark:text-white">
+                            Score: {correctCheckpoints.length} / {totalCheckpoints} ({Math.round((correctCheckpoints.length / totalCheckpoints) * 100)}%)
+                          </span>
+                        </div>
+                        <h4 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white">
+                          {correctCheckpoints.length === totalCheckpoints ? 'Theoretical Concept Mastered' : 'Exam Readiness Scored'}
+                        </h4>
+                        <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                          {correctCheckpoints.length === totalCheckpoints
+                            ? 'All active recall checkpoints verified without deviation.'
+                            : 'Review the explanations above before testing yourself in the exam simulator.'}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setActiveAiMode('grill_mode');
+                          setActiveAiPrompt(`I completed the chapter "${currentChapter.title}" with a score of ${correctCheckpoints.length}/${totalCheckpoints}. Test me with OOU exam curveball questions on these theorems!`);
+                          setActiveView('ai');
+                          onMilestoneAction?.('reader_quiz');
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-semibold shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
+                      >
+                        <GeminiIcon name="zap" size={14} />
+                        <span>🔥 Grill Me with AI (Exam Test)</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </GeminiCard>
 

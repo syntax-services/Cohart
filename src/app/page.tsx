@@ -14,17 +14,42 @@ import { useStudentProfile } from '@/hooks/useStudentProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
 
 export default function AppHomePage() {
-  const [activeTab, setActiveTab] = useState<NavTab>('map');
+  const [activeTab, setActiveTab] = useState<NavTab>('hub');
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [pendingTab, setPendingTab] = useState<NavTab | null>(null);
-
   const [isAiFullscreen, setIsAiFullscreen] = useState(false);
+  const [verifiedMilestones, setVerifiedMilestones] = useState<string[]>([]);
 
   const { profile, userId, saveProfile, signOut } = useStudentProfile();
   const isAuthenticated = Boolean(userId);
+
+  // Rehydrate page/tab from URL or cache on mount (MPA-like navigation resilience)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlTab = params.get('tab') as NavTab | null;
+      const cachedTab = localStorage.getItem('cohart_active_tab') as NavTab | null;
+      const validTabs: NavTab[] = ['hub', 'reader', 'schedule', 'map', 'profile'];
+
+      if (urlTab && validTabs.includes(urlTab)) {
+        setActiveTab(urlTab);
+      } else if (cachedTab && validTabs.includes(cachedTab)) {
+        setActiveTab(cachedTab);
+      }
+
+      const savedMilestones = localStorage.getItem('cohart_verified_milestones');
+      if (savedMilestones) {
+        try {
+          setVerifiedMilestones(JSON.parse(savedMilestones));
+        } catch {
+          // Ignore parse error
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function loadLocations() {
@@ -34,6 +59,26 @@ export default function AppHomePage() {
     loadLocations();
   }, []);
 
+  const changeTab = (targetTab: NavTab) => {
+    setActiveTab(targetTab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cohart_active_tab', targetTab);
+      const newUrl = targetTab === 'hub' ? window.location.pathname : `?tab=${targetTab}`;
+      window.history.replaceState(null, '', newUrl);
+    }
+  };
+
+  const handleMarkMilestone = (milestoneId: string) => {
+    setVerifiedMilestones((prev) => {
+      if (prev.includes(milestoneId)) return prev;
+      const updated = [...prev, milestoneId];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cohart_verified_milestones', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
   // Intercept navigation for unauthenticated guests
   const handleTabChange = (targetTab: NavTab) => {
     if (isAiFullscreen) {
@@ -41,7 +86,7 @@ export default function AppHomePage() {
     }
 
     if (targetTab === 'map') {
-      setActiveTab('map');
+      changeTab('map');
       return;
     }
 
@@ -51,7 +96,7 @@ export default function AppHomePage() {
       return;
     }
 
-    setActiveTab(targetTab);
+    changeTab(targetTab);
   };
 
   const handleAuthSuccess = (fullName: string, email: string, newUserId?: string) => {
@@ -61,10 +106,10 @@ export default function AppHomePage() {
       email,
     });
     if (pendingTab) {
-      setActiveTab(pendingTab);
+      changeTab(pendingTab);
       setPendingTab(null);
     } else {
-      setActiveTab('hub');
+      changeTab('hub');
     }
   };
 
@@ -80,7 +125,7 @@ export default function AppHomePage() {
     } else {
       setSelectedLocationId(locationCode);
     }
-    setActiveTab('map');
+    changeTab('map');
   };
 
   const displayedLocations = React.useMemo(() => {
@@ -103,7 +148,7 @@ export default function AppHomePage() {
       {!isAiActive && (
         <TopHeader
           profile={profile}
-          onOpenProfile={() => setActiveTab('profile')}
+          onOpenProfile={() => handleTabChange('profile')}
           onSearch={setSearchFilter}
         />
       )}
@@ -115,8 +160,18 @@ export default function AppHomePage() {
             profile={profile}
             locations={locations}
             onSelectVenue={handleSelectVenue}
-            onOpenReader={() => setActiveTab('reader')}
-            onOpenSchedule={() => setActiveTab('schedule')}
+            onOpenReader={() => handleTabChange('reader')}
+            onOpenSchedule={() => handleTabChange('schedule')}
+            onOpenProfile={() => handleTabChange('profile')}
+            onOpenAi={(prompt, mode) => {
+              handleTabChange('reader');
+              setIsAiFullscreen(true);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('cohart_reader_view', 'ai');
+              }
+            }}
+            verifiedMilestones={verifiedMilestones}
+            onMarkMilestone={handleMarkMilestone}
           />
         )}
 
@@ -125,6 +180,7 @@ export default function AppHomePage() {
             profile={profile}
             onLocateVenue={handleSelectVenue}
             onAiModeChange={setIsAiFullscreen}
+            onMilestoneAction={handleMarkMilestone}
           />
         )}
 
@@ -149,8 +205,8 @@ export default function AppHomePage() {
           <ProfileView
             profile={profile}
             onUpdateProfile={saveProfile}
-            onOpenSchedule={() => setActiveTab('schedule')}
-            onOpenReader={() => setActiveTab('reader')}
+            onOpenSchedule={() => handleTabChange('schedule')}
+            onOpenReader={() => handleTabChange('reader')}
             onSignOut={signOut}
           />
         )}

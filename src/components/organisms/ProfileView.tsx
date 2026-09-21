@@ -8,6 +8,7 @@ import { StudentProfile, LearningStyle } from '@/lib/types';
 import { useTheme, Theme } from '@/components/ThemeProvider';
 import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
 import { fetchSavedExplanations } from '@/lib/supabase';
+import { ALL_OOU_DEPARTMENTS } from '@/lib/oouCourses';
 
 interface ProfileViewProps {
   profile: StudentProfile;
@@ -31,10 +32,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Form states for basic info
-  const [name, setName] = useState(profile.full_name);
-  const [matric, setMatric] = useState(profile.matric_number);
-  const [dept, setDept] = useState(profile.department);
-  const [level, setLevel] = useState(profile.level);
+  const [name, setName] = useState(profile.full_name || '');
+  const [matric, setMatric] = useState(profile.matric_number || '');
+  const [dept, setDept] = useState(profile.department || '');
+  const [level, setLevel] = useState(profile.level || '100L');
 
   // Questionnaire answers
   const [qStep, setQStep] = useState(0);
@@ -47,7 +48,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [withdrawSuccess, setWithdrawSuccess] = useState(false);
 
   // Attendance & Vault live metrics
-  const { logs, getAttendanceAdvice, timetable } = useAttendanceTracker(profile.id);
+  const { getAttendanceAdvice } = useAttendanceTracker(profile.id);
   const advice = getAttendanceAdvice();
   const [savedVaultCount, setSavedVaultCount] = useState(0);
 
@@ -68,11 +69,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   const cognitiveTraitOptions = [
     'ADHD / Fast Context Switches',
+    'Exam Anxiety Sensitivity',
     'Analogies & Real-World Models',
+    'Dyslexia-Friendly Spacing',
+    'Deep First Principles',
     'Night Owl Deep Focus',
     'Audio-Visual Learner',
-    'Exam Anxiety Sensitivity',
-    'Dyslexia-Friendly Spacing',
     'Short Micro-Sessions (20m)',
   ];
 
@@ -118,12 +120,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   const questionnaireQuestions = [
     {
-      q: 'When an economics lecturer explains a difficult theorem, what makes it click first?',
+      q: 'When an OOU lecturer introduces an advanced theoretical model, what makes it click first?',
       options: [
-        'A real-world marketplace analogy (e.g. Ago-Iwoye market prices)',
-        'The step-by-step mathematical derivation on the board',
-        'A concise summary of the bottom-line formula',
-        'A question-and-answer dialogue exploring why it works',
+        'A real-world marketplace analogy (e.g. Saburi market prices in Ago-Iwoye)',
+        'The step-by-step mathematical derivation from first principles',
+        'A concise summary of the core formula with bulleted takeaways',
+        'A question-and-answer dialogue exploring why the model holds',
       ],
       styleMapping: [
         'visual_analogies',
@@ -133,12 +135,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       ] as LearningStyle[],
     },
     {
-      q: 'How does your attention span behave when reading dense textbooks?',
+      q: 'How does your focus and retention behave during long study blocks?',
       options: [
-        'I get restless quickly unless the text has interactive checkpoints',
-        'I absorb best when guided by bolded bionic anchor fixations',
-        'I prefer reading complete paragraphs before testing myself',
-        'I listen to audio while scanning text',
+        'I absorb best in fast, high-stimulation micro-bursts (ADHD preference)',
+        'I read systematically with bionic fixation anchors',
+        'I experience anxiety approaching exam questions and prefer calming step-by-step logic',
+        'I retain best through active recall testing and Socratic interrogation',
       ],
       traitAdd: 'ADHD / Fast Context Switches',
     },
@@ -178,76 +180,85 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     <div className="space-y-4 sm:space-y-5">
       {/* Incomplete Profile Callout Banner */}
       {isProfileIncomplete && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div className="p-4 sm:p-5 rounded-3xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
-              <GeminiIcon name="user" size={17} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+              <GeminiIcon name="user" size={19} />
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-neutral-900 dark:text-white">
+              <h3 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
                 Complete Your Student Profile
               </h3>
-              <p className="text-[11px] text-neutral-600 dark:text-neutral-400 mt-0.5">
-                Set your full name, department, level, and matric number for personalized lecture reminders and OOU campus routes.
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                Set your full name, OOU department, level, and matric number so Cohart AI can personalize course notes, exam alerts, and campus routes.
               </p>
             </div>
           </div>
           <button
             onClick={() => setIsEditingBasic(true)}
-            className="self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs shrink-0 transition-all active:scale-95 cursor-pointer shadow-xs"
+            className="self-start sm:self-auto px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs shrink-0 transition-all active:scale-95 cursor-pointer shadow-xs"
           >
             Complete Profile
           </button>
         </div>
       )}
 
-      {/* Student Profile Identity Card */}
-      <GeminiCard>
+      {/* Lit Student Identity Card with Ambient Gradient & Liquid Glass */}
+      <GeminiCard className="p-5 sm:p-7 rounded-3xl bg-gradient-to-br from-white/90 via-white/80 to-blue-50/40 dark:from-[#131620]/90 dark:via-[#11131A]/85 dark:to-[#0B1528]/50 backdrop-blur-2xl border border-black/[0.08] dark:border-white/[0.08] shadow-md">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] font-mono text-sm font-bold text-white dark:text-neutral-950 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#0B57D0] to-[#6894ea] dark:from-[#0B57D0] dark:to-[#A8C7FA] font-mono text-base font-bold text-white dark:text-neutral-950 shrink-0 shadow-[0_0_20px_rgba(11,87,208,0.3)] ring-2 ring-white dark:ring-[#1E2230]">
               {initials}
+              <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#1E2230]" title="Active student session">
+                <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+              </span>
             </div>
 
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg font-semibold text-neutral-900 dark:text-white font-sans">
+                <h1 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white font-sans tracking-tight">
                   {profile.full_name?.trim() || 'Complete Profile'}
                 </h1>
                 {profile.is_verified_coordinator && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-300">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-bold">
                     Dept Rep
                   </span>
                 )}
-                {isProfileIncomplete && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                {isProfileIncomplete ? (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold">
                     Setup Needed
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold">
+                    Verified
                   </span>
                 )}
               </div>
-              <p className="text-xs font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
+
+              <p className="text-xs font-mono text-neutral-500 dark:text-neutral-400 mt-1">
                 {profile.department
                   ? `${profile.matric_number || 'Matric Pending'} • ${profile.department} • ${profile.level || '100L'}`
                   : 'Tap Edit to set your Department & Level • OOU PS'}
               </p>
-              <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans">
-                {profile.institution}
+
+              <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans mt-0.5">
+                {profile.institution} • Ago-Iwoye Main PS
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setIsEditingBasic(!isEditingBasic)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] text-xs font-mono text-neutral-800 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white transition-all active:scale-95 cursor-pointer shadow-xs"
           >
-            <span>{isEditingBasic ? 'Close' : 'Edit'}</span>
+            <span>{isEditingBasic ? 'Close' : 'Edit Profile'}</span>
           </button>
         </div>
 
         {/* Compact Quick Details Inline Editor */}
         {isEditingBasic && (
-          <div className="mt-4 pt-4 border-t border-black/[0.06] dark:border-white/[0.07] space-y-3 animate-in fade-in">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+          <div className="mt-5 pt-5 border-t border-black/[0.06] dark:border-white/[0.07] space-y-3.5 animate-in fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <div>
                 <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Full Name</label>
                 <input
@@ -255,9 +266,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   placeholder="e.g. Folashade Adeyemi"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full mt-1 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
                 />
               </div>
+
               <div>
                 <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Matric Number</label>
                 <input
@@ -265,154 +277,183 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   placeholder="e.g. 21/09/52012"
                   value={matric}
                   onChange={(e) => setMatric(e.target.value)}
-                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full mt-1 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
                 />
               </div>
+
               <div>
-                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Department</label>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">OOU Department</label>
                 <input
+                  list="oou-depts-list"
                   type="text"
-                  placeholder="e.g. Economics, Law, Biochemistry"
+                  placeholder="Select or type department"
                   value={dept}
                   onChange={(e) => setDept(e.target.value)}
-                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full mt-1 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
                 />
+                <datalist id="oou-depts-list">
+                  {ALL_OOU_DEPARTMENTS.map((d) => (
+                    <option key={d} value={d} />
+                  ))}
+                </datalist>
               </div>
+
               <div>
                 <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Academic Level</label>
                 <select
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
-                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full mt-1 px-3 py-2 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
                 >
                   <option value="100L">100 Level</option>
                   <option value="200L">200 Level</option>
                   <option value="300L">300 Level</option>
                   <option value="400L">400 Level</option>
                   <option value="500L">500 Level</option>
+                  <option value="600L">600 Level (MBBS)</option>
                   <option value="PG">Postgraduate</option>
                 </select>
               </div>
             </div>
+
             <div className="flex justify-end items-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setIsEditingBasic(false)}
-                className="px-3 py-1 rounded-full text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveBasic}
-                className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-xs"
+                className="px-5 py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-xs"
               >
-                Save Details
+                Save Profile
               </button>
             </div>
           </div>
         )}
       </GeminiCard>
 
-      {/* App Appearance & Theme Selection Card */}
-      <GeminiCard>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-              <GeminiIcon name="sun" size={15} />
+      {/* Two-Column Grid: CA Attendance & Cognitive AI Conditioning */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Continuous Assessment Attendance Metric */}
+        <GeminiCard className="p-5 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
+          <div className="flex items-center justify-between mb-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <GeminiIcon name="check-circle" size={16} />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Exam CA Qualification</h2>
+                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">75% Senate Minimum</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Theme & Appearance</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                Choose theme or sync with system
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2">
-          {(['system', 'light', 'dark'] as Theme[]).map((mode) => {
-            const isSelected = theme === mode;
-            return (
-              <button
-                key={mode}
-                onClick={() => setTheme(mode)}
-                className={`py-2 px-3 rounded-xl border text-xs font-sans capitalize transition-all text-center ${
-                  isSelected
-                    ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0] dark:border-[#A8C7FA] text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
-                    : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                }`}
-              >
-                {mode === 'system' ? 'System' : mode}
-              </button>
-            );
-          })}
-        </div>
-      </GeminiCard>
-
-      {/* Cognitive Profile & Learning Style Section */}
-      <GeminiCard>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-              <GeminiIcon name="brain" size={15} />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Cognitive Traits</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                Tuned: {profile.learning_style.replace('_', ' ')}
-              </p>
-            </div>
+            <Badge variant={advice.rate >= 75 ? 'emerald' : 'amber'} size="sm">
+              {advice.rate >= 75 ? 'Qualified for Exams' : 'Below 75% Target'}
+            </Badge>
           </div>
 
-          <button
-            onClick={() => setShowQuestionnaire(true)}
-            className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline"
-          >
-            Retake Quiz
-          </button>
-        </div>
-
-        {/* Cognitive Traits Selector Chips */}
-        <div className="flex flex-wrap gap-1.5">
-          {cognitiveTraitOptions.map((trait) => {
-            const isSelected = profile.cognitive_traits.includes(trait);
-            return (
-              <button
-                key={trait}
-                onClick={() => handleToggleTrait(trait)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans transition-all active:scale-95 ${
-                  isSelected
-                    ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
-                    : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+          <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] space-y-2">
+            <div className="flex justify-between items-baseline">
+              <span className="text-xs text-neutral-600 dark:text-neutral-300">Verified Attendance</span>
+              <span className="text-xl font-bold font-mono text-[#0B57D0] dark:text-[#A8C7FA]">
+                {advice.rate}%
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-black/[0.05] dark:bg-white/[0.1] overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  advice.rate >= 75 ? 'bg-emerald-500' : 'bg-amber-500'
                 }`}
-              >
-                {isSelected && <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
-                <span>{trait}</span>
-              </button>
-            );
-          })}
-        </div>
-      </GeminiCard>
+                style={{ width: `${Math.min(100, advice.rate)}%` }}
+              />
+            </div>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 pt-1">
+              {advice.text}
+            </p>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-xs">
+            <span className="text-[11px] font-mono text-neutral-500">{savedVaultCount} Saved AI Notes</span>
+            <button
+              onClick={onOpenSchedule}
+              className="text-[#0B57D0] dark:text-[#A8C7FA] font-medium hover:underline cursor-pointer"
+            >
+              Lecture Timetable &rarr;
+            </button>
+          </div>
+        </GeminiCard>
+
+        {/* Cognitive Traits & AI Adaptation Matrix */}
+        <GeminiCard className="p-5 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
+          <div className="flex items-center justify-between mb-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                <GeminiIcon name="brain" size={16} />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">AI Cognitive Conditioning</h2>
+                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                  Tuned: {profile.learning_style.replace('_', ' ')}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowQuestionnaire(true)}
+              className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline cursor-pointer"
+            >
+              Retake Quiz
+            </button>
+          </div>
+
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-2.5 leading-relaxed">
+            Cohart AI actively conditions its tone, sentence lengths, and explanation models to your selected cognitive traits below:
+          </p>
+
+          {/* Cognitive Traits Selector Chips */}
+          <div className="flex flex-wrap gap-1.5">
+            {cognitiveTraitOptions.map((trait) => {
+              const isSelected = profile.cognitive_traits.includes(trait);
+              return (
+                <button
+                  key={trait}
+                  onClick={() => handleToggleTrait(trait)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans transition-all active:scale-95 cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
+                      : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  {isSelected && <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
+                  <span>{trait}</span>
+                </button>
+              );
+            })}
+          </div>
+        </GeminiCard>
+      </div>
 
       {/* Referral Program & Paystack Wallet Card */}
-      <GeminiCard>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-              <GeminiIcon name="wallet" size={15} />
+      <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+              <GeminiIcon name="wallet" size={16} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Referral Balance</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Earn per invited student</p>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Student Rewards & Referral</h2>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Earn per invited course mate</p>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Balance Widget */}
-          <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
-            <span className="text-[10px] font-mono text-neutral-500 uppercase">Balance</span>
+          <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
+            <span className="text-[10px] font-mono text-neutral-500 uppercase">Available Balance</span>
             <div className="flex items-baseline gap-1 mt-1">
               <span className="text-2xl font-bold text-neutral-900 dark:text-white font-mono">
                 ₦{(profile.wallet_balance || 0).toLocaleString()}
@@ -420,23 +461,23 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
             <button
               onClick={() => setShowWithdrawModal(true)}
-              className="mt-3 w-full py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
+              className="mt-3 w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-xs"
             >
-              Withdraw
+              Withdraw to Bank
             </button>
           </div>
 
           {/* Referral Code Box */}
-          <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] flex flex-col justify-between">
             <div>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase">Referral Code</span>
+              <span className="text-[10px] font-mono text-neutral-500 uppercase">Your Referral Code</span>
               <div className="flex items-center justify-between mt-1 p-2 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.06]">
                 <span className="text-sm font-mono font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
                   {profile.referral_code}
                 </span>
                 <button
                   onClick={handleCopyReferral}
-                  className="flex items-center gap-1 text-[11px] font-mono text-neutral-700 dark:text-neutral-300 hover:text-[#0B57D0] dark:hover:text-[#A8C7FA]"
+                  className="flex items-center gap-1 text-[11px] font-mono text-neutral-700 dark:text-neutral-300 hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] cursor-pointer"
                 >
                   <GeminiIcon name={copiedCode ? 'check' : 'copy'} size={13} />
                   <span>{copiedCode ? 'Copied' : 'Copy'}</span>
@@ -450,143 +491,67 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </GeminiCard>
 
-      {/* Attendance & CA Qualification Status */}
-      <GeminiCard>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-              <GeminiIcon name="check-circle" size={15} />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Continuous Assessment Attendance</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                {logs.length} Lectures Logged • Minimum 75% Required
-              </p>
-            </div>
+      {/* App Appearance & Sign Out Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 border border-black/[0.06] dark:border-white/[0.08] backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <GeminiIcon name="sun" size={16} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+          <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">Theme</span>
+          <div className="flex items-center gap-1 ml-2 bg-black/[0.03] dark:bg-white/[0.04] p-0.5 rounded-full">
+            {(['system', 'light', 'dark'] as Theme[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setTheme(mode)}
+                className={`px-3 py-1 rounded-full text-xs font-mono capitalize transition-all cursor-pointer ${
+                  theme === mode
+                    ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {onSignOut && (
           <button
-            onClick={onOpenSchedule}
-            className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline cursor-pointer"
+            onClick={onSignOut}
+            className="self-start sm:self-auto px-4 py-1.5 rounded-full border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-mono transition-colors cursor-pointer"
           >
-            Check In &rarr;
+            Sign Out Session
           </button>
-        </div>
+        )}
+      </div>
 
-        {/* Mini CA Progress Bar */}
-        <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] mb-3">
-          <div className="flex justify-between items-center text-xs mb-1.5 font-mono">
-            <span className="font-semibold text-neutral-900 dark:text-white">
-              {advice.rate}% Verified CA Rate
-            </span>
-            <span className={advice.rate >= 75 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'}>
-              {advice.status === 'optimal' ? 'Exam Qualified' : 'In Progress'}
-            </span>
-          </div>
-          <div className="w-full h-1.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                advice.rate >= 75 ? 'bg-emerald-500' : 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
-              }`}
-              style={{ width: `${Math.min(100, Math.max(5, advice.rate))}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2 text-xs">
-          {timetable.slice(0, 3).map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]"
-            >
-              <div>
-                <span className="font-medium text-neutral-900 dark:text-neutral-100 font-mono">
-                  {item.courseCode} • {item.venueName.split(' ')[0]}
-                </span>
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                  {item.day} {item.time} • {item.courseTitle}
-                </p>
-              </div>
-              <Badge variant="blue" size="sm">Core</Badge>
-            </div>
-          ))}
-        </div>
-      </GeminiCard>
-
-      {/* AI Study Vault & Knowledge Base Card */}
-      <GeminiCard>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-              <GeminiIcon name="bookmark" size={15} />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">AI Study Vault</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                {savedVaultCount} {savedVaultCount === 1 ? 'Concept Saved' : 'Concepts Saved'}
-              </p>
-            </div>
-          </div>
-
-          {onOpenReader && (
-            <button
-              onClick={onOpenReader}
-              className="px-3 py-1.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#0B57D0]/20 text-xs font-mono font-medium transition-colors cursor-pointer"
-            >
-              Open Vault &rarr;
-            </button>
-          )}
-        </div>
-      </GeminiCard>
-
-      {/* Account Session & Sign Out Card */}
-      {onSignOut && (
-        <GeminiCard>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Account Session</h2>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                Connected as {profile.email || 'student@oouagoiwoye.edu.ng'}
-              </p>
-            </div>
-            <button
-              onClick={onSignOut}
-              className="px-4 py-1.5 rounded-full border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-xs font-medium transition-colors"
-            >
-              Sign Out
-            </button>
-          </div>
-        </GeminiCard>
-      )}
-
-      {/* AI Diagnostic Questionnaire Modal */}
+      {/* Cognitive Questionnaire Modal */}
       {showQuestionnaire && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in">
-            <div className="flex items-center justify-between mb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <GeminiIcon name="sparkle" size={15} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                  Cognitive Tuning (Question {qStep + 1} of {questionnaireQuestions.length})
+                <GeminiIcon name="brain" size={17} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                  Cognitive Tuning ({qStep + 1}/2)
                 </h3>
               </div>
               <button
                 onClick={() => setShowQuestionnaire(false)}
-                className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
               >
-                <GeminiIcon name="close" size={15} />
+                <GeminiIcon name="close" size={16} />
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 mb-4 leading-relaxed font-sans">
+            <p className="text-xs font-semibold text-neutral-900 dark:text-white mb-3">
               {questionnaireQuestions[qStep].q}
             </p>
 
             <div className="space-y-2">
-              {questionnaireQuestions[qStep].options.map((opt, oIdx) => (
+              {questionnaireQuestions[qStep].options.map((opt, i) => (
                 <button
-                  key={oIdx}
-                  onClick={() => handleSelectQuestionnaireOption(oIdx)}
-                  className="w-full text-left p-3 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] hover:bg-[#0B57D0]/5 dark:hover:bg-[#A8C7FA]/10 text-xs text-neutral-800 dark:text-neutral-200 transition-all font-sans"
+                  key={i}
+                  onClick={() => handleSelectQuestionnaireOption(i)}
+                  className="w-full text-left p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] text-xs text-neutral-800 dark:text-neutral-200 transition-all cursor-pointer"
                 >
                   {opt}
                 </button>
@@ -598,88 +563,69 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Paystack Withdrawal Modal */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <GeminiIcon name="wallet" size={15} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Paystack Bank Withdrawal</h3>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Withdraw Rewards</h3>
               <button
                 onClick={() => setShowWithdrawModal(false)}
-                className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
               >
-                <GeminiIcon name="close" size={15} />
+                <GeminiIcon name="close" size={16} />
               </button>
             </div>
 
-            {withdrawSuccess ? (
-              <div className="py-6 text-center space-y-2">
-                <div className="h-10 w-10 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <GeminiIcon name="check" size={18} />
-                </div>
-                <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">Transfer Initiated</h4>
-                <p className="text-xs text-neutral-600 dark:text-neutral-300 font-mono">
-                  ₦{withdrawAmount} sent via Paystack to {accountNumber} ({bankName}).
-                </p>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase">Amount (₦)</label>
+                <input
+                  type="number"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  className="w-full mt-1 p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white font-mono"
+                />
               </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-[10px] font-mono text-neutral-500 uppercase">Amount (NGN)</label>
-                  <input
-                    type="number"
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    max={profile.wallet_balance}
-                    className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                  />
-                  <span className="text-[10px] font-mono text-neutral-500 mt-0.5 block">
-                    Available: ₦{(profile.wallet_balance || 0).toLocaleString()}
-                  </span>
-                </div>
 
-                <div>
-                  <label className="text-[10px] font-mono text-neutral-500 uppercase">Select Bank</label>
-                  <select
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                  >
-                    <option value="Access Bank">Access Bank</option>
-                    <option value="GTBank">GTBank (Guaranty Trust)</option>
-                    <option value="Zenith Bank">Zenith Bank</option>
-                    <option value="Kuda Bank">Kuda Microfinance Bank</option>
-                    <option value="OPay">OPay Digital Services</option>
-                    <option value="Moniepoint">Moniepoint MFB</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-mono text-neutral-500 uppercase">Account Number (10 digits)</label>
-                  <input
-                    type="text"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
-                    maxLength={10}
-                    className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] font-mono"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    disabled={isWithdrawing}
-                    onClick={handleExecuteWithdrawal}
-                    className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                  >
-                    {isWithdrawing && (
-                      <div className="h-3.5 w-3.5 rounded-full border-2 border-white dark:border-neutral-950 border-t-transparent animate-spin" />
-                    )}
-                    <span>{isWithdrawing ? 'Processing Paystack Payout...' : 'Confirm Transfer'}</span>
-                  </button>
-                </div>
+              <div>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase">Bank Name</label>
+                <select
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white"
+                >
+                  <option value="Access Bank">Access Bank (Ago-Iwoye PS)</option>
+                  <option value="Wema Bank">Wema Bank (OOU PS Branch)</option>
+                  <option value="GTBank">Guaranty Trust Bank</option>
+                  <option value="First Bank">First Bank of Nigeria</option>
+                  <option value="Opay">OPay Digital Services</option>
+                  <option value="Palmpay">PalmPay</option>
+                </select>
               </div>
-            )}
+
+              <div>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase">Account Number</label>
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  className="w-full mt-1 p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white font-mono"
+                />
+              </div>
+
+              <button
+                onClick={handleExecuteWithdrawal}
+                disabled={isWithdrawing || withdrawSuccess}
+                className="mt-2 w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity flex items-center justify-center cursor-pointer shadow-xs"
+              >
+                {isWithdrawing ? (
+                  <span className="flex items-center gap-1.5 font-mono">Processing Transfer...</span>
+                ) : withdrawSuccess ? (
+                  <span className="flex items-center gap-1.5 text-emerald-300">✓ Transferred via Paystack</span>
+                ) : (
+                  'Confirm Withdrawal'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
