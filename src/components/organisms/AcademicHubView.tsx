@@ -5,6 +5,7 @@ import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile, Location } from '@/lib/types';
+import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
 
 interface AcademicHubViewProps {
   profile: StudentProfile;
@@ -20,6 +21,10 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
   onOpenReader,
   onOpenSchedule,
 }) => {
+  const { timetable, logs, getAttendanceAdvice } = useAttendanceTracker(profile.id);
+  const advice = getAttendanceAdvice();
+  const nextLecture = timetable.find((t) => t.isLiveNow) || timetable[0];
+
   const [checklist, setChecklist] = useState([
     { id: '1', task: 'Portal Course Registration (ECO 201-208)', done: true },
     { id: '2', task: 'SMS Faculty Dues & Departmental Clearance', done: false },
@@ -45,14 +50,22 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             Good day, {profile.full_name.split(' ')[0]}
           </h1>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-            {profile.level} • Next lecture at SMS LT1
+            {profile.level} • {nextLecture ? `Next Lecture: ${nextLecture.courseCode} (${nextLecture.time})` : 'Semester Active'}
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => onSelectVenue('SMS-LT1')}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95"
+            onClick={onOpenSchedule}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-all cursor-pointer"
+          >
+            <GeminiIcon name="check-circle" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            <span>{advice.rate}% Attendance</span>
+          </button>
+
+          <button
+            onClick={() => onSelectVenue(nextLecture ? nextLecture.locationId : 'SMS-LT1')}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer"
           >
             <GeminiIcon name="compass" size={14} />
             <span>Locate Hall</span>

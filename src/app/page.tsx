@@ -133,6 +133,7 @@ export default function AppHomePage() {
             profile={profile}
             onUpdateProfile={saveProfile}
             onOpenSchedule={() => setActiveTab('schedule')}
+            onOpenReader={() => setActiveTab('reader')}
             onSignOut={signOut}
           />
         )}

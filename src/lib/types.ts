@@ -79,6 +79,7 @@ export interface TimetableItem {
 
 export interface SavedExplanation {
   id: string;
+  user_id?: string;
   course_code: string;
   selected_text: string;
   ai_explanation: string;

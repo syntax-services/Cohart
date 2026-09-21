@@ -1,16 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile, LearningStyle } from '@/lib/types';
 import { useTheme, Theme } from '@/components/ThemeProvider';
+import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
+import { fetchSavedExplanations } from '@/lib/supabase';
 
 interface ProfileViewProps {
   profile: StudentProfile;
   onUpdateProfile: (updated: Partial<StudentProfile>) => Promise<void>;
   onOpenSchedule: () => void;
+  onOpenReader?: () => void;
   onSignOut?: () => void;
 }
 
@@ -18,6 +21,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
   onUpdateProfile,
   onOpenSchedule,
+  onOpenReader,
   onSignOut,
 }) => {
   const { theme, setTheme } = useTheme();
@@ -41,6 +45,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [accountNumber, setAccountNumber] = useState('0123456789');
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState(false);
+
+  // Attendance & Vault live metrics
+  const { logs, getAttendanceAdvice, timetable } = useAttendanceTracker(profile.id);
+  const advice = getAttendanceAdvice();
+  const [savedVaultCount, setSavedVaultCount] = useState(0);
+
+  useEffect(() => {
+    async function loadVaultCount() {
+      const data = await fetchSavedExplanations(profile.id);
+      setSavedVaultCount(data.length);
+    }
+    loadVaultCount();
+  }, [profile.id]);
 
   const cognitiveTraitOptions = [
     'ADHD / Fast Context Switches',
@@ -374,53 +391,91 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </GeminiCard>
 
-      {/* Pinned Timetables & Test Reminders in Profile */}
+      {/* Attendance & CA Qualification Status */}
       <GeminiCard>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-              <GeminiIcon name="calendar" size={15} />
+              <GeminiIcon name="check-circle" size={15} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Pinned Schedule & Test Reminders</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Continuous Assessment Hub</p>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Continuous Assessment Attendance</h2>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                {logs.length} Lectures Logged • Minimum 75% Required
+              </p>
             </div>
           </div>
           <button
             onClick={onOpenSchedule}
-            className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline"
+            className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline cursor-pointer"
           >
-            Full Timetable &rarr;
+            Check In &rarr;
           </button>
         </div>
 
+        {/* Mini CA Progress Bar */}
+        <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] mb-3">
+          <div className="flex justify-between items-center text-xs mb-1.5 font-mono">
+            <span className="font-semibold text-neutral-900 dark:text-white">
+              {advice.rate}% Verified CA Rate
+            </span>
+            <span className={advice.rate >= 75 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'}>
+              {advice.status === 'optimal' ? 'Exam Qualified' : 'In Progress'}
+            </span>
+          </div>
+          <div className="w-full h-1.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                advice.rate >= 75 ? 'bg-emerald-500' : 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
+              }`}
+              style={{ width: `${Math.min(100, Math.max(5, advice.rate))}%` }}
+            />
+          </div>
+        </div>
+
         <div className="space-y-2 text-xs">
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]">
-            <div>
-              <span className="font-medium text-neutral-900 dark:text-neutral-100 font-mono">ECO 201 • SLR 1</span>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Mon 08:00 - 10:00 • Principles of Microeconomics II</p>
-            </div>
-            <Badge variant="blue" size="sm">Core</Badge>
-          </div>
-
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]">
-            <div>
-              <span className="font-medium text-neutral-900 dark:text-neutral-100 font-mono">ECO 203 • ETF Hall A</span>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Mon 11:00 - 13:00 • Applied Statistics for Economists</p>
-            </div>
-            <Badge variant="slate" size="sm">Elective</Badge>
-          </div>
-
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B57D0]/[0.04] dark:bg-[#A8C7FA]/[0.06] border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA]">
-            <div className="flex items-center gap-2">
-              <GeminiIcon name="clock" size={14} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+          {timetable.slice(0, 3).map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]"
+            >
               <div>
-                <span className="font-medium text-neutral-900 dark:text-neutral-100">First In-Class Test: ECO 201</span>
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Scheduled for October 18 at SMS Lecture Theatre 1</p>
+                <span className="font-medium text-neutral-900 dark:text-neutral-100 font-mono">
+                  {item.courseCode} • {item.venueName.split(' ')[0]}
+                </span>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {item.day} {item.time} • {item.courseTitle}
+                </p>
               </div>
+              <Badge variant="blue" size="sm">Core</Badge>
             </div>
-            <span className="text-[11px] font-mono">In 14 days</span>
+          ))}
+        </div>
+      </GeminiCard>
+
+      {/* AI Study Vault & Knowledge Base Card */}
+      <GeminiCard>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+              <GeminiIcon name="bookmark" size={15} />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">AI Study Vault</h2>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                {savedVaultCount} {savedVaultCount === 1 ? 'Concept Saved' : 'Concepts Saved'}
+              </p>
+            </div>
           </div>
+
+          {onOpenReader && (
+            <button
+              onClick={onOpenReader}
+              className="px-3 py-1.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#0B57D0]/20 text-xs font-mono font-medium transition-colors cursor-pointer"
+            >
+              Open Vault &rarr;
+            </button>
+          )}
         </div>
       </GeminiCard>
 

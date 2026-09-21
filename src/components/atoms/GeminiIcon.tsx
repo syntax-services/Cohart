@@ -31,7 +31,9 @@ export type IconName =
   | 'filter'
   | 'shield-check'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'bookmark'
+  | 'trash';
 
 interface GeminiIconProps {
   name: IconName;
@@ -279,10 +281,20 @@ export const GeminiIcon: React.FC<GeminiIconProps> = ({
           <path d="M17.3 6.7L19.07 4.93" />
         </svg>
       );
-    case 'moon':
+    case 'bookmark':
       return (
         <svg {...commonProps}>
-          <path d="M20.5 14.5C19.5 15.5 18 16 16.5 16C12.4 16 9 12.6 9 8.5C9 7 9.5 5.5 10.5 4.5C6.5 5 3.5 8.4 3.5 12.5C3.5 17.2 7.3 21 12 21C16.1 21 19.5 18 20.5 14.5Z" />
+          <path d="M5 4C5 3.45 5.45 3 6 3H18C18.55 3 19 3.45 19 4V21L12 17.5L5 21V4Z" />
+        </svg>
+      );
+    case 'trash':
+      return (
+        <svg {...commonProps}>
+          <path d="M3 6H21" />
+          <path d="M19 6V20C19 20.55 18.55 21 18 21H6C5.45 21 5 20.55 5 20V6" />
+          <path d="M8 6V4C8 3.45 8.45 3 9 3H15C15.55 3 16 3.45 16 4V6" />
+          <line x1="10" y1="11" x2="10" y2="17" />
+          <line x1="14" y1="11" x2="14" y2="17" />
         </svg>
       );
     default:

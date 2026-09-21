@@ -814,20 +814,32 @@ export async function updateProfile(profile: Partial<StudentProfile> & { id: str
   }
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isValidUUID(id?: string | null): boolean {
+  return typeof id === 'string' && UUID_REGEX.test(id);
+}
+
 export async function logAttendance(log: Omit<AttendanceLog, 'id' | 'attended_at'>): Promise<AttendanceLog | null> {
+  const fallbackLog: AttendanceLog = {
+    ...log,
+    id: `att_${Date.now()}`,
+    attended_at: new Date().toISOString(),
+  };
+
   try {
+    const payload = {
+      ...log,
+      user_id: isValidUUID(log.user_id) ? log.user_id : null,
+    };
+
     const { data, error } = await supabase
       .from('attendance_logs')
-      .insert([log])
+      .insert([payload])
       .select()
       .single();
 
-    if (error) {
-      const fallbackLog: AttendanceLog = {
-        ...log,
-        id: `att_${Date.now()}`,
-        attended_at: new Date().toISOString(),
-      };
+    if (error || !data) {
       if (typeof window !== 'undefined') {
         const stored = JSON.parse(localStorage.getItem('cohart_attendance_fallback') || '[]');
         stored.unshift(fallbackLog);
@@ -836,47 +848,72 @@ export async function logAttendance(log: Omit<AttendanceLog, 'id' | 'attended_at
       return fallbackLog;
     }
 
+    // Also mirror to local storage for instant offline read
+    if (typeof window !== 'undefined') {
+      const stored = JSON.parse(localStorage.getItem('cohart_attendance_fallback') || '[]');
+      stored.unshift(data as AttendanceLog);
+      localStorage.setItem('cohart_attendance_fallback', JSON.stringify(stored));
+    }
+
     return data as AttendanceLog;
   } catch {
-    return null;
+    if (typeof window !== 'undefined') {
+      const stored = JSON.parse(localStorage.getItem('cohart_attendance_fallback') || '[]');
+      stored.unshift(fallbackLog);
+      localStorage.setItem('cohart_attendance_fallback', JSON.stringify(stored));
+    }
+    return fallbackLog;
   }
 }
 
 export async function fetchAttendanceLogs(userId: string): Promise<AttendanceLog[]> {
   try {
-    const { data, error } = await supabase
-      .from('attendance_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .order('attended_at', { ascending: false });
+    if (isValidUUID(userId)) {
+      const { data, error } = await supabase
+        .from('attendance_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('attended_at', { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      if (typeof window !== 'undefined') {
-        return JSON.parse(localStorage.getItem('cohart_attendance_fallback') || '[]');
+      if (!error && data && data.length > 0) {
+        return data as AttendanceLog[];
       }
-      return [];
     }
 
-    return data as AttendanceLog[];
+    if (typeof window !== 'undefined') {
+      const local = JSON.parse(localStorage.getItem('cohart_attendance_fallback') || '[]');
+      if (local.length > 0) return local;
+    }
+
+    return [];
   } catch {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(localStorage.getItem('cohart_attendance_fallback') || '[]');
+    }
     return [];
   }
 }
 
 export async function saveExplanation(explanation: Omit<SavedExplanation, 'id' | 'created_at'>): Promise<SavedExplanation | null> {
+  const fallback: SavedExplanation = {
+    ...explanation,
+    id: `exp_${Date.now()}`,
+    created_at: new Date().toISOString(),
+  };
+
   try {
+    const payload = {
+      ...explanation,
+      user_id: isValidUUID(explanation.user_id) ? explanation.user_id : null,
+    };
+
     const { data, error } = await supabase
       .from('saved_explanations')
-      .insert([explanation])
+      .insert([payload])
       .select()
       .single();
 
-    if (error) {
-      const fallback: SavedExplanation = {
-        ...explanation,
-        id: `exp_${Date.now()}`,
-        created_at: new Date().toISOString(),
-      };
+    if (error || !data) {
       if (typeof window !== 'undefined') {
         const stored = JSON.parse(localStorage.getItem('cohart_saved_explanations') || '[]');
         stored.unshift(fallback);
@@ -885,8 +922,74 @@ export async function saveExplanation(explanation: Omit<SavedExplanation, 'id' |
       return fallback;
     }
 
+    // Mirror to local cache
+    if (typeof window !== 'undefined') {
+      const stored = JSON.parse(localStorage.getItem('cohart_saved_explanations') || '[]');
+      stored.unshift(data as SavedExplanation);
+      localStorage.setItem('cohart_saved_explanations', JSON.stringify(stored));
+    }
+
     return data as SavedExplanation;
   } catch {
-    return null;
+    if (typeof window !== 'undefined') {
+      const stored = JSON.parse(localStorage.getItem('cohart_saved_explanations') || '[]');
+      stored.unshift(fallback);
+      localStorage.setItem('cohart_saved_explanations', JSON.stringify(stored));
+    }
+    return fallback;
+  }
+}
+
+export async function fetchSavedExplanations(userId?: string): Promise<SavedExplanation[]> {
+  try {
+    if (userId && isValidUUID(userId)) {
+      const { data, error } = await supabase
+        .from('saved_explanations')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data as SavedExplanation[];
+      }
+    }
+
+    // Check public/anon records from database as well
+    const { data: publicData } = await supabase
+      .from('saved_explanations')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (publicData && publicData.length > 0) {
+      return publicData as SavedExplanation[];
+    }
+
+    if (typeof window !== 'undefined') {
+      return JSON.parse(localStorage.getItem('cohart_saved_explanations') || '[]');
+    }
+
+    return [];
+  } catch {
+    if (typeof window !== 'undefined') {
+      return JSON.parse(localStorage.getItem('cohart_saved_explanations') || '[]');
+    }
+    return [];
+  }
+}
+
+export async function deleteSavedExplanation(id: string): Promise<boolean> {
+  try {
+    if (isValidUUID(id)) {
+      await supabase.from('saved_explanations').delete().eq('id', id);
+    }
+    if (typeof window !== 'undefined') {
+      const stored = JSON.parse(localStorage.getItem('cohart_saved_explanations') || '[]');
+      const filtered = stored.filter((item: SavedExplanation) => item.id !== id);
+      localStorage.setItem('cohart_saved_explanations', JSON.stringify(filtered));
+    }
+    return true;
+  } catch {
+    return false;
   }
 }

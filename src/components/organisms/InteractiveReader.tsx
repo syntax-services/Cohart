@@ -5,8 +5,8 @@ import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { formatBionicText } from '@/lib/bionic';
-import { StudentProfile, ReaderChapter } from '@/lib/types';
-import { saveExplanation } from '@/lib/supabase';
+import { StudentProfile, ReaderChapter, SavedExplanation } from '@/lib/types';
+import { saveExplanation, fetchSavedExplanations, deleteSavedExplanation } from '@/lib/supabase';
 
 import { CampusAiAssistant } from './CampusAiAssistant';
 
@@ -91,7 +91,7 @@ interface InteractiveReaderProps {
 }
 
 export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, onLocateVenue }) => {
-  const [activeView, setActiveView] = useState<'reader' | 'ai'>('reader');
+  const [activeView, setActiveView] = useState<'reader' | 'ai' | 'vault'>('reader');
   const [activeTopicIndex, setActiveTopicIndex] = useState<0 | 1>(0);
   const currentChapter = activeTopicIndex === 0 ? TOPIC_1 : TOPIC_2;
 
@@ -102,6 +102,20 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Saved explanations vault state
+  const [savedExplanations, setSavedExplanations] = useState<SavedExplanation[]>([]);
+  const [vaultSearch, setVaultSearch] = useState('');
+  const [vaultCourseFilter, setVaultCourseFilter] = useState('ALL');
+  const [copiedNoteId, setCopiedNoteId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function loadVault() {
+      const data = await fetchSavedExplanations(profile.id);
+      setSavedExplanations(data);
+    }
+    loadVault();
+  }, [profile.id]);
 
   // Active recall state
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -200,13 +214,29 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
 
   const handleSaveToVault = async () => {
     if (!aiExplanation || !selectedText) return;
-    await saveExplanation({
+    const res = await saveExplanation({
+      user_id: profile.id,
       course_code: currentChapter.courseCode,
       selected_text: selectedText,
       ai_explanation: aiExplanation,
       context_topic: currentChapter.title,
     });
+    if (res) {
+      setSavedExplanations((prev) => [res, ...prev.filter((item) => item.id !== res.id)]);
+    }
     setIsSaved(true);
+  };
+
+  const handleDeleteSavedNote = async (id: string) => {
+    await deleteSavedExplanation(id);
+    setSavedExplanations((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleCopyNote = (note: SavedExplanation) => {
+    const textToCopy = `Course: ${note.course_code} - ${note.context_topic || ''}\n\nKey Excerpt:\n"${note.selected_text}"\n\nAI Breakdown:\n${note.ai_explanation}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedNoteId(note.id);
+    setTimeout(() => setCopiedNoteId(null), 2000);
   };
 
   const handleSendChat = async () => {
@@ -289,14 +319,36 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
     lg: 'text-base leading-loose',
   };
 
+  const availableCourses = React.useMemo(() => {
+    const set = new Set<string>();
+    savedExplanations.forEach((s) => {
+      if (s.course_code) set.add(s.course_code);
+    });
+    return ['ALL', ...Array.from(set)];
+  }, [savedExplanations]);
+
+  const filteredVault = React.useMemo(() => {
+    return savedExplanations.filter((item) => {
+      const matchesCourse =
+        vaultCourseFilter === 'ALL' || item.course_code === vaultCourseFilter;
+      const q = vaultSearch.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        item.selected_text.toLowerCase().includes(q) ||
+        item.ai_explanation.toLowerCase().includes(q) ||
+        (item.context_topic && item.context_topic.toLowerCase().includes(q));
+      return matchesCourse && matchesSearch;
+    });
+  }, [savedExplanations, vaultCourseFilter, vaultSearch]);
+
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Top Segmented Mode Selector: Course Reader vs Campus AI */}
+      {/* Top Segmented Mode Selector: Course Reader vs Campus AI vs AI Vault */}
       <div className="flex items-center justify-between p-1.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08]">
-        <div className="flex items-center gap-1 w-full sm:w-auto">
+        <div className="flex items-center gap-1 w-full sm:w-auto overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveView('reader')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
               activeView === 'reader'
                 ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -308,7 +360,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
 
           <button
             onClick={() => setActiveView('ai')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
               activeView === 'ai'
                 ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
                 : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -317,11 +369,183 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
             <GeminiIcon name="sparkle" size={14} />
             <span>Campus AI Assistant</span>
           </button>
+
+          <button
+            onClick={() => setActiveView('vault')}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
+              activeView === 'vault'
+                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            <GeminiIcon name="bookmark" size={14} />
+            <span>AI Vault</span>
+            {savedExplanations.length > 0 && (
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono leading-none ${
+                activeView === 'vault'
+                  ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black font-bold'
+                  : 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]'
+              }`}>
+                {savedExplanations.length}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
       {activeView === 'ai' ? (
         <CampusAiAssistant profile={profile} onSelectVenue={onLocateVenue} />
+      ) : activeView === 'vault' ? (
+        <div className="space-y-4 sm:space-y-5">
+          {/* Vault Header Card */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                  {profile.institution} • {profile.department}
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
+                AI Explanations & Notes Vault
+              </h2>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                Personalized concept breakdowns and Nigerian real-world analogies saved during study sessions
+              </p>
+            </div>
+
+            <Badge variant="blue" size="sm" className="self-start sm:self-auto">
+              {filteredVault.length} {filteredVault.length === 1 ? 'Saved Note' : 'Saved Notes'}
+            </Badge>
+          </div>
+
+          {/* Filter Bar: Course Pills & Search */}
+          <GeminiCard className="p-3.5 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              {/* Course Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+                {availableCourses.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setVaultCourseFilter(c)}
+                    className={`px-3 py-1 rounded-full font-mono text-xs transition-all cursor-pointer shrink-0 ${
+                      vaultCourseFilter === c
+                        ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                        : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {c === 'ALL' ? 'All Courses' : c}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-64 shrink-0">
+                <input
+                  type="text"
+                  value={vaultSearch}
+                  onChange={(e) => setVaultSearch(e.target.value)}
+                  placeholder="Filter saved notes..."
+                  className="w-full rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] pl-8 pr-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                />
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
+                  <GeminiIcon name="search" size={13} />
+                </div>
+              </div>
+            </div>
+          </GeminiCard>
+
+          {/* Vault Cards Stream */}
+          {filteredVault.length === 0 ? (
+            <GeminiCard className="p-8 text-center space-y-3">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                <GeminiIcon name="bookmark" size={22} />
+              </div>
+              <h3 className="text-base font-semibold text-neutral-900 dark:text-white font-sans">
+                {savedExplanations.length === 0 ? 'Your AI Vault is Empty' : 'No Matching Notes'}
+              </h3>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md mx-auto leading-relaxed">
+                {savedExplanations.length === 0
+                  ? 'While reading chapters in the Course Reader, highlight any complex paragraph and tap "Save to Vault". Your personalized real-world breakdowns will be permanently stored here for quick exam revision.'
+                  : `No notes found matching "${vaultSearch}". Try a different keyword or switch to All Courses.`}
+              </p>
+              {savedExplanations.length === 0 && (
+                <div className="pt-2">
+                  <button
+                    onClick={() => setActiveView('reader')}
+                    className="px-4 py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer"
+                  >
+                    Open Course Reader &rarr;
+                  </button>
+                </div>
+              )}
+            </GeminiCard>
+          ) : (
+            <div className="space-y-3.5">
+              {filteredVault.map((item) => (
+                <GeminiCard key={item.id} className="p-4 sm:p-5 space-y-3">
+                  {/* Note Header */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                        {item.course_code}
+                      </span>
+                      {item.context_topic && (
+                        <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">
+                          {item.context_topic}
+                        </span>
+                      )}
+                    </div>
+
+                    <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 shrink-0">
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent'}
+                    </span>
+                  </div>
+
+                  {/* Quoted Selection */}
+                  <div className="pl-3 py-1 border-l-2 border-[#0B57D0] dark:border-[#A8C7FA] bg-black/[0.015] dark:bg-white/[0.02] rounded-r-lg">
+                    <p className="text-xs italic text-neutral-600 dark:text-neutral-300 font-serif leading-relaxed">
+                      &ldquo;{item.selected_text}&rdquo;
+                    </p>
+                  </div>
+
+                  {/* AI Explanation Content */}
+                  <div className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-3 border border-black/[0.05] dark:border-white/[0.05]">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#0B57D0] dark:text-[#A8C7FA] mb-1.5">
+                      <GeminiIcon name="sparkle" size={13} />
+                      <span>AI Concept Breakdown</span>
+                    </div>
+                    <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-line font-sans">
+                      {item.ai_explanation}
+                    </p>
+                  </div>
+
+                  {/* Note Action Toolbar */}
+                  <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-xs">
+                    <button
+                      onClick={() => handleCopyNote(item)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+                        copiedNoteId === item.id
+                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : 'border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
+                      }`}
+                    >
+                      <GeminiIcon name={copiedNoteId === item.id ? 'check' : 'copy'} size={13} />
+                      <span>{copiedNoteId === item.id ? 'Copied to Clipboard' : 'Copy Note'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteSavedNote(item.id)}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      title="Remove note from vault"
+                    >
+                      <GeminiIcon name="trash" size={14} />
+                    </button>
+                  </div>
+                </GeminiCard>
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
         <>
           {/* 2-Topic Prep Selector */}
