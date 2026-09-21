@@ -52,6 +52,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [savedVaultCount, setSavedVaultCount] = useState(0);
 
   useEffect(() => {
+    setName(profile.full_name || '');
+    setMatric(profile.matric_number || '');
+    setDept(profile.department || '');
+    setLevel(profile.level || '100L');
+  }, [profile.full_name, profile.matric_number, profile.department, profile.level]);
+
+  useEffect(() => {
     async function loadVaultCount() {
       const data = await fetchSavedExplanations(profile.id);
       setSavedVaultCount(data.length);
@@ -78,9 +85,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   const handleSaveBasic = async () => {
     await onUpdateProfile({
-      full_name: name,
-      matric_number: matric,
-      department: dept,
+      full_name: name.trim(),
+      matric_number: matric.trim(),
+      department: dept.trim(),
       level,
     });
     setIsEditingBasic(false);
@@ -152,38 +159,76 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
-  const initials = profile.full_name
+  const isProfileIncomplete =
+    !profile.full_name?.trim() ||
+    !profile.department?.trim() ||
+    !profile.matric_number?.trim();
+
+  const initials = profile.full_name?.trim()
     ? profile.full_name
-        .split(' ')
+        .trim()
+        .split(/\s+/)
         .map((n) => n[0])
         .join('')
         .slice(0, 2)
         .toUpperCase()
-    : 'AJ';
+    : 'CP';
 
   return (
     <div className="space-y-4 sm:space-y-5">
+      {/* Incomplete Profile Callout Banner */}
+      {isProfileIncomplete && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+              <GeminiIcon name="user" size={17} />
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold text-neutral-900 dark:text-white">
+                Complete Your Student Profile
+              </h3>
+              <p className="text-[11px] text-neutral-600 dark:text-neutral-400 mt-0.5">
+                Set your full name, department, level, and matric number for personalized lecture reminders and OOU campus routes.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsEditingBasic(true)}
+            className="self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs shrink-0 transition-all active:scale-95 cursor-pointer shadow-xs"
+          >
+            Complete Profile
+          </button>
+        </div>
+      )}
+
       {/* Student Profile Identity Card */}
       <GeminiCard>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] font-mono text-sm font-bold text-white dark:text-neutral-950">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] font-mono text-sm font-bold text-white dark:text-neutral-950 shrink-0">
               {initials}
             </div>
 
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-lg font-semibold text-neutral-900 dark:text-white font-sans">
-                  {profile.full_name}
+                  {profile.full_name?.trim() || 'Complete Profile'}
                 </h1>
                 {profile.is_verified_coordinator && (
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-300">
                     Dept Rep
                   </span>
                 )}
+                {isProfileIncomplete && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                    Setup Needed
+                  </span>
+                )}
               </div>
               <p className="text-xs font-mono text-neutral-500 dark:text-neutral-400 mt-0.5">
-                {profile.matric_number} • {profile.department} • {profile.level}
+                {profile.department
+                  ? `${profile.matric_number || 'Matric Pending'} • ${profile.department} • ${profile.level || '100L'}`
+                  : 'Tap Edit to set your Department & Level • OOU PS'}
               </p>
               <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans">
                 {profile.institution}
@@ -193,62 +238,76 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
           <button
             onClick={() => setIsEditingBasic(!isEditingBasic)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
           >
-            <span>{isEditingBasic ? 'Done' : 'Edit'}</span>
+            <span>{isEditingBasic ? 'Close' : 'Edit'}</span>
           </button>
         </div>
 
-        {/* Quick Details Inline Editor */}
+        {/* Compact Quick Details Inline Editor */}
         {isEditingBasic && (
-          <div className="mt-4 pt-4 border-t border-black/[0.06] dark:border-white/[0.07] grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in">
-            <div>
-              <label className="text-[10px] font-mono text-neutral-500 uppercase">Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-              />
+          <div className="mt-4 pt-4 border-t border-black/[0.06] dark:border-white/[0.07] space-y-3 animate-in fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Full Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Folashade Adeyemi"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Matric Number</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 21/09/52012"
+                  value={matric}
+                  onChange={(e) => setMatric(e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Department</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Economics, Law, Biochemistry"
+                  value={dept}
+                  onChange={(e) => setDept(e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Academic Level</label>
+                <select
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 rounded-xl bg-neutral-50 dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                >
+                  <option value="100L">100 Level</option>
+                  <option value="200L">200 Level</option>
+                  <option value="300L">300 Level</option>
+                  <option value="400L">400 Level</option>
+                  <option value="500L">500 Level</option>
+                  <option value="PG">Postgraduate</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="text-[10px] font-mono text-neutral-500 uppercase">Matric Number</label>
-              <input
-                type="text"
-                value={matric}
-                onChange={(e) => setMatric(e.target.value)}
-                className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-mono text-neutral-500 uppercase">Department</label>
-              <input
-                type="text"
-                value={dept}
-                onChange={(e) => setDept(e.target.value)}
-                className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-mono text-neutral-500 uppercase">Academic Level</label>
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-              >
-                <option value="100L">100 Level</option>
-                <option value="200L">200 Level</option>
-                <option value="300L">300 Level</option>
-                <option value="400L">400 Level</option>
-                <option value="500L">500 Level</option>
-              </select>
-            </div>
-            <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
+            <div className="flex justify-end items-center gap-2 pt-1">
               <button
-                onClick={handleSaveBasic}
-                className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90"
+                type="button"
+                onClick={() => setIsEditingBasic(false)}
+                className="px-3 py-1 rounded-full text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors cursor-pointer"
               >
-                Save
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveBasic}
+                className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-xs"
+              >
+                Save Details
               </button>
             </div>
           </div>

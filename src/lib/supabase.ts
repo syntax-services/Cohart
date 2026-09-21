@@ -7,24 +7,22 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const DEFAULT_STUDENT_PROFILE: StudentProfile = {
-  id: 'usr_demo_student_01',
-  email: 'student@oouagoiwoye.edu.ng',
-  full_name: 'Adewale Johnson',
-  matric_number: 'SMS/2023/18402',
+  id: 'usr_guest_scholar',
+  email: '',
+  full_name: '',
+  matric_number: '',
   institution: 'Olabisi Onabanjo University (OOU)',
-  faculty: 'Faculty of Social & Management Sciences',
-  department: 'Economics',
-  level: '200L',
+  faculty: '',
+  department: '',
+  level: '',
   cognitive_traits: [
-    'ADHD / Context Switcher',
     'Analogies & Real-World Models',
-    'Night Owl Deep Focus',
   ],
   learning_style: 'visual_analogies',
-  reading_speed_wpm: 240,
-  referral_code: 'OOU-ADEWALE',
-  wallet_balance: 14500, // in NGN
-  is_verified_coordinator: true,
+  reading_speed_wpm: 220,
+  referral_code: '',
+  wallet_balance: 0,
+  is_verified_coordinator: false,
 };
 
 export const DEFAULT_OOU_LOCATIONS: Location[] = [

@@ -21,6 +21,8 @@ export default function AppHomePage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [pendingTab, setPendingTab] = useState<NavTab | null>(null);
 
+  const [isAiFullscreen, setIsAiFullscreen] = useState(false);
+
   const { profile, userId, saveProfile, signOut } = useStudentProfile();
   const isAuthenticated = Boolean(userId);
 
@@ -34,6 +36,10 @@ export default function AppHomePage() {
 
   // Intercept navigation for unauthenticated guests
   const handleTabChange = (targetTab: NavTab) => {
+    if (isAiFullscreen) {
+      setIsAiFullscreen(false);
+    }
+
     if (targetTab === 'map') {
       setActiveTab('map');
       return;
@@ -63,6 +69,9 @@ export default function AppHomePage() {
   };
 
   const handleSelectVenue = (locationCode: string) => {
+    if (isAiFullscreen) {
+      setIsAiFullscreen(false);
+    }
     const target = locations.find(
       (l) => l.code === locationCode || l.id === locationCode
     );
@@ -86,17 +95,21 @@ export default function AppHomePage() {
     );
   }, [locations, searchFilter]);
 
-  return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans transition-colors duration-200">
-      {/* Top Header */}
-      <TopHeader
-        profile={profile}
-        onOpenProfile={() => setActiveTab('profile')}
-        onSearch={setSearchFilter}
-      />
+  const isAiActive = isAiFullscreen && activeTab === 'reader';
 
-      {/* Main Content Area with Bottom Bar clearance (pb-24) */}
-      <main className="flex-1 px-3 sm:px-6 lg:px-8 py-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28">
+  return (
+    <div className={`min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans transition-colors duration-200 ${isAiActive ? 'h-screen overflow-hidden' : ''}`}>
+      {/* Top Header - Hidden in AI Mode */}
+      {!isAiActive && (
+        <TopHeader
+          profile={profile}
+          onOpenProfile={() => setActiveTab('profile')}
+          onSearch={setSearchFilter}
+        />
+      )}
+
+      {/* Main Content Area - Full Bleed in AI Mode, else pb-24 clearance */}
+      <main className={isAiActive ? 'flex-1 w-full h-full overflow-hidden p-0 m-0' : 'flex-1 px-3 sm:px-6 lg:px-8 py-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28'}>
         {activeTab === 'hub' && (
           <AcademicHubView
             profile={profile}
@@ -108,7 +121,11 @@ export default function AppHomePage() {
         )}
 
         {activeTab === 'reader' && (
-          <InteractiveReader profile={profile} />
+          <InteractiveReader
+            profile={profile}
+            onLocateVenue={handleSelectVenue}
+            onAiModeChange={setIsAiFullscreen}
+          />
         )}
 
         {activeTab === 'schedule' && (
@@ -139,8 +156,10 @@ export default function AppHomePage() {
         )}
       </main>
 
-      {/* PWA Floating Bottom Navigation Bar */}
-      <BottomNav activeTab={activeTab} onChangeTab={handleTabChange} />
+      {/* PWA Floating Bottom Navigation Bar - Hidden in AI Mode */}
+      {!isAiActive && (
+        <BottomNav activeTab={activeTab} onChangeTab={handleTabChange} />
+      )}
 
       {/* Guest Authentication Modal */}
       <AuthModal

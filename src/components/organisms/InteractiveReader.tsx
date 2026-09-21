@@ -88,10 +88,29 @@ const TOPIC_2: ReaderChapter = {
 interface InteractiveReaderProps {
   profile: StudentProfile;
   onLocateVenue?: (code: string) => void;
+  onAiModeChange?: (isAi: boolean) => void;
 }
 
-export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, onLocateVenue }) => {
-  const [activeView, setActiveView] = useState<'reader' | 'ai' | 'vault'>('reader');
+export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
+  profile,
+  onLocateVenue,
+  onAiModeChange,
+}) => {
+  const [activeView, setActiveView] = useState<'reader' | 'ai' | 'vault'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cohart_reader_view');
+      if (saved === 'ai' || saved === 'vault') return saved;
+    }
+    return 'reader';
+  });
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cohart_reader_view', activeView);
+    }
+    onAiModeChange?.(activeView === 'ai');
+  }, [activeView, onAiModeChange]);
+
   const [activeTopicIndex, setActiveTopicIndex] = useState<0 | 1>(0);
   const currentChapter = activeTopicIndex === 0 ? TOPIC_1 : TOPIC_2;
 
@@ -121,13 +140,17 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
+  const studentFirstName = profile.full_name?.trim()
+    ? profile.full_name.trim().split(' ')[0]
+    : 'Scholar';
+
   // Context chat
   const [chatMessages, setChatMessages] = useState<
     { role: 'user' | 'assistant'; text: string }[]
   >([
     {
       role: 'assistant',
-      text: `Hello ${profile.full_name.split(' ')[0]}. Loaded your personal reading profile with '${profile.learning_style.replace('_', ' ')}' mode. Highlight any sentence to receive a personalized breakdown.`,
+      text: `Hello ${studentFirstName}. Loaded your personal reading profile with '${(profile.learning_style || 'visual_analogies').replace('_', ' ')}' mode. Highlight any sentence to receive a personalized breakdown.`,
     },
   ]);
   const [inputQuestion, setInputQuestion] = useState('');
@@ -341,6 +364,21 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
     });
   }, [savedExplanations, vaultCourseFilter, vaultSearch]);
 
+  if (activeView === 'ai') {
+    return (
+      <div className="h-full w-full">
+        <CampusAiAssistant
+          profile={profile}
+          onSelectVenue={onLocateVenue}
+          onExitFullscreen={() => {
+            setActiveView('reader');
+            onAiModeChange?.(false);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-5">
       {/* Top Segmented Mode Selector: Course Reader vs Campus AI vs AI Vault */}
@@ -360,11 +398,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
 
           <button
             onClick={() => setActiveView('ai')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
-              activeView === 'ai'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-            }`}
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
           >
             <GeminiIcon name="sparkle" size={14} />
             <span>Campus AI Assistant</span>
@@ -393,9 +427,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
         </div>
       </div>
 
-      {activeView === 'ai' ? (
-        <CampusAiAssistant profile={profile} onSelectVenue={onLocateVenue} />
-      ) : activeView === 'vault' ? (
+      {activeView === 'vault' ? (
         <div className="space-y-4 sm:space-y-5">
           {/* Vault Header Card */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
@@ -836,7 +868,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
                 type="text"
                 value={inputQuestion}
                 onChange={(e) => setInputQuestion(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendChat();
+                  }
+                }}
                 placeholder="Ask about reactions, Cournot vs Bertrand..."
                 className="flex-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] px-3.5 py-2 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
               />

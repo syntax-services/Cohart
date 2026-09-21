@@ -26,9 +26,9 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
   const nextLecture = timetable.find((t) => t.isLiveNow) || timetable[0];
 
   const [checklist, setChecklist] = useState([
-    { id: '1', task: 'Portal Course Registration (ECO 201-208)', done: true },
-    { id: '2', task: 'SMS Faculty Dues & Departmental Clearance', done: false },
-    { id: '3', task: 'SMS Lecture Theatre 1 Seat Allocation', done: true },
+    { id: '1', task: 'Portal Course Registration & Green Form Printout', done: true },
+    { id: '2', task: 'Faculty Dues & Departmental Clearance', done: false },
+    { id: '3', task: 'Course Form Verification & Advisor Signing', done: true },
     { id: '4', task: 'Ago-Iwoye Main E-Library Access Pass', done: false },
   ]);
 
@@ -38,19 +38,22 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
     );
   };
 
+  const studentFirstName = profile.full_name?.trim() ? profile.full_name.trim().split(' ')[0] : 'Scholar';
+  const academicSubtext = profile.department ? `${profile.department} • ${profile.level || 'Undergraduate'}` : 'Tap profile to set department & level';
+
   return (
     <div className="space-y-4 sm:space-y-5">
       {/* Top Academic Greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
         <div>
           <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-            {profile.institution} • {profile.department}
+            {profile.institution} • {academicSubtext}
           </span>
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans mt-0.5">
-            Good day, {profile.full_name.split(' ')[0]}
+            Good day, {studentFirstName}
           </h1>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-            {profile.level} • {nextLecture ? `Next Lecture: ${nextLecture.courseCode} (${nextLecture.time})` : 'Semester Active'}
+            {profile.level || 'Session 2024/2025'} • {nextLecture ? `Next Lecture: ${nextLecture.courseCode} (${nextLecture.time})` : 'Semester Resumption Active'}
           </p>
         </div>
 
