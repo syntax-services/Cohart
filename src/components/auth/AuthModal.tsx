@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
+import { supabase } from '@/lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (fullName: string, email: string) => void;
+  onSuccess: (fullName: string, email: string, userId?: string) => void;
   initialMode?: 'signin' | 'signup';
 }
 
@@ -44,11 +45,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     setLoading(true);
     try {
-      const nameToStore = mode === 'signup' ? fullName.trim() : (email.split('@')[0] || 'Student');
-      onSuccess(nameToStore, email.trim());
-      onClose();
+      if (mode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim().toLowerCase(),
+          password: password.trim(),
+          options: {
+            data: {
+              full_name: fullName.trim(),
+            },
+          },
+        });
+
+        if (error) {
+          setErrorMsg(error.message);
+          return;
+        }
+
+        const registeredName = fullName.trim() || email.split('@')[0];
+        onSuccess(registeredName, email.trim().toLowerCase(), data.user?.id);
+        onClose();
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password: password.trim(),
+        });
+
+        if (error) {
+          // Clean human-friendly error messages
+          if (error.message.includes('Invalid login credentials')) {
+            setErrorMsg('Invalid email or password. Please check and try again.');
+          } else {
+            setErrorMsg(error.message);
+          }
+          return;
+        }
+
+        const studentName =
+          data.user?.user_metadata?.full_name ||
+          email.split('@')[0] ||
+          'Student';
+
+        onSuccess(studentName, email.trim().toLowerCase(), data.user?.id);
+        onClose();
+      }
     } catch {
-      setErrorMsg('Unable to authenticate. Please check your network and retry.');
+      setErrorMsg('Network error. Please check your internet connection and retry.');
     } finally {
       setLoading(false);
     }

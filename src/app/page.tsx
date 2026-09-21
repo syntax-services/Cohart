@@ -20,17 +20,9 @@ export default function AppHomePage() {
   const [searchFilter, setSearchFilter] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [pendingTab, setPendingTab] = useState<NavTab | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const { profile, saveProfile } = useStudentProfile();
-
-  useEffect(() => {
-    // Check local authentication state
-    const storedUser = localStorage.getItem('cohart_auth_user');
-    if (storedUser) {
-      setIsAuthenticated(true);
-    }
-  }, []);
+  const { profile, userId, saveProfile, signOut } = useStudentProfile();
+  const isAuthenticated = Boolean(userId || (typeof window !== 'undefined' && localStorage.getItem('cohart_auth_user')));
 
   useEffect(() => {
     async function loadLocations() {
@@ -56,13 +48,13 @@ export default function AppHomePage() {
     setActiveTab(targetTab);
   };
 
-  const handleAuthSuccess = (fullName: string, email: string) => {
-    setIsAuthenticated(true);
+  const handleAuthSuccess = (fullName: string, email: string, newUserId?: string) => {
     localStorage.setItem(
       'cohart_auth_user',
       JSON.stringify({ fullName, email, timestamp: new Date().toISOString() })
     );
     saveProfile({
+      id: newUserId,
       full_name: fullName,
       email,
     });
@@ -145,6 +137,7 @@ export default function AppHomePage() {
             profile={profile}
             onUpdateProfile={saveProfile}
             onOpenSchedule={() => setActiveTab('schedule')}
+            onSignOut={signOut}
           />
         )}
       </main>

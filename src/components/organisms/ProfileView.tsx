@@ -11,12 +11,14 @@ interface ProfileViewProps {
   profile: StudentProfile;
   onUpdateProfile: (updated: Partial<StudentProfile>) => Promise<void>;
   onOpenSchedule: () => void;
+  onSignOut?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
   onUpdateProfile,
   onOpenSchedule,
+  onSignOut,
 }) => {
   const { theme, setTheme } = useTheme();
   const [isEditingBasic, setIsEditingBasic] = useState(false);
@@ -421,6 +423,26 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         </div>
       </GeminiCard>
+
+      {/* Account Session & Sign Out Card */}
+      {onSignOut && (
+        <GeminiCard>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Account Session</h2>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                Connected as {profile.email || 'student@oouagoiwoye.edu.ng'}
+              </p>
+            </div>
+            <button
+              onClick={onSignOut}
+              className="px-4 py-1.5 rounded-full border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-xs font-medium transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        </GeminiCard>
+      )}
 
       {/* AI Diagnostic Questionnaire Modal */}
       {showQuestionnaire && (
