@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { supabase } from '@/lib/supabase';
 
 // Daily in-memory rate limiter per IP / User: 30 requests per day
 const requestCounts = new Map<string, { count: number; date: string }>();
@@ -73,9 +74,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    // API key resolution: env var -> Supabase app_config table -> Supabase Edge Function
+    let apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'Gemini API key is not configured.' }, { status: 500 });
+      try {
+        const { data: configData } = await supabase
+          .from('app_config')
+          .select('value')
+          .eq('key', 'GEMINI_API_KEY')
+          .single();
+        if (configData?.value) {
+          apiKey = configData.value;
+        }
+      } catch {
+        // Fallback to Supabase Edge Function
+      }
     }
 
     // Cohart Context & Persona Injection
@@ -106,39 +119,103 @@ Response Rules:
 Follow-up context or question: ${prompt || 'Break this down simply.'}`;
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: `${systemPrompt}\n\nUser Question:\n${userContent}` }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 350,
-          },
-        }),
-      }
-    );
+    let replyText = '';
+    let usedModel = 'gemini-3.6-flash';
 
-    if (!response.ok) {
-      const errJson = await response.json().catch(() => ({}));
-      console.error('Gemini API Error:', errJson);
-      return NextResponse.json(
-        { error: 'AI engine temporarily busy. Please retry in a few moments.' },
-        { status: 502 }
+    // Try primary Gemini 3.6 Flash
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: `${systemPrompt}\n\nUser Question:\n${userContent}` }],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 400,
+            },
+          }),
+        }
       );
+
+      if (response.ok) {
+        const data = await response.json();
+        replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      }
+    } catch {
+      // Primary model fetch failed, try fallback
     }
 
-    const data = await response.json();
-    const replyText =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "I'm here to assist your academic journey at OOU. Could you please rephrase your request?";
+    // Fallback: Gemini 3.5 Flash Lite or Supabase Edge Function
+    if (!replyText) {
+      try {
+        const fbRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: `${systemPrompt}\n\nUser Question:\n${userContent}` }],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.3,
+                maxOutputTokens: 350,
+              },
+            }),
+          }
+        );
+        if (fbRes.ok) {
+          const data = await fbRes.json();
+          replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          usedModel = 'gemini-3.5-flash-lite';
+        }
+      } catch {
+        // Fallback to Supabase Edge Function
+      }
+    }
+
+    // Last line of defense: Live Supabase Edge Function
+    if (!replyText) {
+      try {
+        const edgeRes = await fetch(
+          'https://fnqnxdmdyevzavsbfelv.supabase.co/functions/v1/ai',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucW54ZG1keWV2emF2c2JmZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MTI3NDUsImV4cCI6MjEwNTQ4ODc0NX0.BdJAhqwdSiPbGHCb5d3KbwNHalTlbO1jaqWTgXvVz6A',
+            },
+            body: JSON.stringify({
+              prompt: userContent,
+              context,
+              studentProfile,
+              highlightedText,
+            }),
+          }
+        );
+        if (edgeRes.ok) {
+          const data = await edgeRes.json();
+          replyText = data.reply || '';
+          usedModel = 'supabase-edge-ai';
+        }
+      } catch {
+        // Continue
+      }
+    }
+
+    if (!replyText) {
+      replyText = "I'm here to assist your academic journey at OOU. Could you please rephrase your request?";
+    }
 
     // Asynchronously log for daily learning digest
     logDailyLearning({
@@ -152,7 +229,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
     return NextResponse.json({
       reply: replyText,
       remaining,
-      model: 'gemini-3.5-flash-lite',
+      model: usedModel,
     });
   } catch (error) {
     console.error('API route error:', error);

@@ -139,26 +139,60 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
     setIsSaved(false);
 
     try {
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          context: 'reader_explanation',
-          highlightedText: text,
-          prompt: `Break this down with a real-world Nigerian/OOU analogy for a ${profile.department} student.`,
-          studentProfile: profile,
-        }),
-      });
+      let explanation = '';
 
-      if (res.ok) {
-        const data = await res.json();
-        setAiExplanation(data.reply);
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setAiExplanation(err.error || 'Temporarily unable to generate AI breakdown. Please retry.');
+      // Primary: Call /api/ai
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            context: 'reader_explanation',
+            highlightedText: text,
+            prompt: `Break this down with a real-world Nigerian/OOU analogy for a ${profile.department} student.`,
+            studentProfile: profile,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          explanation = data.reply;
+        }
+      } catch {
+        // Fallback to Supabase Edge Function
       }
+
+      // Secondary fallback: Direct Supabase AI Edge Function
+      if (!explanation) {
+        try {
+          const edgeRes = await fetch(
+            'https://fnqnxdmdyevzavsbfelv.supabase.co/functions/v1/ai',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucW54ZG1keWV2emF2c2JmZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MTI3NDUsImV4cCI6MjEwNTQ4ODc0NX0.BdJAhqwdSiPbGHCb5d3KbwNHalTlbO1jaqWTgXvVz6A',
+              },
+              body: JSON.stringify({
+                context: 'reader_explanation',
+                highlightedText: text,
+                prompt: `Break this down with a real-world Nigerian/OOU analogy for a ${profile.department} student.`,
+                studentProfile: profile,
+              }),
+            }
+          );
+          if (edgeRes.ok) {
+            const data = await edgeRes.json();
+            explanation = data.reply;
+          }
+        } catch {
+          // Both failed
+        }
+      }
+
+      setAiExplanation(explanation || 'Unable to generate explanation right now. Please retry in a moment.');
     } catch {
-      setAiExplanation('Network error connecting to AI engine. Please verify your internet connection.');
+      setAiExplanation('Network error connecting to AI engine. Please verify your connection.');
     } finally {
       setIsExplaining(false);
     }
@@ -183,27 +217,64 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
     setChatMessages((prev) => [...prev, { role: 'user', text: q }]);
 
     try {
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          context: 'reader_explanation',
-          highlightedText: selectedText || currentChapter.title,
-          prompt: q,
-          studentProfile: profile,
-        }),
-      });
+      let replyText = '';
 
-      if (res.ok) {
-        const data = await res.json();
-        setChatMessages((prev) => [...prev, { role: 'assistant', text: data.reply }]);
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setChatMessages((prev) => [
-          ...prev,
-          { role: 'assistant', text: err.error || 'AI response failed. Please retry.' },
-        ]);
+      // Primary: Call /api/ai
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            context: 'reader_explanation',
+            highlightedText: selectedText || currentChapter.title,
+            prompt: q,
+            studentProfile: profile,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          replyText = data.reply;
+        }
+      } catch {
+        // Fallback to Supabase Edge Function
       }
+
+      // Secondary fallback: Direct Supabase AI Edge Function
+      if (!replyText) {
+        try {
+          const edgeRes = await fetch(
+            'https://fnqnxdmdyevzavsbfelv.supabase.co/functions/v1/ai',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucW54ZG1keWV2emF2c2JmZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MTI3NDUsImV4cCI6MjEwNTQ4ODc0NX0.BdJAhqwdSiPbGHCb5d3KbwNHalTlbO1jaqWTgXvVz6A',
+              },
+              body: JSON.stringify({
+                context: 'reader_explanation',
+                highlightedText: selectedText || currentChapter.title,
+                prompt: q,
+                studentProfile: profile,
+              }),
+            }
+          );
+          if (edgeRes.ok) {
+            const data = await edgeRes.json();
+            replyText = data.reply;
+          }
+        } catch {
+          // Both failed
+        }
+      }
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: replyText || 'Temporarily unable to process response. Please retry.',
+        },
+      ]);
     } catch {
       setChatMessages((prev) => [
         ...prev,

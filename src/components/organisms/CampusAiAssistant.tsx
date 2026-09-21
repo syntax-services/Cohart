@@ -105,26 +105,60 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     setIsTyping(true);
 
     try {
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: query,
-          context: 'campus_navigation',
-          studentProfile: profile,
-        }),
-      });
-
       let replyContent = '';
-      let venueCode: string | undefined;
 
-      if (res.ok) {
-        const data = await res.json();
-        replyContent = data.reply;
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        replyContent = errData.error || 'Temporarily unable to connect to Cohart AI. Please try again.';
+      // Primary: Local /api/ai route
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: query,
+            context: 'campus_navigation',
+            studentProfile: profile,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          replyContent = data.reply;
+        }
+      } catch {
+        // Fallback to direct Supabase Edge Function
       }
+
+      // Secondary fallback: Direct Supabase AI Edge Function
+      if (!replyContent) {
+        try {
+          const edgeRes = await fetch(
+            'https://fnqnxdmdyevzavsbfelv.supabase.co/functions/v1/ai',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucW54ZG1keWV2emF2c2JmZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MTI3NDUsImV4cCI6MjEwNTQ4ODc0NX0.BdJAhqwdSiPbGHCb5d3KbwNHalTlbO1jaqWTgXvVz6A',
+              },
+              body: JSON.stringify({
+                prompt: query,
+                context: 'campus_navigation',
+                studentProfile: profile,
+              }),
+            }
+          );
+          if (edgeRes.ok) {
+            const data = await edgeRes.json();
+            replyContent = data.reply;
+          }
+        } catch {
+          // Both paths failed
+        }
+      }
+
+      if (!replyContent) {
+        replyContent = 'I am currently recalibrating my campus landmarks. Please retry in a few seconds.';
+      }
+
+      let venueCode: string | undefined;
 
       // Check if reply points to a known venue for a 1-tap action
       const lower = query.toLowerCase();
