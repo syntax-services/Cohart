@@ -138,16 +138,30 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
     setAiExplanation(null);
     setIsSaved(false);
 
-    setTimeout(() => {
-      let customExplanation = '';
-      if (profile.learning_style === 'visual_analogies') {
-        customExplanation = `Analogy for "${text.slice(0, 45)}...": Think of two competing bus drivers at OOU Ago-Iwoye Main Gate. If driver A knows driver B is loading 30 passengers, driver A calculates how many empty seats remain on the route. Both drivers adjust their vehicle schedules based on what the other does until both routes are filled. In economics, that balance point is the Cournot equilibrium.`;
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: 'reader_explanation',
+          highlightedText: text,
+          prompt: `Break this down with a real-world Nigerian/OOU analogy for a ${profile.department} student.`,
+          studentProfile: profile,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAiExplanation(data.reply);
       } else {
-        customExplanation = `Core concept breakdown: In Cournot competition, market price is not fixed by one entity. Instead, firm A and firm B determine their capacity independently. Because each firm accounts for the rival's output, equilibrium price sits between monopoly and competitive levels.`;
+        const err = await res.json().catch(() => ({}));
+        setAiExplanation(err.error || 'Temporarily unable to generate AI breakdown. Please retry.');
       }
-      setAiExplanation(customExplanation);
+    } catch {
+      setAiExplanation('Network error connecting to AI engine. Please verify your internet connection.');
+    } finally {
       setIsExplaining(false);
-    }, 500);
+    }
   };
 
   const handleSaveToVault = async () => {
@@ -161,21 +175,41 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({ profile, o
     setIsSaved(true);
   };
 
-  const handleSendChat = () => {
+  const handleSendChat = async () => {
     if (!inputQuestion.trim()) return;
-    const query = inputQuestion;
-    setInputQuestion('');
-    setChatMessages((prev) => [...prev, { role: 'user', text: query }]);
 
-    setTimeout(() => {
+    const q = inputQuestion;
+    setInputQuestion('');
+    setChatMessages((prev) => [...prev, { role: 'user', text: q }]);
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: 'reader_explanation',
+          highlightedText: selectedText || currentChapter.title,
+          prompt: q,
+          studentProfile: profile,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setChatMessages((prev) => [...prev, { role: 'assistant', text: data.reply }]);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setChatMessages((prev) => [
+          ...prev,
+          { role: 'assistant', text: err.error || 'AI response failed. Please retry.' },
+        ]);
+      }
+    } catch {
       setChatMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          text: `In relation to ${currentChapter.courseCode}: When analyzing '${query}', remember that firm decisions depend directly on market conditions. At equilibrium, neither firm has an incentive to unilaterally deviate.`,
-        },
+        { role: 'assistant', text: 'Network connection issue. Please retry.' },
       ]);
-    }, 450);
+    }
   };
 
   const fontSizeClasses = {

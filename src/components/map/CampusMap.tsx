@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Location } from '@/lib/types';
 import { LocationSheet } from './LocationSheet';
+import { CampusRouteNavigator } from './CampusRouteNavigator';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { useTheme } from '@/components/ThemeProvider';
 
@@ -20,7 +21,7 @@ interface CampusMapProps {
 const DEFAULT_CENTER: [number, number] = [6.9205, 3.8714];
 const DEFAULT_ZOOM = 17;
 
-// Controller component to smoothly fly/pan to selected location or user position
+// Controller to smoothly fly/pan to selected location or user position
 function MapFocusController({
   target,
   zoom = 17,
@@ -29,11 +30,44 @@ function MapFocusController({
   zoom?: number;
 }) {
   const map = useMap();
-  React.useEffect(() => {
+  useEffect(() => {
     if (target) {
       map.flyTo(target, zoom, { duration: 1.2, easeLinearity: 0.25 });
     }
   }, [target, zoom, map]);
+  return null;
+}
+
+// Controller to automatically frame the journey between user and destination
+function RouteBoundsController({
+  userLocation,
+  destination,
+}: {
+  userLocation: [number, number] | null;
+  destination: Location | null;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (userLocation && destination) {
+      const bounds = L.latLngBounds(
+        [userLocation[0], userLocation[1]],
+        [destination.latitude, destination.longitude]
+      );
+      map.fitBounds(bounds, { padding: [70, 70], maxZoom: 18 });
+    }
+  }, [userLocation, destination, map]);
+  return null;
+}
+
+// Map initialization controller to invalidate size and eliminate any aspect ratio distortion
+function MapAntiDistortionController() {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [map]);
   return null;
 }
 
@@ -45,9 +79,13 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 }) => {
   const [activeLocation, setActiveLocation] = useState<Location | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  // Default to sharp satellite view as requested by the user
   const [mapLayer, setMapLayer] = useState<'satellite' | 'street'>('satellite');
   const { resolvedTheme } = useTheme();
+
+  // Two-Finger Map Rotation State (Google Maps Style)
+  const [rotationAngle, setRotationAngle] = useState(0);
+  const [isRotating, setIsRotating] = useState(false);
+  const touchStartAngleRef = useRef<number | null>(null);
 
   // Live Geolocation State
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -55,6 +93,41 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [focusTarget, setFocusTarget] = useState<[number, number] | null>(null);
+
+  // Pedestrian Route State
+  const [navigatingTo, setNavigatingTo] = useState<Location | null>(null);
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][] | null>(null);
+
+  // Touch gesture listeners for 2-finger twist rotation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      setIsRotating(true);
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const angle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
+      touchStartAngleRef.current = angle;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchStartAngleRef.current !== null) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * (180 / Math.PI);
+      const delta = currentAngle - touchStartAngleRef.current;
+      setRotationAngle((prev) => (prev + delta) % 360);
+      touchStartAngleRef.current = currentAngle;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartAngleRef.current = null;
+    setIsRotating(false);
+  };
+
+  const handleResetNorth = () => {
+    setRotationAngle(0);
+  };
 
   // Filter locations
   const filteredLocations = useMemo(() => {
@@ -66,7 +139,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   }, [locations, activeCategory]);
 
   // Handle external selection
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedLocationId) {
       const found = locations.find(
         (l) => l.id === selectedLocationId || l.code === selectedLocationId
@@ -114,13 +187,63 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     );
   };
 
+  // Fetch walking route when navigating
+  useEffect(() => {
+    if (!navigatingTo || !userLocation) {
+      setRouteCoordinates(null);
+      return;
+    }
+
+    const startLng = userLocation[1];
+    const startLat = userLocation[0];
+    const endLng = navigatingTo.longitude;
+    const endLat = navigatingTo.latitude;
+
+    const directPath: [number, number][] = [
+      [startLat, startLng],
+      [endLat, endLng],
+    ];
+
+    // Query pedestrian routing engine for actual campus pathways
+    fetch(
+      `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
+          const coords = data.routes[0].geometry.coordinates.map(
+            (c: [number, number]) => [c[1], c[0]] as [number, number]
+          );
+          setRouteCoordinates(coords);
+        } else {
+          setRouteCoordinates(directPath);
+        }
+      })
+      .catch(() => {
+        setRouteCoordinates(directPath);
+      });
+  }, [navigatingTo, userLocation]);
+
+  const handleStartNavigation = (loc: Location) => {
+    setActiveLocation(null);
+    setNavigatingTo(loc);
+    if (!userLocation) {
+      handleLocateMe();
+    }
+  };
+
+  const handleCloseNavigation = () => {
+    setNavigatingTo(null);
+    setRouteCoordinates(null);
+  };
+
   // Custom User Location Blue Dot Marker (Google Maps style pulsating dot)
   const createUserMarker = () => {
     return L.divIcon({
       className: 'custom-user-marker',
       html: `
-        <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style="width: 24px; height: 24px;">
-          <div class="absolute inset-0 rounded-full bg-[#0B57D0]/20 dark:bg-[#A8C7FA]/25 animate-ping"></div>
+        <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style="width: 24px; height: 24px; transform: rotate(${-rotationAngle}deg);">
+          <div class="absolute inset-0 rounded-full bg-[#0B57D0]/25 dark:bg-[#A8C7FA]/30 animate-ping"></div>
           <div class="relative h-4 w-4 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] border-2 border-white shadow-lg flex items-center justify-center">
             <div class="h-1.5 w-1.5 rounded-full bg-white dark:bg-neutral-950"></div>
           </div>
@@ -137,11 +260,10 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     const isSatellite = mapLayer === 'satellite';
     const code = location.code || location.name.slice(0, 4);
 
-    // Exact Leaflet anchor: icon is 30px wide, 38px tall; anchor is bottom center [15, 38]
     return L.divIcon({
       className: 'custom-map-marker',
       html: `
-        <div class="relative flex flex-col items-center cursor-pointer group" style="width: 30px; height: 38px;">
+        <div class="relative flex flex-col items-center cursor-pointer group" style="width: 30px; height: 38px; transform: rotate(${-rotationAngle}deg); transform-origin: 15px 38px;">
           <!-- Floating Label Badge on hover or when selected -->
           <div class="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-150 z-20 ${
             isSelected ? 'opacity-100 scale-100' : 'opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100'
@@ -206,65 +328,73 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   return (
     <div
       className={`relative h-full w-full overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-neutral-950 ${className}`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* Top Controls Overlay */}
-      <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar pointer-events-none">
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-1 pointer-events-auto bg-white/95 dark:bg-[#1E1F20]/95 p-1 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-sm">
-          <button
-            onClick={() => setActiveCategory('all')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
-              activeCategory === 'all'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-            }`}
+      {/* Top Floating Controls Bar */}
+      <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 pointer-events-none">
+        {/* Left: Sleek Filter Icon Selector for Building Types */}
+        <div
+          className="relative pointer-events-auto flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-sm backdrop-blur-md text-neutral-800 dark:text-neutral-200 hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-all"
+          title={activeCategory === 'all' ? 'Filter by building type' : `Filter: ${activeCategory}`}
+        >
+          <GeminiIcon
+            name="filter"
+            size={13}
+            className={activeCategory !== 'all' ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-700 dark:text-neutral-300'}
+          />
+          {activeCategory !== 'all' && (
+            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA]" />
+          )}
+          <select
+            value={activeCategory}
+            onChange={(e) => setActiveCategory(e.target.value)}
+            aria-label="Filter locations by building type"
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full rounded-full"
           >
-            All
-          </button>
-          <button
-            onClick={() => setActiveCategory('lecture_hall')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
-              activeCategory === 'lecture_hall'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-            }`}
-          >
-            Halls
-          </button>
-          <button
-            onClick={() => setActiveCategory('faculty')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
-              activeCategory === 'faculty'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-            }`}
-          >
-            Faculties
-          </button>
-          <button
-            onClick={() => setActiveCategory('library_lab')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
-              activeCategory === 'library_lab'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-            }`}
-          >
-            Libraries & Labs
-          </button>
-          <button
-            onClick={() => setActiveCategory('amenity')}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-full transition-colors ${
-              activeCategory === 'amenity'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-            }`}
-          >
-            Services
-          </button>
+            <option value="all" className="dark:bg-[#1E1F20]">All Buildings ({locations.length})</option>
+            <option value="lecture_hall" className="dark:bg-[#1E1F20]">Lecture Halls & Complexes</option>
+            <option value="faculty" className="dark:bg-[#1E1F20]">Faculties & Departments</option>
+            <option value="library_lab" className="dark:bg-[#1E1F20]">Libraries & CBT Labs</option>
+            <option value="amenity" className="dark:bg-[#1E1F20]">Commercial, Hubs & Transit</option>
+            <option value="admin" className="dark:bg-[#1E1F20]">Administrative Buildings</option>
+          </select>
         </div>
 
-        {/* Right Action Switchers: Locate Me, Satellite toggle, and Quick Focus SMS */}
+        {/* Right: Map Layer Dropdown, Compass North Reset, and Locate Me */}
         <div className="flex items-center gap-1.5 pointer-events-auto">
+          {/* Compass Bearing Indicator & Reset North Button (active when rotated) */}
+          {Math.abs(rotationAngle) > 1 && (
+            <button
+              onClick={handleResetNorth}
+              title="Reset to North"
+              className="flex items-center justify-center h-7 w-7 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-sm transition-transform active:scale-95"
+            >
+              <div
+                style={{ transform: `rotate(${-rotationAngle}deg)` }}
+                className="transition-transform duration-100 flex flex-col items-center"
+              >
+                <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-rose-500" />
+                <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[5px] border-t-neutral-400" />
+              </div>
+            </button>
+          )}
+
+          {/* Compact Map Layer Dropdown (Satellite / Street) */}
+          <div className="flex items-center gap-1 bg-white/95 dark:bg-[#1E1F20]/95 px-2.5 py-1.5 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <select
+              value={mapLayer}
+              onChange={(e) => setMapLayer(e.target.value as 'satellite' | 'street')}
+              aria-label="Select Map Layer"
+              className="bg-transparent text-[11px] font-mono text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer capitalize"
+            >
+              <option value="satellite" className="dark:bg-[#1E1F20]">Satellite (Sharp)</option>
+              <option value="street" className="dark:bg-[#1E1F20]">Street Vector</option>
+            </select>
+          </div>
+
           {/* Locate Me GPS Button */}
           <button
             onClick={handleLocateMe}
@@ -277,30 +407,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             ) : (
               <GeminiIcon name="compass" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
             )}
-            <span className="hidden sm:inline font-sans">Locate Me</span>
-          </button>
-
-          {/* Satellite / Street Switcher */}
-          <button
-            onClick={() => setMapLayer(mapLayer === 'satellite' ? 'street' : 'satellite')}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-colors shadow-sm"
-          >
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="capitalize">{mapLayer}</span>
-          </button>
-
-          {/* Quick Focus SMS Complex */}
-          <button
-            onClick={() => {
-              const sms = locations.find((l) => l.code === 'SMS-LT1');
-              if (sms) {
-                setActiveLocation(sms);
-                setFocusTarget([sms.latitude, sms.longitude]);
-              }
-            }}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-colors shadow-sm"
-          >
-            <span className="hidden sm:inline">SMS</span>
+            <span className="hidden sm:inline font-sans">Locate</span>
           </button>
         </div>
       </div>
@@ -318,49 +425,107 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         </div>
       )}
 
-      {/* Map Container - guaranteed watermark-free with attributionControl={false} */}
-      <MapContainer
-        key={`${mapLayer}-${resolvedTheme}`}
-        center={DEFAULT_CENTER}
-        zoom={DEFAULT_ZOOM}
-        scrollWheelZoom={true}
-        attributionControl={false}
-        className="h-full w-full z-10"
+      {/* Rotatable Map Container - Oversized to guarantee full coverage during rotation without distortion */}
+      <div
+        style={{
+          transform: `rotate(${rotationAngle}deg)`,
+          transformOrigin: 'center center',
+          transition: isRotating ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0, 0, 1)',
+        }}
+        className="absolute inset-[-35%] w-[170%] h-[170%]"
       >
-        <TileLayer
-          url={activeTileUrl}
-          maxZoom={20}
-          subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-        />
-
-        {/* Dynamic Focus Controller */}
-        <MapFocusController
-          target={focusTarget || (activeLocation ? [activeLocation.latitude, activeLocation.longitude] : null)}
-        />
-
-        {/* Render Live User Location Marker */}
-        {userLocation && (
-          <Marker
-            position={userLocation}
-            icon={createUserMarker()}
+        <MapContainer
+          key={`${mapLayer}-${resolvedTheme}`}
+          center={DEFAULT_CENTER}
+          zoom={DEFAULT_ZOOM}
+          scrollWheelZoom={true}
+          attributionControl={false}
+          className="h-full w-full"
+        >
+          <TileLayer
+            url={activeTileUrl}
+            maxZoom={20}
+            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
           />
-        )}
 
-        {/* Render Location Markers */}
-        {filteredLocations.map((loc) => (
-          <Marker
-            key={loc.id}
-            position={[loc.latitude, loc.longitude]}
-            icon={createCustomMarker(loc, activeLocation?.id === loc.id)}
-            eventHandlers={{
-              click: () => handleMarkerClick(loc),
-            }}
+          {/* Anti-distortion size calibration controller */}
+          <MapAntiDistortionController />
+
+          {/* Dynamic Focus Controller */}
+          <MapFocusController
+            target={focusTarget || (activeLocation ? [activeLocation.latitude, activeLocation.longitude] : null)}
           />
-        ))}
-      </MapContainer>
 
-      {/* Campus Map Bottom Sheet */}
-      <LocationSheet location={activeLocation} onClose={() => setActiveLocation(null)} />
+          {/* Route Bounds Controller */}
+          <RouteBoundsController
+            userLocation={userLocation}
+            destination={navigatingTo}
+          />
+
+          {/* Render Walking Route Polylines */}
+          {routeCoordinates && (
+            <>
+              {/* Outer white casing for high contrast against satellite and dark terrain */}
+              <Polyline
+                positions={routeCoordinates}
+                pathOptions={{
+                  color: '#ffffff',
+                  weight: 7,
+                  opacity: 0.7,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+              {/* Core active walking route line */}
+              <Polyline
+                positions={routeCoordinates}
+                pathOptions={{
+                  color: '#0B57D0',
+                  weight: 4,
+                  opacity: 0.95,
+                  dashArray: '8, 8',
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+            </>
+          )}
+
+          {/* Render Live User Location Marker */}
+          {userLocation && (
+            <Marker
+              position={userLocation}
+              icon={createUserMarker()}
+            />
+          )}
+
+          {/* Render Location Markers */}
+          {filteredLocations.map((loc) => (
+            <Marker
+              key={loc.id}
+              position={[loc.latitude, loc.longitude]}
+              icon={createCustomMarker(loc, activeLocation?.id === loc.id || navigatingTo?.id === loc.id)}
+              eventHandlers={{
+                click: () => handleMarkerClick(loc),
+              }}
+            />
+          ))}
+        </MapContainer>
+      </div>
+
+      {/* Campus Map Bottom Sheet Details */}
+      <LocationSheet
+        location={activeLocation}
+        onClose={() => setActiveLocation(null)}
+        onNavigate={handleStartNavigation}
+      />
+
+      {/* Pedestrian Route Navigation HUD */}
+      <CampusRouteNavigator
+        userLocation={userLocation}
+        destination={navigatingTo}
+        onClose={handleCloseNavigation}
+      />
     </div>
   );
 };

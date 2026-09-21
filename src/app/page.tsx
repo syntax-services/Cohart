@@ -22,7 +22,7 @@ export default function AppHomePage() {
   const [pendingTab, setPendingTab] = useState<NavTab | null>(null);
 
   const { profile, userId, saveProfile, signOut } = useStudentProfile();
-  const isAuthenticated = Boolean(userId || (typeof window !== 'undefined' && localStorage.getItem('cohart_auth_user')));
+  const isAuthenticated = Boolean(userId);
 
   useEffect(() => {
     async function loadLocations() {
@@ -49,10 +49,6 @@ export default function AppHomePage() {
   };
 
   const handleAuthSuccess = (fullName: string, email: string, newUserId?: string) => {
-    localStorage.setItem(
-      'cohart_auth_user',
-      JSON.stringify({ fullName, email, timestamp: new Date().toISOString() })
-    );
     saveProfile({
       id: newUserId,
       full_name: fullName,

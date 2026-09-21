@@ -89,7 +89,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = (userText?: string) => {
+  const handleSend = async (userText?: string) => {
     const query = (userText || input).trim();
     if (!query) return;
 
@@ -104,45 +104,57 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     if (!userText) setInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const lower = query.toLowerCase();
-      let matchedResponse = "I can guide you anywhere on OOU Ago-Iwoye Main Campus (PS). You can ask me how to navigate to LLT1, LLT2, LLT3, Access Bank, Senate Building, Motion Ground, or SMS Complex.";
-      let matchedAction: { label: string; venueCode: string } | undefined;
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: query,
+          context: 'campus_navigation',
+          studentProfile: profile,
+        }),
+      });
 
-      if (lower.includes('llt1') || lower.includes('llt 1') || lower.includes('law lecture theatre 1')) {
-        matchedResponse = KNOWLEDGE_BASE.llt1.reply;
-        matchedAction = { label: 'Show LLT 1 on Map', venueCode: 'LLT-1' };
-      } else if (lower.includes('llt2') || lower.includes('llt 2') || lower.includes('law lecture theatre 2')) {
-        matchedResponse = KNOWLEDGE_BASE.llt2.reply;
-        matchedAction = { label: 'Show LLT 2 on Map', venueCode: 'LLT-2' };
-      } else if (lower.includes('llt3') || lower.includes('llt 3') || lower.includes('motion ground')) {
-        matchedResponse = KNOWLEDGE_BASE.llt3.reply;
-        matchedAction = { label: 'Show LLT 3 on Map', venueCode: 'LLT-3' };
-      } else if (lower.includes('bank') || lower.includes('atm') || lower.includes('access')) {
-        matchedResponse = KNOWLEDGE_BASE.bank.reply;
-        matchedAction = { label: 'Show Access Bank on Map', venueCode: 'BANK-QUAD' };
-      } else if (lower.includes('sms') || lower.includes('administration') || lower.includes('management')) {
-        matchedResponse = KNOWLEDGE_BASE.sms.reply;
-        matchedAction = { label: 'Show SMS LT on Map', venueCode: 'SMS-LT1' };
-      } else if (lower.includes('market') || lower.includes('saburi') || lower.includes('food')) {
-        matchedResponse = KNOWLEDGE_BASE.market.reply;
-        matchedAction = { label: 'Show Saburi Market on Map', venueCode: 'MKT-SABURI' };
-      } else if (lower.includes('library') || lower.includes('e-library') || lower.includes('books')) {
-        matchedResponse = KNOWLEDGE_BASE.library.reply;
-        matchedAction = { label: 'Show Main Library on Map', venueCode: 'LIB-MAIN' };
+      let replyContent = '';
+      let venueCode: string | undefined;
+
+      if (res.ok) {
+        const data = await res.json();
+        replyContent = data.reply;
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        replyContent = errData.error || 'Temporarily unable to connect to Cohart AI. Please try again.';
       }
+
+      // Check if reply points to a known venue for a 1-tap action
+      const lower = query.toLowerCase();
+      if (lower.includes('llt3') || lower.includes('llt 3')) venueCode = 'LLT-3';
+      else if (lower.includes('llt1') || lower.includes('llt 1')) venueCode = 'LLT-1';
+      else if (lower.includes('llt2') || lower.includes('llt 2')) venueCode = 'LLT-2';
+      else if (lower.includes('sport')) venueCode = 'SPORT-CTR';
+      else if (lower.includes('motion')) venueCode = 'NEW-MOTION';
+      else if (lower.includes('health') || lower.includes('clinic')) venueCode = 'HEALTH-CTR';
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: matchedResponse,
+        content: replyContent,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestedAction: matchedAction,
+        suggestedAction: venueCode ? { label: `Show ${venueCode} on Map`, venueCode } : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
+    } catch {
+      const assistantMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Unable to reach campus AI network. Please check your connection and retry.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+    } finally {
       setIsTyping(false);
-    }, 500);
+    }
   };
 
   const clearHistory = () => {

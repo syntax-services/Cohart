@@ -20,35 +20,34 @@ export function useStudentProfile() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          if (isMounted) setUserId(session.user.id);
-          const userProfile = await fetchProfile(session.user.id);
-          if (isMounted) {
-            setProfile({
-              ...userProfile,
-              email: session.user.email || userProfile.email,
-              full_name: session.user.user_metadata?.full_name || userProfile.full_name,
-            });
-          }
-        } else {
-          // Check local cached guest profile if exists
-          const localStored = localStorage.getItem('cohart_auth_user');
-          if (localStored) {
-            try {
-              const parsed = JSON.parse(localStored);
-              if (isMounted) {
-                setProfile((prev) => ({
-                  ...prev,
-                  full_name: parsed.fullName || prev.full_name,
-                  email: parsed.email || prev.email,
-                }));
-              }
-            } catch {
-              // ignore json parse error
+          // Strictly require verified email
+          const isVerified = Boolean(
+            session.user.email_confirmed_at ||
+            session.user.confirmed_at ||
+            session.user.app_metadata?.provider !== 'email'
+          );
+
+          if (isVerified) {
+            if (isMounted) setUserId(session.user.id);
+            const userProfile = await fetchProfile(session.user.id);
+            if (isMounted) {
+              setProfile({
+                ...userProfile,
+                email: session.user.email || userProfile.email,
+                full_name: session.user.user_metadata?.full_name || userProfile.full_name,
+              });
+            }
+          } else {
+            // Unverified user - reject and sign out
+            await supabase.auth.signOut();
+            if (isMounted) {
+              setUserId(null);
+              setProfile(DEFAULT_STUDENT_PROFILE);
             }
           }
         }
       } catch (e) {
-        console.warn('Auth session check failed, using fallback', e);
+        console.warn('Auth session check failed', e);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -56,21 +55,31 @@ export function useStudentProfile() {
 
     initAuth();
 
-    // Listen to Supabase auth state changes (login, logout, token refresh)
+    // Listen to Supabase auth state changes (login, logout, email confirmation)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         if (session?.user) {
-          setUserId(session.user.id);
-          const userProfile = await fetchProfile(session.user.id);
-          setProfile({
-            ...userProfile,
-            email: session.user.email || userProfile.email,
-            full_name: session.user.user_metadata?.full_name || userProfile.full_name,
-          });
+          const isVerified = Boolean(
+            session.user.email_confirmed_at ||
+            session.user.confirmed_at ||
+            session.user.app_metadata?.provider !== 'email'
+          );
+
+          if (isVerified) {
+            setUserId(session.user.id);
+            const userProfile = await fetchProfile(session.user.id);
+            setProfile({
+              ...userProfile,
+              email: session.user.email || userProfile.email,
+              full_name: session.user.user_metadata?.full_name || userProfile.full_name,
+            });
+          } else {
+            setUserId(null);
+            setProfile(DEFAULT_STUDENT_PROFILE);
+          }
         } else if (event === 'SIGNED_OUT') {
           setUserId(null);
           setProfile(DEFAULT_STUDENT_PROFILE);
-          localStorage.removeItem('cohart_auth_user');
         }
       }
     );
@@ -108,7 +117,6 @@ export function useStudentProfile() {
   const signOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem('cohart_auth_user');
       setUserId(null);
       setProfile(DEFAULT_STUDENT_PROFILE);
     } catch (e) {
