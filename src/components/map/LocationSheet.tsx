@@ -140,7 +140,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                      Architectural Records ({location.images.length} photos)
+                      Photos ({location.images.length})
                     </span>
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1 snap-x">
@@ -183,7 +183,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                 <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02] p-3">
                   <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                     <GeminiIcon name="compass" size={14} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                    <span>Directions & Access</span>
+                    <span>How to Get Here</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
                     {location.orientation_tips}
@@ -208,7 +208,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                     className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0B57D0] dark:bg-[#A8C7FA] px-3 py-2.5 text-xs font-semibold text-white dark:text-neutral-950 transition-transform duration-150 hover:opacity-95 active:scale-[0.98]"
                   >
                     <GeminiIcon name="compass" size={14} />
-                    <span>Campus Route</span>
+                    <span>Show Route</span>
                   </button>
                 )}
 
@@ -237,7 +237,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                   onClick={onClose}
                   className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
                 >
-                  Swipe or drag down to exit
+                  Drag down or tap X to close
                 </button>
               </div>
             </div>

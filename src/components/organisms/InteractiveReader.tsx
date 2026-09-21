@@ -13,44 +13,44 @@ import { CampusAiAssistant } from './CampusAiAssistant';
 const TOPIC_1: ReaderChapter = {
   id: 'chap_eco_201_oligopoly',
   courseCode: 'ECO 201',
-  title: 'Cournot Equilibrium & Strategic Interdependence',
-  subtitle: 'Microeconomic Theory of Imperfect Competition in Emerging Markets',
-  readTimeMinutes: 5,
+  title: 'Cournot Competition: How a Few Big Companies Compete',
+  subtitle: 'How rival companies choose how much to produce by watching each other',
+  readTimeMinutes: 4,
   paragraphs: [
-    'In neoclassical microeconomic theory, oligopoly represents a market structure dominated by a small number of strategic firms. Unlike pure monopoly where a single firm dictates output, or perfect competition where firms act as passive price-takers, oligopolistic actors must anticipate their rivals’ operational decisions.',
-    'Augustin Cournot formalized this strategic interdependence by modeling firms that simultaneously choose quantities rather than prices. Each firm assumes that its competitor’s chosen quantity remains constant when determining its own profit-maximizing output schedule.',
-    'In developing economies such as Nigeria, the cement and telecommunications sectors offer tangible empirical manifestations of Cournot dynamics. When a dominant producer evaluates expanding milling capacity in Ogun State, its marginal revenue curve shifts based on the expected supply volume of competing conglomerates.',
-    'The mathematical intersection of these individual reaction curves yields the Cournot-Nash Equilibrium. At this point, no single enterprise possesses an economic incentive to unilaterally alter its production quota, establishing a stable yet sub-optimal collective output compared to competitive efficiency.',
-    'A central policy implication is the deadweight welfare loss imposed on consumers. Price remains systematically elevated above marginal cost, leading regulatory bodies like the Federal Competition and Consumer Protection Commission (FCCPC) to monitor collusive tendencies and price-fixing syndicates.',
+    'In business and economics, an oligopoly simply means a market where only a few big companies control everything. Unlike a monopoly where one single company is in charge, or a regular market where hundreds of small traders sell, here the few big companies must carefully watch what each other is doing before making any move.',
+    'An economist named Augustin Cournot explained this simply: instead of fighting only on prices, companies choose how much goods (quantity) to produce at the same time. Each company looks at how much its rival is likely to produce, and then decides its own best production amount to make maximum profit.',
+    'We see this in Nigeria every day with cement and telecom companies. Think of MTN and Airtel, or Dangote Cement and BUA. If Dangote decides to produce 10,000 bags of cement in Ogun State, BUA looks at that amount and decides how many bags they should supply so the market is not overflooded and prices do not crash.',
+    'When each company\'s decision balances out and neither of them wants to change how much they are producing, economists call this the Cournot Equilibrium. At this point, the market stays stable, but consumers usually pay higher prices than if there were many small competitors.',
+    'Because there are only a few big players, they often keep prices higher than what it actually costs to make the product. That is why government consumer protection agencies watch these big companies closely to make sure they do not secretly agree to cheat buyers or fix high prices.',
   ],
   checkpoints: [
     {
       id: 'chk_1',
       paragraphIndex: 2,
-      prompt: 'Quick Recall: Under the Cournot model, what is the primary decision variable firms choose simultaneously?',
+      prompt: 'Quick Check: In Cournot competition, what do the companies choose at the same time?',
       options: [
-        'Retail selling prices',
-        'Output production quantities',
-        'Advertising budgets',
-        'Dividend payouts',
+        'The retail selling price',
+        'How much goods (quantity) to produce',
+        'Their advertising budget',
+        'Their office address',
       ],
       correctIndex: 1,
       explanation:
-        'Correct. In Cournot competition, firms simultaneously select output quantities, whereas in Bertrand competition they compete on price.',
+        'Correct! In Cournot competition, companies choose their production quantities at the same time, while in Bertrand competition they compete directly on prices.',
     },
     {
       id: 'chk_2',
       paragraphIndex: 4,
-      prompt: 'Recall Check: What occurs at the mathematical intersection of the reaction curves?',
+      prompt: 'Quick Check: What happens when the companies reach the Cournot Equilibrium?',
       options: [
-        'Pure monopoly pricing',
-        'Cournot-Nash Equilibrium',
-        'Zero-profit exit',
-        'Perfect market clearing',
+        'Both companies secretly merge',
+        'They reach a balance where neither company wants to change its production amount',
+        'Prices drop to zero naira',
+        'Both companies close down',
       ],
       correctIndex: 1,
       explanation:
-        'Exactly. The intersection represents the Cournot-Nash equilibrium where mutual best responses intersect and neither firm has incentive to deviate.',
+        'Correct! At the Cournot Equilibrium, each company is producing its best amount given what the rival produces, so neither has any reason to change.',
     },
   ],
 };
@@ -58,29 +58,29 @@ const TOPIC_1: ReaderChapter = {
 const TOPIC_2: ReaderChapter = {
   id: 'chap_eco_201_bertrand',
   courseCode: 'ECO 201',
-  title: 'Bertrand Price Competition & The Bertrand Paradox',
-  subtitle: 'Price War Dynamics, Homogeneous Products & Marginal Cost Equilibrium',
+  title: 'Bertrand Competition: Direct Price Wars Between Rivals',
+  subtitle: 'What happens when companies fight by cutting prices to win customers',
   readTimeMinutes: 4,
   paragraphs: [
-    'Joseph Bertrand presented a critical alternative to Cournot by stipulating that firms in an oligopoly compete on price rather than output quantities. When consumers view products as identical and have zero switching costs, they purchase exclusively from the firm offering the lower price.',
-    'This pricing dynamic triggers a fierce downward price-cutting spiral. If Firm A charges even slightly higher than Firm B, Firm A faces zero consumer demand, creating continuous incentives for each firm to undercut its competitor.',
-    'The theoretical equilibrium terminates when both firms set price equal to marginal cost (P = MC). This conclusion is famously termed the "Bertrand Paradox": even with as few as two firms in the industry, the market replicates the perfectly competitive pricing outcome with zero economic profit.',
-    'In real-world Nigerian markets, this paradox is resolved by capacity constraints, brand differentiation, consumer loyalty, and geographic transportation frictions, enabling firms to sustain positive profit margins.',
+    'Another economist named Joseph Bertrand had a different idea from Cournot. He said that in many markets, companies do not fight over how much to produce—they fight directly over prices. When two companies sell the exact same product and it costs buyers nothing to switch, buyers will always rush to whoever sells cheaper.',
+    'This leads to a direct price war. If Company A sells pure water or data subscriptions slightly cheaper than Company B, almost all customers will leave Company B and buy from Company A. So Company B is forced to drop its price even lower to survive.',
+    'If this price war continues, both companies will keep cutting prices until the price drops all the way down to what it actually costs them to make the product (Marginal Cost). At this point, profit becomes zero. Economists call this the "Bertrand Paradox" because even though there are only two companies, the price ends up as low as in a market with a thousand sellers.',
+    'In real Nigerian markets, companies usually avoid this zero-profit trap by making their products a bit different, building brand trust, offering better customer service, or because people live closer to one shop than another.',
   ],
   checkpoints: [
     {
       id: 'chk_b1',
       paragraphIndex: 2,
-      prompt: 'Quick Recall: What is the outcome of the Bertrand Paradox with homogeneous goods?',
+      prompt: 'Quick Check: What happens in a pure Bertrand price war if both companies sell the exact same product?',
       options: [
-        'Both firms charge monopoly prices',
-        'Price equals marginal cost (P = MC) with zero economic profit',
-        'Firms divide the market into geographical cartels',
-        'Both firms merge into a conglomerate',
+        'Both companies charge monopoly prices',
+        'Prices drop down to the actual cost of production, leaving zero profit',
+        'One company buys the whole state',
+        'Customers stop buying completely',
       ],
       correctIndex: 1,
       explanation:
-        'Correct. The Bertrand Paradox demonstrates that price drops down to marginal cost, yielding zero economic profit even with only two firms.',
+        'Correct! In a pure Bertrand price war, intense price cuts push the selling price all the way down to the cost of production (P = MC).',
     },
   ],
 };
@@ -155,7 +155,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   >([
     {
       role: 'assistant',
-      text: `Hello ${studentFirstName}. Loaded your personal reading profile with '${(profile.learning_style || 'visual_analogies').replace('_', ' ')}' mode. Highlight any sentence to receive a personalized breakdown.`,
+      text: `Hello ${studentFirstName}! Highlight any sentence in the notes above and I will break it down for you in simple English with a practical Nigerian example.`,
     },
   ]);
   const [inputQuestion, setInputQuestion] = useState('');
@@ -458,10 +458,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 </span>
               </div>
               <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
-                AI Explanations & Notes Vault
+                Saved Study Notes & Explanations
               </h2>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                Personalized concept breakdowns and Nigerian real-world analogies saved during study sessions
+                Simple explanations and practical examples you saved while reading
               </p>
             </div>
 
@@ -610,7 +610,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
               }`}
             >
-              Topic 1: Cournot Oligopoly
+              Topic 1: Cournot (Output)
             </button>
             <button
               onClick={() => setActiveTopicIndex(1)}
@@ -620,7 +620,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
               }`}
             >
-              Topic 2: Bertrand Price War
+              Topic 2: Bertrand (Price War)
             </button>
           </div>
 
@@ -740,7 +740,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       <div className="my-5 p-4 rounded-2xl bg-[#0B57D0]/[0.03] dark:bg-[#A8C7FA]/[0.05] border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 text-xs">
                         <div className="flex items-center gap-2 mb-2 font-mono text-[11px] text-[#0B57D0] dark:text-[#A8C7FA]">
                           <GeminiIcon name="sparkle" size={14} />
-                          <span>Active Recall Checkpoint</span>
+                          <span>Quick Practice Question</span>
                         </div>
                         <p className="font-medium text-neutral-900 dark:text-white mb-3">
                           {checkpoint.prompt}
@@ -806,33 +806,33 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       <div>
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                           <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0B57D0]/15 text-[#0B57D0] dark:text-[#A8C7FA] font-bold">
-                            Chapter Recall Completed
+                            Chapter Completed
                           </span>
                           <span className="text-xs font-mono font-semibold text-neutral-900 dark:text-white">
                             Score: {correctCheckpoints.length} / {totalCheckpoints} ({Math.round((correctCheckpoints.length / totalCheckpoints) * 100)}%)
                           </span>
                         </div>
                         <h4 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white">
-                          {correctCheckpoints.length === totalCheckpoints ? 'Theoretical Concept Mastered' : 'Exam Readiness Scored'}
+                          {correctCheckpoints.length === totalCheckpoints ? 'Great job! You mastered this topic.' : 'Chapter Finished'}
                         </h4>
                         <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
                           {correctCheckpoints.length === totalCheckpoints
-                            ? 'All active recall checkpoints verified without deviation.'
-                            : 'Review the explanations above before testing yourself in the exam simulator.'}
+                            ? 'You got all questions right. You are ready to practice real exam questions.'
+                            : 'Check through the answers above to understand where you missed marks, or test yourself with AI.'}
                         </p>
                       </div>
 
                       <button
                         onClick={() => {
                           setActiveAiMode('grill_mode');
-                          setActiveAiPrompt(`I completed the chapter "${currentChapter.title}" with a score of ${correctCheckpoints.length}/${totalCheckpoints}. Test me with OOU exam curveball questions on these theorems!`);
+                          setActiveAiPrompt(`I completed the chapter "${currentChapter.title}" with a score of ${correctCheckpoints.length}/${totalCheckpoints}. Test me with OOU exam questions on this topic!`);
                           setActiveView('ai');
                           onMilestoneAction?.('reader_quiz');
                         }}
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-semibold shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
                       >
                         <GeminiIcon name="zap" size={14} />
-                        <span>Grill Me with AI (Exam Test)</span>
+                        <span>Practice Exam Questions with AI</span>
                       </button>
                     </div>
                   </div>
@@ -851,9 +851,9 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       <GeminiIcon name="sparkle" size={15} />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Cohart Personalized Insight</h3>
+                      <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Simple Explanation</h3>
                       <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                        Adapted to: {profile.learning_style.replace('_', ' ')}
+                        Teaching style: {profile.learning_style.replace('_', ' ')}
                       </p>
                     </div>
                   </div>
@@ -873,7 +873,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   {isExplaining ? (
                     <div className="flex items-center gap-2 text-neutral-500 py-6 justify-center">
                       <div className="h-4 w-4 rounded-full border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent animate-spin" />
-                      <span className="font-mono text-xs">Synthesizing personalized analogy...</span>
+                      <span className="font-mono text-xs">Breaking this down in simple words...</span>
                     </div>
                   ) : (
                     aiExplanation
@@ -891,7 +891,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     }`}
                   >
                     <GeminiIcon name={isSaved ? 'check' : 'copy'} size={13} />
-                    <span>{isSaved ? 'Saved to Vault' : 'Save to Study Vault'}</span>
+                    <span>{isSaved ? 'Saved to Vault' : 'Save This Note'}</span>
                   </button>
 
                   <button
@@ -913,7 +913,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   <GeminiIcon name="chat" size={15} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Ask Course AI</h3>
+                  <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Ask About This Chapter</h3>
                   <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">{currentChapter.courseCode} Q&A</p>
                 </div>
               </div>
@@ -948,7 +948,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     handleSendChat();
                   }
                 }}
-                placeholder="Ask about reactions, Cournot vs Bertrand..."
+                placeholder="Ask any question about this topic in simple English..."
                 className="flex-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] px-3.5 py-2 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
               />
               <button

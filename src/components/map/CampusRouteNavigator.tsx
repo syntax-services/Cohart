@@ -85,7 +85,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
             <div className="flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA]">
-                Walking Route Active
+                Walking Route
               </span>
             </div>
             <button
@@ -108,7 +108,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
               </span>
             </div>
             <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
-              Pedestrian
+              On Foot
             </span>
           </div>
 
@@ -130,7 +130,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
 
             {destination.orientation_tips && (
               <p className="mt-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.04] text-[11px] text-neutral-600 dark:text-neutral-300 leading-snug">
-                <span className="font-medium text-[#0B57D0] dark:text-[#A8C7FA]">Access Tip: </span>
+                <span className="font-medium text-[#0B57D0] dark:text-[#A8C7FA]">Directions: </span>
                 {destination.orientation_tips}
               </p>
             )}
@@ -142,13 +142,13 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
               onClick={onClose}
               className="flex-1 py-2 px-3 rounded-xl border border-black/[0.08] dark:border-white/[0.08] text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors text-center"
             >
-              Exit Route
+              Close
             </button>
             <button
               onClick={openGoogleMaps}
               className="flex-1 py-2 px-3 rounded-xl bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-mono font-semibold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
             >
-              <span>Live Walk</span>
+              <span>Open in Maps</span>
               <GeminiIcon name="sparkle" size={12} />
             </button>
           </div>

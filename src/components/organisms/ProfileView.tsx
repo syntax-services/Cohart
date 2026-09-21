@@ -68,14 +68,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   }, [profile.id]);
 
   const cognitiveTraitOptions = [
-    'ADHD / Fast Context Switches',
-    'Exam Anxiety Sensitivity',
-    'Analogies & Real-World Models',
-    'Dyslexia-Friendly Spacing',
-    'Deep First Principles',
-    'Night Owl Deep Focus',
-    'Audio-Visual Learner',
-    'Short Micro-Sessions (20m)',
+    'Short attention span / Fast pace',
+    'Exam tension / Calm explanations',
+    'Everyday Nigerian examples',
+    'Clear text spacing',
+    'Step-by-step from scratch',
+    'Late night study focus',
+    'Visual & summary style',
+    'Short 20-minute sessions',
   ];
 
   const handleToggleTrait = async (trait: string) => {
@@ -120,12 +120,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   const questionnaireQuestions = [
     {
-      q: 'When an OOU lecturer introduces an advanced theoretical model, what makes it click first?',
+      q: 'When a lecturer teaches a tough topic in class, what helps you understand it best?',
       options: [
-        'A real-world marketplace analogy (e.g. Saburi market prices in Ago-Iwoye)',
-        'The step-by-step mathematical derivation from first principles',
-        'A concise summary of the core formula with bulleted takeaways',
-        'A question-and-answer dialogue exploring why the model holds',
+        'A simple Nigerian real-life example (like market prices in Ago-Iwoye)',
+        'A step-by-step mathematical breakdown from scratch',
+        'A short summary with bullet points highlighting key formulas',
+        'A simple question-and-answer discussion on why it works',
       ],
       styleMapping: [
         'visual_analogies',
@@ -135,14 +135,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       ] as LearningStyle[],
     },
     {
-      q: 'How does your focus and retention behave during long study blocks?',
+      q: 'How do you like to study best during long hours?',
       options: [
-        'I absorb best in fast, high-stimulation micro-bursts (ADHD preference)',
-        'I read systematically with bionic fixation anchors',
-        'I experience anxiety approaching exam questions and prefer calming step-by-step logic',
-        'I retain best through active recall testing and Socratic interrogation',
+        'In quick, short bursts because my mind moves fast',
+        'By reading quietly at my own pace',
+        'With calm, patient explanations because exams make me anxious',
+        'By testing myself with practice questions',
       ],
-      traitAdd: 'ADHD / Fast Context Switches',
+      traitAdd: 'Short attention span / Fast pace',
     },
   ];
 
@@ -190,7 +190,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 Complete Your Student Profile
               </h3>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
-                Set your full name, OOU department, level, and matric number so Cohart AI can personalize course notes, exam alerts, and campus routes.
+                Add your name, OOU department, level, and matric number so Cohart can give you simple notes, class alerts, and directions.
               </p>
             </div>
           </div>
@@ -346,8 +346,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <GeminiIcon name="check-circle" size={16} />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Exam CA Qualification</h2>
-                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">75% Senate Minimum</p>
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Class Attendance for Exams</h2>
+                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">75% Minimum Required</p>
               </div>
             </div>
             <Badge variant={advice.rate >= 75 ? 'emerald' : 'amber'} size="sm">
@@ -357,7 +357,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
           <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] space-y-2">
             <div className="flex justify-between items-baseline">
-              <span className="text-xs text-neutral-600 dark:text-neutral-300">Verified Attendance</span>
+              <span className="text-xs text-neutral-600 dark:text-neutral-300">Class Attendance</span>
               <span className="text-xl font-bold font-mono text-[#0B57D0] dark:text-[#A8C7FA]">
                 {advice.rate}%
               </span>
@@ -381,7 +381,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={onOpenSchedule}
               className="text-[#0B57D0] dark:text-[#A8C7FA] font-medium hover:underline cursor-pointer"
             >
-              Lecture Timetable &rarr;
+              Class Timetable &rarr;
             </button>
           </div>
         </GeminiCard>
@@ -394,9 +394,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <GeminiIcon name="brain" size={16} />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">AI Cognitive Conditioning</h2>
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">How You Want AI to Teach You</h2>
                 <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                  Tuned: {profile.learning_style.replace('_', ' ')}
+                  Style: {profile.learning_style.replace('_', ' ')}
                 </p>
               </div>
             </div>
@@ -405,12 +405,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={() => setShowQuestionnaire(true)}
               className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline cursor-pointer"
             >
-              Retake Quiz
+              Change Style
             </button>
           </div>
 
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-2.5 leading-relaxed">
-            Cohart AI actively conditions its tone, sentence lengths, and explanation models to your selected cognitive traits below:
+            Choose how you want Cohart AI to explain things to you:
           </p>
 
           {/* Cognitive Traits Selector Chips */}
@@ -444,8 +444,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <GeminiIcon name="wallet" size={16} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Student Rewards & Referral</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Earn per invited course mate</p>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Invite Course Mates</h2>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Get ₦500 for every course mate who joins</p>
             </div>
           </div>
         </div>
@@ -485,7 +485,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-sans">
-              ₦500 bonus credited for each course mate who signs up with your code.
+              You get ₦500 each time a friend signs up with your code.
             </p>
           </div>
         </div>
@@ -518,7 +518,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             onClick={onSignOut}
             className="self-start sm:self-auto px-4 py-1.5 rounded-full border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-mono transition-colors cursor-pointer"
           >
-            Sign Out Session
+            Sign Out
           </button>
         )}
       </div>
@@ -531,7 +531,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <div className="flex items-center gap-2">
                 <GeminiIcon name="brain" size={17} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
                 <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                  Cognitive Tuning ({qStep + 1}/2)
+                  Learning Style Quiz ({qStep + 1}/2)
                 </h3>
               </div>
               <button
@@ -566,7 +566,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
           <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Withdraw Rewards</h3>
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Withdraw Money to Bank</h3>
               <button
                 onClick={() => setShowWithdrawModal(false)}
                 className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"

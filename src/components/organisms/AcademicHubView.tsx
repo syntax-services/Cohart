@@ -48,37 +48,37 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
   const milestones = useMemo(() => [
     {
       id: 'profile_complete',
-      label: 'Student Profile & Department Setup',
+      label: 'Complete Your Profile & Department',
       done: isProfileComplete || verifiedMilestones.includes('profile_complete'),
-      instruction: 'Set your name, department, matric no in Profile Settings',
+      instruction: 'Enter your name, department, and matric number in Profile Settings',
       action: onOpenProfile,
     },
     {
       id: 'course_form',
-      label: 'Departmental Course Form Verification',
+      label: 'Submit Your Green Course Form',
       done: verifiedMilestones.includes('course_form'),
       instruction: 'Tell Cohart AI: "I signed and submitted my course form"',
       action: () => onOpenAi?.('I have submitted and verified my green course form with my department.'),
     },
     {
       id: 'advisor_sign',
-      label: 'Faculty Level Advisor Clearance',
+      label: 'Sign Course Form with Course Advisor',
       done: verifiedMilestones.includes('advisor_sign'),
-      instruction: 'Tell Cohart AI: "My faculty advisor cleared my courses"',
-      action: () => onOpenAi?.('My faculty advisor has cleared and signed my course registration.'),
+      instruction: 'Tell Cohart AI: "My course advisor cleared my courses"',
+      action: () => onOpenAi?.('My course advisor has cleared and signed my course registration.'),
     },
     {
       id: 'ca_target',
-      label: '75% Lecture Attendance CA Target',
+      label: 'Attend At Least 75% of Classes',
       done: isAttendanceQualified || verifiedMilestones.includes('ca_target'),
-      instruction: 'Achieved automatically when CA attendance >= 75%',
+      instruction: 'Checked automatically once your class attendance reaches 75%',
       action: onOpenSchedule,
     },
     {
       id: 'reader_quiz',
-      label: 'Foundational Curriculum Recall Test',
+      label: 'Pass Chapter Practice Questions',
       done: verifiedMilestones.includes('reader_quiz'),
-      instruction: 'Complete chapter checkpoints in Course Reader',
+      instruction: 'Answer all quick questions in the Course Reader',
       action: onOpenReader,
     },
   ], [isProfileComplete, verifiedMilestones, isAttendanceQualified, onOpenProfile, onOpenAi, onOpenSchedule, onOpenReader]);
@@ -95,7 +95,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
               {profile.institution}
             </span>
             <span className="text-xs font-mono text-neutral-500 dark:text-neutral-400">
-              {profile.department ? `${profile.department} • ${profile.level || '100L'}` : 'Profile Pending Setup'}
+              {profile.department ? `${profile.department} • ${profile.level || '100L'}` : 'Complete your profile'}
             </span>
           </div>
 
@@ -105,8 +105,8 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
 
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
             {nextLecture
-              ? `Next Up: ${nextLecture.courseCode} (${nextLecture.courseTitle}) at ${nextLecture.time}`
-              : 'Permanent Site (PS) Ago-Iwoye Academic Session'}
+              ? `Next Class: ${nextLecture.courseCode} (${nextLecture.courseTitle}) at ${nextLecture.time}`
+              : 'Main Campus (PS), Ago-Iwoye'}
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-all cursor-pointer"
           >
             <GeminiIcon name="check-circle" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-            <span>{advice.rate}% CA Score</span>
+            <span>{advice.rate}% Attendance</span>
           </button>
 
           <button
@@ -124,7 +124,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-xs"
           >
             <GeminiIcon name="compass" size={14} />
-            <span>Locate Hall</span>
+            <span>Find Lecture Hall</span>
           </button>
 
           <button
@@ -132,7 +132,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] text-neutral-800 dark:text-neutral-200 text-xs font-medium hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-all active:scale-95 cursor-pointer"
           >
             <GeminiIcon name="sparkle" size={14} />
-            <span>AI Copilot</span>
+            <span>Ask AI</span>
           </button>
         </div>
       </div>
@@ -149,12 +149,12 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
                     <GeminiIcon name="calendar" size={16} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Active Lecture Schedule</h2>
-                    <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Timetable & Attendance Gate</p>
+                    <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Today's Classes</h2>
+                    <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Timetable & Class Venues</p>
                   </div>
                 </div>
                 <Badge variant={nextLecture?.isLiveNow ? 'emerald' : 'blue'} size="sm">
-                  {nextLecture?.isLiveNow ? 'Lecture In Progress' : 'Upcoming'}
+                  {nextLecture?.isLiveNow ? 'Class Happening Now' : 'Upcoming'}
                 </Badge>
               </div>
 
@@ -175,7 +175,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
 
                 <div className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-300">
                   <GeminiIcon name="pin" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                  <span>Venue: <strong>{nextLecture ? nextLecture.locationId : 'SMS-LT1'}</strong> (Open seating on arrival)</span>
+                  <span>Venue: <strong>{nextLecture ? nextLecture.locationId : 'SMS-LT1'}</strong> (Sit anywhere available)</span>
                 </div>
               </div>
 
@@ -186,22 +186,22 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
                   className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] text-neutral-800 dark:text-neutral-200 font-medium hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="compass" size={13} />
-                  <span>Walk Route</span>
+                  <span>Show Way</span>
                 </button>
                 <button
                   onClick={onOpenReader}
                   className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] text-neutral-800 dark:text-neutral-200 font-medium hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="reader" size={13} />
-                  <span>Prep Notes</span>
+                  <span>Read Notes</span>
                 </button>
               </div>
             </div>
 
             <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-              <span>CA Target: 75% Required for Exams</span>
+              <span>You need 75% attendance to sit for exams</span>
               <button onClick={onOpenSchedule} className="text-[#0B57D0] dark:text-[#A8C7FA] hover:underline cursor-pointer">
-                View Timetable &rarr;
+                View Full Timetable &rarr;
               </button>
             </div>
           </GeminiCard>
@@ -217,12 +217,12 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
                     <GeminiIcon name="shield-check" size={16} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Semester Milestones</h2>
-                    <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">2-Way Verified with AI</p>
+                    <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Semester Checklist</h2>
+                    <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Tracked Automatically</p>
                   </div>
                 </div>
                 <Badge variant={completedCount === milestones.length ? 'emerald' : 'blue'} size="sm">
-                  {completedCount} / {milestones.length} Verified
+                  {completedCount} / {milestones.length} Done
                 </Badge>
               </div>
 
@@ -274,8 +274,8 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             </div>
 
             <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-              <span>Automatic 2-Way AI Sync</span>
-              <span className="text-[#0B57D0] dark:text-[#A8C7FA]">Permanent Strike-through</span>
+              <span>Updates Automatically</span>
+              <span className="text-[#0B57D0] dark:text-[#A8C7FA]">Strikethrough when done</span>
             </div>
           </GeminiCard>
         </div>
@@ -287,10 +287,10 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
           <div className="flex items-center gap-2">
             <GeminiIcon name="sparkle" size={15} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
             <h3 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider font-mono">
-              Cohart AI Quick Actions
+              Quick Questions for AI
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-neutral-400">Tap to query</span>
+          <span className="text-[10px] font-mono text-neutral-400">Tap any question</span>
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
@@ -299,28 +299,28 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-[#0B57D0]/10 hover:border-[#0B57D0]/30 text-neutral-700 dark:text-neutral-300 text-xs shrink-0 transition-all cursor-pointer"
           >
             <GeminiIcon name="pin" size={13} />
-            <span>Walking Route to LLT1</span>
+            <span>How to get to LLT1</span>
           </button>
           <button
-            onClick={() => onOpenAi?.('Explain the Cournot duopoly equilibrium with a Nigerian market analogy', 'general')}
+            onClick={() => onOpenAi?.('Explain Cournot competition using a simple Nigerian market example like Dangote and BUA cement', 'general')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-[#0B57D0]/10 hover:border-[#0B57D0]/30 text-neutral-700 dark:text-neutral-300 text-xs shrink-0 transition-all cursor-pointer"
           >
             <GeminiIcon name="sparkle" size={13} />
-            <span>Cournot Duopoly Breakdown</span>
+            <span>Explain Cournot Simply</span>
           </button>
           <button
-            onClick={() => onOpenAi?.('I want to test my exam readiness. Ask me an exam curveball question on my department courses.', 'grill_mode')}
+            onClick={() => onOpenAi?.('I want to test my exam readiness. Ask me an exam question on my department courses.', 'grill_mode')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs shrink-0 transition-all cursor-pointer font-medium"
           >
             <GeminiIcon name="zap" size={13} />
-            <span>Socratic Exam Grill Mode</span>
+            <span>Test Me for Exams (AI Grill)</span>
           </button>
           <button
             onClick={() => onOpenAi?.('I have submitted and signed my course form with my faculty advisor.', 'general')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs shrink-0 transition-all cursor-pointer font-medium"
           >
             <GeminiIcon name="check" size={13} />
-            <span>Sync Milestone with AI</span>
+            <span>Confirm Course Form Submitted</span>
           </button>
         </div>
       </div>

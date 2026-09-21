@@ -35,32 +35,32 @@ interface Conversation {
 
 const KNOWLEDGE_BASE: Record<string, { reply: string; venueCode?: string; reference: string }> = {
   llt1: {
-    reply: "To get to LLT1 (Arts Lecture Theatre I / Faculty of Arts) from the Main Gate (PS):\n1. Walk down the central arterial paved walkway past the Security Post towards the banking quad (~150m).\n2. Pass the Access Bank ATM gallery on your left.\n3. Turn right directly opposite Access Bank at the Sam Ewang building and cross the covered pedestrian footbridge.\n4. LLT1 is the large tiered auditorium immediately to your right.",
+    reply: "Here is how to walk to LLT1 (Arts Lecture Theatre I) from the PS Main Gate:\n1. Walk down the main tarred walkway straight past the Security Post towards the bank area (about 2 minutes walk).\n2. Look to your left and you will see the Access Bank ATM.\n3. Turn right directly opposite Access Bank at the Sam Ewang building, and cross the covered footbridge.\n4. LLT1 is the big lecture hall right on your right hand side.",
     venueCode: 'LLT-1',
-    reference: "Campus Reference: Faculty of Arts Quadrangle • Adjacent Sam Ewang Footbridge",
+    reference: "Campus Reference: Faculty of Arts • Beside Sam Ewang Footbridge",
   },
   llt2: {
-    reply: "LLT2 (Law Lecture Theatre II) is located right beside LLT1.\nFrom the Access Bank / Sam Ewang axis, cross the footbridge into the LLT quadrangle. LLT2 is situated directly adjacent to LLT1 along the Faculty of Education loop.",
+    reply: "LLT2 (Law Lecture Theatre II) is right beside LLT1.\nFrom the Access Bank / Sam Ewang side, cross the covered footbridge into the LLT compound. LLT2 is right next to LLT1 heading towards the Faculty of Education.",
     venueCode: 'LLT-2',
     reference: "Campus Reference: Law & Education Wing • Next to LLT 1",
   },
   llt3: {
-    reply: "LLT3 (Law Lecture Theatre III) is located on the southern campus belt at Motion Ground (New Motion).\nFrom the PS Main Gate, follow the main transit road past the Senate roundabout straight down to Motion Ground. LLT3 is the prominent lecture complex situated directly opposite Professor Saburi Modern Market and adjacent to the ICAN Building.",
+    reply: "LLT3 (Law Lecture Theatre III) is down at Motion Ground (New Motion).\nFrom the Main Gate, follow the main road past the Senate building roundabout straight down to Motion Ground. LLT3 is the big hall directly opposite Professor Saburi Market and right next to the ICAN Building.",
     venueCode: 'LLT-3',
-    reference: "Campus Reference: Motion Ground Axis • Opposite Saburi Market & ICAN Building",
+    reference: "Campus Reference: Motion Ground • Opposite Saburi Market",
   },
   bank: {
-    reply: "The Commercial Banking Quad is situated along the main central walkway approximately 200 meters inside the Permanent Site (PS) Main Gate. It hosts the 24/7 Access Bank ATM gallery and branch for university fees and cash withdrawals.",
+    reply: "The bank area is along the main central walkway, about 200 metres from the Main Gate. You will find the 24/7 Access Bank ATM gallery and branch there for your school fees and cash withdrawals.",
     venueCode: 'BANK-QUAD',
-    reference: "Campus Reference: Commercial Banking Quad • Central Paved Walkway",
+    reference: "Campus Reference: Bank Area • Main Campus Walkway",
   },
   sms: {
-    reply: "SMS Lecture Theatre (Faculty of Administration & Management Sciences) is situated along the central faculty avenue. From the central roundabout, follow the paved walkway eastward past the Sir Hassan Odukale Library and ETF Hall.",
+    reply: "SMS Lecture Theatre (Faculty of Administration & Management Sciences) is along the faculty walkway. From the central roundabout, follow the walkway past the Odukale Library and ETF Hall.",
     venueCode: 'SMS-LT1',
-    reference: "Campus Reference: Faculty of Administration & Management Sciences • SMS Wing",
+    reference: "Campus Reference: SMS Building • Faculty Walkway",
   },
   market: {
-    reply: "Professor Saburi Modern Market is situated at Motion Ground directly facing LLT3. It provides printing kiosks, stationery shops, photocopying services, and student provisions.",
+    reply: "Professor Saburi Market is at Motion Ground, directly facing LLT3. You can print documents, buy snacks, stationery, or do photocopying there.",
     venueCode: 'MKT-SABURI',
     reference: "Campus Reference: Motion Ground • Opposite LLT 3",
   },
@@ -101,8 +101,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     id: 'msg_welcome',
     role: 'assistant',
     content: initialMode === 'grill_mode'
-      ? `Welcome ${studentName}. I am in **OOU Socratic Grill Mode**. I will evaluate your command of core curriculum theorems. Answer concisely and cite your foundational models.\n\nReady for your first examination curveball? Type "Ready" or provide your solution to begin.\n\n*Discussion Context: Examination Assessment Board*`
-      : `Hello ${studentName}, I'm Cohart AI, your OOU academic copilot. Ask me any course questions (e.g. "Explain Cournot oligopoly with a Nigerian market analogy"), verify exam concepts, or ask for walking routes across Ago-Iwoye PS (e.g. "How do I get to LLT1 from Main Gate?").\n\n*Course Reference: OOU Academic Core & PS Campus Map*`,
+      ? `Hello ${studentName}! We are now in Exam Practice Mode. I will ask you challenging OOU exam questions one by one and tell you honestly if you are correct or if you missed anything.\n\nAre you ready for your first exam question? Type "Ready" or your answer to begin.`
+      : `Hello ${studentName}! I am Cohart AI, your OOU study assistant. Ask me anything about your courses in simple English, or ask for simple directions to any lecture hall or building in Ago-Iwoye Main Campus.\n\n*Reference: OOU Courses & Ago-Iwoye Campus Map*`,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
 
@@ -306,7 +306,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       }
 
       if (!replyContent) {
-        replyContent = `Here is the academic guidance for your query: "${query}".\n\nFor course models in ${profile.department || 'General Studies'}, follow standard textbook derivations.\n\n*Course Reference: ${profile.department || 'Academic'} Curriculum & Handbook*`;
+        replyContent = `Here is the guidance for your question: "${query}".\n\nFor topics in ${profile.department || 'your department'}, review your lecture notes or ask me to explain any specific concept in simple English.\n\n*Reference: ${profile.department || 'OOU'} Course Materials*`;
       }
 
       if (detectedMilestone && onMilestoneAction) {
@@ -328,7 +328,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         role: 'assistant',
         content: replyContent,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestedAction: venueCode ? { label: `Locate ${venueCode} on Map`, venueCode } : undefined,
+        suggestedAction: venueCode ? { label: `Show ${venueCode} on Map`, venueCode } : undefined,
       };
 
       const finalMessages = [...newMessages, assistantMsg];
@@ -348,7 +348,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       const errAssistantMsg: Message = {
         id: `ai_${Date.now()}`,
         role: 'assistant',
-        content: 'Unable to reach the campus AI network right now. Please verify your connection and retry.\n\n*Discussion Context: Network Diagnostics*',
+        content: 'Network connection issue. Please check your internet connection and try again.\n\n*Reference: Network Diagnostics*',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errAssistantMsg]);
@@ -410,14 +410,14 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium transition-all active:scale-95 cursor-pointer"
             >
               <GeminiIcon name="zap" size={13} />
-              <span>Grill Mode</span>
+              <span>Exam Drill</span>
             </button>
           </div>
 
           {/* Conversations History List */}
           <div className="mt-4 flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
             <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 px-2">
-              Recent Sessions
+              Recent Chats
             </span>
 
             {conversations.length === 0 ? (
@@ -465,7 +465,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 className="flex items-center gap-2 w-full p-2.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs font-medium transition-colors cursor-pointer"
               >
                 <GeminiIcon name="reader" size={15} />
-                <span>Return to Course Reader</span>
+                <span>Back to Course Reader</span>
               </button>
             </div>
           )}
@@ -524,7 +524,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               title="Toggle Socratic Grill Mode"
             >
               <GeminiIcon name={currentMode === 'grill_mode' ? 'zap' : 'shield-check'} size={13} />
-              <span className="hidden sm:inline">{currentMode === 'grill_mode' ? 'Exit Grill' : 'Grill Mode'}</span>
+              <span className="hidden sm:inline">{currentMode === 'grill_mode' ? 'Exit Drill' : 'Exam Drill'}</span>
             </button>
           </div>
         </header>
@@ -591,32 +591,32 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             {messages.length <= 2 && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
                 <button
-                  onClick={() => handleSend('Explain Cournot equilibrium with an Ago-Iwoye market analogy')}
+                  onClick={() => handleSend('Explain Cournot competition using a simple Nigerian market example like Dangote and BUA cement')}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="sparkle" size={11} />
-                  <span>Cournot Market Analogy</span>
+                  <span>Cournot Analogy</span>
                 </button>
                 <button
                   onClick={() => handleSend('How do I get to LLT1 from the Main Gate?')}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="pin" size={11} />
-                  <span>Route to LLT1</span>
+                  <span>Way to LLT1</span>
                 </button>
                 <button
                   onClick={() => handleSend('Where is LLT3 located?')}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="map" size={11} />
-                  <span>LLT3 Location</span>
+                  <span>Where is LLT3</span>
                 </button>
                 <button
                   onClick={() => handleStartNewChat('grill_mode')}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="zap" size={11} />
-                  <span>Test Me in Grill Mode</span>
+                  <span>Test Me with Exam Questions</span>
                 </button>
               </div>
             )}
@@ -636,8 +636,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 }}
                 placeholder={
                   currentMode === 'grill_mode'
-                    ? 'Submit your answer to the examination question...'
-                    : 'Ask Cohart AI any academic concept or campus navigation...'
+                    ? 'Type your answer to this question...'
+                    : 'Ask any question about your courses or campus directions in simple English...'
                 }
                 className="w-full rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] px-4 py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-colors pr-12 font-sans"
               />
@@ -652,7 +652,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             </div>
 
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 px-1">
-              <span>{currentMode === 'grill_mode' ? 'Socratic Examiner Mode' : 'Cohart v2.5 • Grounded with OOU Academic Materials'}</span>
+              <span>{currentMode === 'grill_mode' ? 'Exam Practice Mode' : 'Cohart AI • Simple explanations for OOU students'}</span>
               <span>Press Enter to send</span>
             </div>
           </div>
