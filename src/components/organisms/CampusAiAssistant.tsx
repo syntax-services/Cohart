@@ -37,32 +37,32 @@ const KNOWLEDGE_BASE: Record<string, { reply: string; venueCode?: string; refere
   llt1: {
     reply: "To get to LLT1 (Arts Lecture Theatre I / Faculty of Arts) from the Main Gate (PS):\n1. Walk down the central arterial paved walkway past the Security Post towards the banking quad (~150m).\n2. Pass the Access Bank ATM gallery on your left.\n3. Turn right directly opposite Access Bank at the Sam Ewang building and cross the covered pedestrian footbridge.\n4. LLT1 is the large tiered auditorium immediately to your right.",
     venueCode: 'LLT-1',
-    reference: "📍 Campus Reference: Faculty of Arts Quadrangle • Adjacent Sam Ewang Footbridge",
+    reference: "Campus Reference: Faculty of Arts Quadrangle • Adjacent Sam Ewang Footbridge",
   },
   llt2: {
     reply: "LLT2 (Law Lecture Theatre II) is located right beside LLT1.\nFrom the Access Bank / Sam Ewang axis, cross the footbridge into the LLT quadrangle. LLT2 is situated directly adjacent to LLT1 along the Faculty of Education loop.",
     venueCode: 'LLT-2',
-    reference: "📍 Campus Reference: Law & Education Wing • Next to LLT 1",
+    reference: "Campus Reference: Law & Education Wing • Next to LLT 1",
   },
   llt3: {
     reply: "LLT3 (Law Lecture Theatre III) is located on the southern campus belt at Motion Ground (New Motion).\nFrom the PS Main Gate, follow the main transit road past the Senate roundabout straight down to Motion Ground. LLT3 is the prominent lecture complex situated directly opposite Professor Saburi Modern Market and adjacent to the ICAN Building.",
     venueCode: 'LLT-3',
-    reference: "📍 Campus Reference: Motion Ground Axis • Opposite Saburi Market & ICAN Building",
+    reference: "Campus Reference: Motion Ground Axis • Opposite Saburi Market & ICAN Building",
   },
   bank: {
     reply: "The Commercial Banking Quad is situated along the main central walkway approximately 200 meters inside the Permanent Site (PS) Main Gate. It hosts the 24/7 Access Bank ATM gallery and branch for university fees and cash withdrawals.",
     venueCode: 'BANK-QUAD',
-    reference: "📍 Campus Reference: Commercial Banking Quad • Central Paved Walkway",
+    reference: "Campus Reference: Commercial Banking Quad • Central Paved Walkway",
   },
   sms: {
     reply: "SMS Lecture Theatre (Faculty of Administration & Management Sciences) is situated along the central faculty avenue. From the central roundabout, follow the paved walkway eastward past the Sir Hassan Odukale Library and ETF Hall.",
     venueCode: 'SMS-LT1',
-    reference: "📍 Campus Reference: Faculty of Administration & Management Sciences • SMS Wing",
+    reference: "Campus Reference: Faculty of Administration & Management Sciences • SMS Wing",
   },
   market: {
     reply: "Professor Saburi Modern Market is situated at Motion Ground directly facing LLT3. It provides printing kiosks, stationery shops, photocopying services, and student provisions.",
     venueCode: 'MKT-SABURI',
-    reference: "📍 Campus Reference: Motion Ground • Opposite LLT 3",
+    reference: "Campus Reference: Motion Ground • Opposite LLT 3",
   },
 };
 
@@ -70,7 +70,7 @@ function generateConversationTitle(query: string): string {
   const clean = query.trim();
   const lower = clean.toLowerCase();
 
-  if (lower.includes('grill') || lower.includes('exam test')) return '🔥 Exam Readiness Grill';
+  if (lower.includes('grill') || lower.includes('exam test')) return 'Exam Readiness Grill';
   if (lower.includes('llt1') || lower.includes('llt 1')) return 'LLT 1 Walking Route';
   if (lower.includes('llt2') || lower.includes('llt 2')) return 'LLT 2 Hall Location';
   if (lower.includes('llt3') || lower.includes('llt 3')) return 'LLT 3 Motion Ground';
@@ -101,8 +101,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     id: 'msg_welcome',
     role: 'assistant',
     content: initialMode === 'grill_mode'
-      ? `Welcome ${studentName}. I am in **OOU Socratic Grill Mode**. I will evaluate your command of core curriculum theorems. Answer concisely and cite your foundational models.\n\nReady for your first examination curveball? Type "Ready" or provide your solution to begin.\n\n🔥 *Discussion Context: Examination Assessment Board*`
-      : `Hello ${studentName}, I'm Cohart AI, your OOU academic copilot. Ask me any course questions (e.g. "Explain Cournot oligopoly with a Nigerian market analogy"), verify exam concepts, or ask for walking routes across Ago-Iwoye PS (e.g. "How do I get to LLT1 from Main Gate?").\n\n📖 *Course Reference: OOU Academic Core & PS Campus Map*`,
+      ? `Welcome ${studentName}. I am in **OOU Socratic Grill Mode**. I will evaluate your command of core curriculum theorems. Answer concisely and cite your foundational models.\n\nReady for your first examination curveball? Type "Ready" or provide your solution to begin.\n\n*Discussion Context: Examination Assessment Board*`
+      : `Hello ${studentName}, I'm Cohart AI, your OOU academic copilot. Ask me any course questions (e.g. "Explain Cournot oligopoly with a Nigerian market analogy"), verify exam concepts, or ask for walking routes across Ago-Iwoye PS (e.g. "How do I get to LLT1 from Main Gate?").\n\n*Course Reference: OOU Academic Core & PS Campus Map*`,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
 
@@ -131,7 +131,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     const newSessionId = `conv_${Date.now()}`;
     const newSession: Conversation = {
       id: newSessionId,
-      title: initialMode === 'grill_mode' ? '🔥 Exam Readiness Grill' : 'New Conversation',
+      title: initialMode === 'grill_mode' ? 'Exam Readiness Grill' : 'New Conversation',
       createdAt: new Date().toISOString(),
       messages: [defaultInitialMessage],
     };
@@ -174,7 +174,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
     const newSession: Conversation = {
       id: newSessionId,
-      title: mode === 'grill_mode' ? '🔥 Exam Readiness Grill' : 'New Conversation',
+      title: mode === 'grill_mode' ? 'Exam Readiness Grill' : 'New Conversation',
       createdAt: new Date().toISOString(),
       messages: [newInitialMsg],
     };
@@ -306,7 +306,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       }
 
       if (!replyContent) {
-        replyContent = `Here is the academic guidance for your query: "${query}".\n\nFor course models in ${profile.department || 'General Studies'}, follow standard textbook derivations.\n\n📖 *Course Reference: ${profile.department || 'Academic'} Curriculum & Handbook*`;
+        replyContent = `Here is the academic guidance for your query: "${query}".\n\nFor course models in ${profile.department || 'General Studies'}, follow standard textbook derivations.\n\n*Course Reference: ${profile.department || 'Academic'} Curriculum & Handbook*`;
       }
 
       if (detectedMilestone && onMilestoneAction) {
@@ -348,7 +348,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       const errAssistantMsg: Message = {
         id: `ai_${Date.now()}`,
         role: 'assistant',
-        content: 'Unable to reach the campus AI network right now. Please verify your connection and retry.\n\n💬 *Discussion Context: Network Diagnostics*',
+        content: 'Unable to reach the campus AI network right now. Please verify your connection and retry.\n\n*Discussion Context: Network Diagnostics*',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errAssistantMsg]);
@@ -409,7 +409,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               onClick={() => handleStartNewChat('grill_mode')}
               className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium transition-all active:scale-95 cursor-pointer"
             >
-              <span>🔥 Grill Mode</span>
+              <GeminiIcon name="zap" size={13} />
+              <span>Grill Mode</span>
             </button>
           </div>
 
@@ -436,7 +437,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   >
                     <div className="min-w-0 flex-1 flex items-center gap-2">
                       <GeminiIcon
-                        name={c.title.includes('🔥') ? 'zap' : 'chat'}
+                        name={c.title.toLowerCase().includes('grill') ? 'zap' : 'chat'}
                         size={14}
                         className={isActive ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-400'}
                       />
@@ -493,29 +494,38 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Compact In-App Style Segmented Switcher: Reader <-> AI */}
+            <div className="flex items-center p-0.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08]">
+              {onExitFullscreen && (
+                <button
+                  onClick={onExitFullscreen}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer"
+                  title="Switch to Reader"
+                >
+                  <GeminiIcon name="reader" size={13} />
+                  <span className="hidden xs:inline">Reader</span>
+                </button>
+              )}
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-[#181B24] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs border border-black/[0.04] dark:border-white/[0.06]">
+                <GeminiIcon name="sparkle" size={13} />
+                <span>AI</span>
+              </div>
+            </div>
+
+            {/* Socratic Grill Mode toggle */}
             <button
               onClick={() => handleStartNewChat(currentMode === 'grill_mode' ? 'general' : 'grill_mode')}
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer border ${
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
                 currentMode === 'grill_mode'
                   ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
                   : 'bg-black/[0.03] dark:bg-white/[0.04] border-black/[0.08] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300'
               }`}
+              title="Toggle Socratic Grill Mode"
             >
-              <GeminiIcon name={currentMode === 'grill_mode' ? 'zap' : 'sparkle'} size={13} />
-              <span>{currentMode === 'grill_mode' ? 'Exit Grill Mode' : 'Grill Mode'}</span>
+              <GeminiIcon name={currentMode === 'grill_mode' ? 'zap' : 'shield-check'} size={13} />
+              <span className="hidden sm:inline">{currentMode === 'grill_mode' ? 'Exit Grill' : 'Grill Mode'}</span>
             </button>
-
-            {onExitFullscreen && (
-              <button
-                onClick={onExitFullscreen}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 dark:bg-[#A8C7FA]/10 dark:hover:bg-[#A8C7FA]/20 border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 text-[#0B57D0] dark:text-[#A8C7FA] text-xs font-medium transition-colors cursor-pointer"
-              >
-                <GeminiIcon name="reader" size={14} />
-                <span className="hidden sm:inline">Back to Reader</span>
-                <span className="sm:hidden">Reader</span>
-              </button>
-            )}
           </div>
         </header>
 
@@ -582,27 +592,31 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
                 <button
                   onClick={() => handleSend('Explain Cournot equilibrium with an Ago-Iwoye market analogy')}
-                  className="px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
-                  💡 Cournot Market Analogy
+                  <GeminiIcon name="sparkle" size={11} />
+                  <span>Cournot Market Analogy</span>
                 </button>
                 <button
                   onClick={() => handleSend('How do I get to LLT1 from the Main Gate?')}
-                  className="px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
-                  📍 Route to LLT1
+                  <GeminiIcon name="pin" size={11} />
+                  <span>Route to LLT1</span>
                 </button>
                 <button
                   onClick={() => handleSend('Where is LLT3 located?')}
-                  className="px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
-                  🏛️ LLT3 Location
+                  <GeminiIcon name="map" size={11} />
+                  <span>LLT3 Location</span>
                 </button>
                 <button
                   onClick={() => handleStartNewChat('grill_mode')}
-                  className="px-3 py-1 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
-                  🔥 Test Me in Grill Mode
+                  <GeminiIcon name="zap" size={11} />
+                  <span>Test Me in Grill Mode</span>
                 </button>
               </div>
             )}
@@ -638,7 +652,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             </div>
 
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 px-1">
-              <span>{currentMode === 'grill_mode' ? '🔥 Socratic Examiner Mode' : 'Cohart v2.5 • Grounded with OOU Academic Materials'}</span>
+              <span>{currentMode === 'grill_mode' ? 'Socratic Examiner Mode' : 'Cohart v2.5 • Grounded with OOU Academic Materials'}</span>
               <span>Press Enter to send</span>
             </div>
           </div>

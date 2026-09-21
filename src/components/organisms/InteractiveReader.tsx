@@ -391,50 +391,60 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Top Segmented Mode Selector: Course Reader vs Campus AI vs AI Vault */}
-      <div className="flex items-center justify-between p-1.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08]">
-        <div className="flex items-center gap-1 w-full sm:w-auto overflow-x-auto no-scrollbar">
+      {/* Compact In-App Style Mode Switcher */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="inline-flex items-center p-0.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md">
           <button
             onClick={() => setActiveView('reader')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
               activeView === 'reader'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-semibold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-medium'
             }`}
           >
-            <GeminiIcon name="reader" size={14} />
-            <span>Course Reader (Early Prep)</span>
+            <GeminiIcon name="reader" size={13} />
+            <span>Reader</span>
           </button>
 
           <button
             onClick={() => setActiveView('ai')}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-medium hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
           >
-            <GeminiIcon name="sparkle" size={14} />
-            <span>Campus AI Assistant</span>
+            <GeminiIcon name="sparkle" size={13} />
+            <span>AI Copilot</span>
           </button>
 
           <button
             onClick={() => setActiveView('vault')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
               activeView === 'vault'
-                ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-semibold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-medium'
             }`}
           >
-            <GeminiIcon name="bookmark" size={14} />
-            <span>AI Vault</span>
+            <GeminiIcon name="bookmark" size={13} />
+            <span>Vault</span>
             {savedExplanations.length > 0 && (
               <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono leading-none ${
                 activeView === 'vault'
-                  ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black font-bold'
-                  : 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]'
+                  ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-bold'
+                  : 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-300'
               }`}>
                 {savedExplanations.length}
               </span>
             )}
           </button>
         </div>
+
+        {/* In-App Style Fast Switch Toggle */}
+        <button
+          onClick={() => setActiveView(activeView === 'reader' ? 'ai' : 'reader')}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-600 dark:text-neutral-300 text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-2xs"
+          title={`Switch to ${activeView === 'reader' ? 'AI Copilot' : 'Course Reader'}`}
+        >
+          <GeminiIcon name="switch" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+          <span className="hidden sm:inline">Switch to {activeView === 'reader' ? 'AI Copilot' : 'Reader'}</span>
+        </button>
       </div>
 
       {activeView === 'vault' ? (
@@ -822,7 +832,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-semibold shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
                       >
                         <GeminiIcon name="zap" size={14} />
-                        <span>🔥 Grill Me with AI (Exam Test)</span>
+                        <span>Grill Me with AI (Exam Test)</span>
                       </button>
                     </div>
                   </div>

@@ -34,7 +34,8 @@ export type IconName =
   | 'moon'
   | 'bookmark'
   | 'trash'
-  | 'two-lines';
+  | 'two-lines'
+  | 'switch';
 
 interface GeminiIconProps {
   name: IconName;
@@ -303,6 +304,15 @@ export const GeminiIcon: React.FC<GeminiIconProps> = ({
         <svg {...commonProps}>
           <line x1="4" y1="9" x2="20" y2="9" strokeWidth={2} strokeLinecap="round" />
           <line x1="4" y1="15" x2="15" y2="15" strokeWidth={2} strokeLinecap="round" />
+        </svg>
+      );
+    case 'switch':
+      return (
+        <svg {...commonProps}>
+          <path d="M16 3L21 8L16 13" />
+          <path d="M21 8H7C4.79 8 3 9.79 3 12" />
+          <path d="M8 21L3 16L8 11" />
+          <path d="M3 16H17C19.21 16 21 14.21 21 12" />
         </svg>
       );
     default:

@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     // Socratic Grill Mode
     let grillDirective = '';
     if (context === 'grill_mode') {
-      grillDirective = `\n🔥 Socratic Grill Mode (OOU Exam Readiness):
+      grillDirective = `\nSocratic Grill Mode (OOU Exam Readiness):
 You are acting as an experienced, sharp OOU Examination Board Professor.
 Evaluate the student's answer critically. If their previous response was incomplete or flawed, point out the exact theoretical error and award marks out of 10. Then immediately pose ONE targeted, challenging examination question to test their deeper understanding.
 Keep questions rigorous, realistic to OOU past questions, and engaging.`;
@@ -150,12 +150,13 @@ Campus Geography Ground-Truth:
 Mandatory Response Directives:
 1. Direct Answer First: ALWAYS answer the user's question directly, clearly, and comprehensively in simple, accessible language. Never brush off or dodge any question.
 2. Contextual Book / Location Citation: At the conclusion of EVERY response, ALWAYS provide an explicit citation or reference tag:
-   - For academic queries: "📖 *Course Reference: [Course Code / Chapter / Core Theorem]*"
-   - For campus/navigation queries: "📍 *Campus Reference: [Hall / Quad / Campus Axis]*"
-   - For conversational queries: "💬 *Discussion Context: [Topic / Study Unit]*"
+   - For academic queries: "*Course Reference: [Course Code / Chapter / Core Theorem]*"
+   - For campus/navigation queries: "*Campus Reference: [Hall / Quad / Campus Axis]*"
+   - For conversational queries: "*Discussion Context: [Topic / Study Unit]*"
 3. Plain Academic Explanations: Use clear, relatable Nigerian analogies (e.g., Ago-Iwoye market vendors, telecom data tariffs, local transport logistics) so that any student grasps the concept instantly.
 4. Campus Accuracy: OOU does NOT assign seat numbers to students; lecture halls are open seating based on lecture arrival and departmental signing. Never mention assigned seat numbers.
-5. Zero Hallucinations: Be faithful to real academic principles and actual OOU campus locations.`;
+5. Zero Hallucinations: Be faithful to real academic principles and actual OOU campus locations.
+6. ABSOLUTE ZERO EMOJIS: Do NOT use ANY emojis under any circumstances in your responses. Zero emojis are permitted. Output pure text, markdown formatting, bullet points, and citation tags only.`;
 
     let userContent = prompt || '';
     if (context === 'reader_explanation' && highlightedText) {
@@ -201,12 +202,12 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
     }
 
     let replyText = '';
-    let usedModel = 'gemini-3.6-flash';
+    let usedModel = 'gemini-3.5-flash-lite';
 
-    // Try primary Gemini 3.6 Flash
+    // Primary: Gemini 3.5 Flash Lite (ultra-fast, rock solid 200 OK, full output length)
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -214,7 +215,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
             contents,
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 600,
+              maxOutputTokens: 3000,
             },
           }),
         }
@@ -223,16 +224,17 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
       if (response.ok) {
         const data = await response.json();
         replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        usedModel = 'gemini-3.5-flash-lite';
       }
     } catch {
-      // Primary model fetch failed, try fallback
+      // Fallback to Gemini 3.6 Flash
     }
 
-    // Fallback: Gemini 3.5 Flash Lite
+    // Secondary: Gemini 3.6 Flash
     if (!replyText) {
       try {
         const fbRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -240,7 +242,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
               contents,
               generationConfig: {
                 temperature: 0.3,
-                maxOutputTokens: 600,
+                maxOutputTokens: 3000,
               },
             }),
           }
@@ -249,7 +251,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
         if (fbRes.ok) {
           const fbData = await fbRes.json();
           replyText = fbData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          usedModel = 'gemini-3.5-flash-lite';
+          usedModel = 'gemini-3.6-flash';
         }
       } catch {
         // Fallback to Supabase Edge Function
@@ -288,7 +290,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
     }
 
     if (!replyText) {
-      replyText = `Cohart AI is currently updating its campus cache. For ${studentProfile?.department || 'your course'}, please consult the departmental handbook and verified faculty notes.\n\n📖 *Course Reference: ${studentProfile?.department || 'Academic'} Core Handbook*`;
+      replyText = `Cohart AI is currently updating its campus cache. For ${studentProfile?.department || 'your course'}, please consult the departmental handbook and verified faculty notes.\n\n*Course Reference: ${studentProfile?.department || 'Academic'} Core Handbook*`;
     }
 
     // Parse any milestone action tags
@@ -318,7 +320,7 @@ Follow-up context or question: ${prompt || 'Break this down simply.'}`;
     console.error('API /api/ai route error:', error);
     return NextResponse.json(
       {
-        reply: 'An internal network error occurred. Please verify your internet connection and retry.\n\n💬 *Discussion Context: Connection Diagnostics*',
+        reply: 'An internal network error occurred. Please verify your internet connection and retry.\n\n*Discussion Context: Connection Diagnostics*',
         error: 'AI service temporarily unavailable.',
       },
       { status: 500 }

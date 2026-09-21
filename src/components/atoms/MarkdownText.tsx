@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 
 interface MarkdownTextProps {
   content: string;
@@ -157,6 +158,11 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
     ) {
       const isCampus = trimmed.includes('Campus Reference:');
       const isCourse = trimmed.includes('Course Reference:');
+      const cleanRefText = trimmed
+        .replace(/^(\*|_|\[|\]|\s)+/, '')
+        .replace(/[\uD83C-\uDBFF\uDC00-\uDFFF\u2600-\u26FF\u2700-\u27BF]/g, '')
+        .trim();
+
       renderedElements.push(
         <div
           key={`ref-${lineIdx}`}
@@ -168,11 +174,17 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
               : 'bg-neutral-500/[0.08] dark:bg-neutral-400/[0.12] border-neutral-400/20 text-neutral-700 dark:text-neutral-300'
           }`}
         >
-          <span className="shrink-0 text-sm">
-            {isCampus ? '📍' : isCourse ? '📖' : '💬'}
+          <span className="shrink-0 mt-0.5">
+            {isCampus ? (
+              <GeminiIcon name="pin" size={13} />
+            ) : isCourse ? (
+              <GeminiIcon name="reader" size={13} />
+            ) : (
+              <GeminiIcon name="chat" size={13} />
+            )}
           </span>
           <div className="leading-snug">
-            {parseInline(trimmed.replace(/^(\*|_|📍|📖|💬|\s)+/, ''), `ref-${lineIdx}`)}
+            {parseInline(cleanRefText, `ref-${lineIdx}`)}
           </div>
         </div>
       );

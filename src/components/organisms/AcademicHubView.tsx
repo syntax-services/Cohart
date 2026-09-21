@@ -298,25 +298,29 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             onClick={() => onOpenAi?.('Where is LLT1 from the PS Main Gate?', 'general')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-[#0B57D0]/10 hover:border-[#0B57D0]/30 text-neutral-700 dark:text-neutral-300 text-xs shrink-0 transition-all cursor-pointer"
           >
-            <span>📍 Walking Route to LLT1</span>
+            <GeminiIcon name="pin" size={13} />
+            <span>Walking Route to LLT1</span>
           </button>
           <button
             onClick={() => onOpenAi?.('Explain the Cournot duopoly equilibrium with a Nigerian market analogy', 'general')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-[#0B57D0]/10 hover:border-[#0B57D0]/30 text-neutral-700 dark:text-neutral-300 text-xs shrink-0 transition-all cursor-pointer"
           >
-            <span>💡 Cournot Duopoly Breakdown</span>
+            <GeminiIcon name="sparkle" size={13} />
+            <span>Cournot Duopoly Breakdown</span>
           </button>
           <button
             onClick={() => onOpenAi?.('I want to test my exam readiness. Ask me an exam curveball question on my department courses.', 'grill_mode')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs shrink-0 transition-all cursor-pointer font-medium"
           >
-            <span>🔥 Socratic Exam Grill Mode</span>
+            <GeminiIcon name="zap" size={13} />
+            <span>Socratic Exam Grill Mode</span>
           </button>
           <button
             onClick={() => onOpenAi?.('I have submitted and signed my course form with my faculty advisor.', 'general')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs shrink-0 transition-all cursor-pointer font-medium"
           >
-            <span>✓ Sync Milestone with AI</span>
+            <GeminiIcon name="check" size={13} />
+            <span>Sync Milestone with AI</span>
           </button>
         </div>
       </div>

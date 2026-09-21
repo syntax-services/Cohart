@@ -620,7 +620,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 {isWithdrawing ? (
                   <span className="flex items-center gap-1.5 font-mono">Processing Transfer...</span>
                 ) : withdrawSuccess ? (
-                  <span className="flex items-center gap-1.5 text-emerald-300">✓ Transferred via Paystack</span>
+                  <span className="flex items-center gap-1.5 text-emerald-300">
+                    <GeminiIcon name="check" size={13} />
+                    <span>Transferred via Paystack</span>
+                  </span>
                 ) : (
                   'Confirm Withdrawal'
                 )}
