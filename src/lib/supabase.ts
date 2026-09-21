@@ -28,640 +28,724 @@ export const DEFAULT_STUDENT_PROFILE: StudentProfile = {
 };
 
 export const DEFAULT_OOU_LOCATIONS: Location[] = [
-  // === LECTURE THEATRE COMPLEXES (LLT1, LLT2, LLT3, SLR1, DINA, 1500-SEATER) ===
   {
-    id: 'loc-llt1',
-    name: 'Law Lecture Theatre 1 (LLT 1)',
-    code: 'LLT-1',
-    category: 'lecture_hall',
-    description: 'Prominent tiered lecture auditorium situated behind SMS and beside Law Faculty. Known as one of the busiest multidisciplinary halls.',
-    faculty: 'Faculty of Law / Inter-faculty',
-    department: 'Law & Social Sciences',
-    latitude: 6.91840,
-    longitude: 3.87048,
-    capacity: 750,
-    orientation_tips: 'From PS Gate, take the paved walkway past the Access Bank ATM gallery, turn at the Sam Ewang building across the road, and walk straight across the small bridge. LLT1 is on your right after a few steps. Arrive 20 mins early to secure a seat!',
-    images: [
+    "id": "loc-llt1",
+    "name": "Faculty of Art (LLT-I)",
+    "code": "LLT-1",
+    "category": "lecture_hall",
+    "description": "Major tiered lecture auditorium at Faculty of Arts / Humanities, heavily utilized for large joint lectures and General Studies (GNS).",
+    "faculty": "Faculty of Arts",
+    "department": "Humanities & General Studies",
+    "latitude": 6.918412,
+    "longitude": 3.870547,
+    "capacity": 750,
+    "orientation_tips": "Located at the Arts Quad near the central covered walkway. Landmark: Faculty of Arts main wing.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
-        caption: 'LLT 1 Main Exterior Entrance & Tiered Steps',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80",
+        "caption": "LLT 1 Main Exterior Entrance & Tiered Steps",
+        "year": "2024"
       },
       {
-        url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Auditorium Hall Interior & Tiered Benches',
-        year: '2022'
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Connecting Footpath from Sam Ewang Footbridge',
-        year: '2019'
+        "url": "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Auditorium Hall Interior & Tiered Benches",
+        "year": "2022"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-llt2',
-    name: 'Law Lecture Theatre 2 (LLT 2)',
-    code: 'LLT-2',
-    category: 'lecture_hall',
-    description: 'Sister auditorium to LLT1, heavily utilized for large joint lectures across Law, Economics, and Management sciences.',
-    faculty: 'Faculty of Law / Inter-faculty',
-    department: 'Law & Social Sciences',
-    latitude: 6.91839,
-    longitude: 3.86972,
-    capacity: 650,
-    orientation_tips: 'Directly adjacent to LLT1 across the connecting courtyard. Follow the same path across the small bridge from Access Bank.',
-    images: [
+    "id": "loc-llt2",
+    "name": "LLT 2 OOU",
+    "code": "LLT-2",
+    "category": "lecture_hall",
+    "description": "Law Lecture Theatre 2, sister auditorium along the Law and Education axis.",
+    "faculty": "Faculty of Law / Education",
+    "department": "Law & Social Sciences",
+    "latitude": 6.918387,
+    "longitude": 3.869578,
+    "capacity": 650,
+    "orientation_tips": "Situated directly adjacent to LLT 1 and Faculty of Education blocks.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80',
-        caption: 'LLT 2 East Facade & Quadrangle Walkway',
-        year: '2024'
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Lecturer Podium & Dual Projector Setup',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80",
+        "caption": "LLT 2 Quadrangle Walkway",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-llt3',
-    name: 'Lecture Theatre 3 (LLT 3 / Motion Ground)',
-    code: 'LLT-3',
-    category: 'lecture_hall',
-    description: 'Major student lecture auditorium located opposite Professor Saburi Modern Market in the area widely known to students as Motion Ground.',
-    faculty: 'Central Campus',
-    department: 'General Studies & Combined Arts',
-    latitude: 6.91520,
-    longitude: 3.87365,
-    capacity: 900,
-    orientation_tips: 'Head towards Motion Ground in front of Professor Saburi Modern Market. Landmark: commercial shops and student food pavilions nearby.',
-    images: [
+    "id": "loc-llt3",
+    "name": "LLT 3 OOU",
+    "code": "LLT-3",
+    "category": "lecture_hall",
+    "description": "Major tiered lecture auditorium located right beside New Motion (Motion Ground) and the ICAN building.",
+    "faculty": "Central Campus",
+    "department": "General Studies & Administration",
+    "latitude": 6.915263,
+    "longitude": 3.873516,
+    "capacity": 900,
+    "orientation_tips": "Directly opposite New Motion commercial hub and ICAN building on the southern campus belt.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80',
-        caption: 'LLT 3 Motion Ground Exterior Entrance',
-        year: '2024'
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Motion Ground Courtyard & Gathering Plaza',
-        year: '2021'
+        "url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
+        "caption": "LLT 3 Motion Ground Exterior Entrance",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sms-lt1',
-    name: 'SMS Lecture Theatre 1 (SLR 1)',
-    code: 'SMS-LT1',
-    category: 'lecture_hall',
-    description: 'Primary lecture theatre for undergraduate Economics, Accounting, and Business cohorts. Equipped with tiered seating.',
-    faculty: 'Faculty of Social & Management Sciences',
-    department: 'Economics',
-    latitude: 6.91841,
-    longitude: 3.87214,
-    capacity: 550,
-    orientation_tips: 'Eastern wing of SMS Complex ground floor. Main access via the central departmental quadrangle.',
-    images: [
+    "id": "loc-new-motion",
+    "name": "New Motion (Motion Ground)",
+    "code": "NEW-MOTION",
+    "category": "amenity",
+    "description": "Vibrant student commercial hub featuring food stalls, printing kiosks, stationery vendors, and shuttle stops.",
+    "faculty": "Commercial Core",
+    "department": "Student Commerce",
+    "latitude": 6.915488,
+    "longitude": 3.874547,
+    "capacity": 500,
+    "orientation_tips": "Located at the Motion Ground junction opposite LLT3 and the Health Centre.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=1200&q=80',
-        caption: 'SMS SLR 1 Lecture Wing Front View',
-        year: '2024'
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Tiered Seating Section B Interior',
-        year: '2020'
+        "url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80",
+        "caption": "New Motion Student Hub & Commercial Kiosks",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-dina-lt',
-    name: 'Isaac Dina Lecture Theatre',
-    code: 'DINA-LT',
-    category: 'lecture_hall',
-    description: 'Prominent lecture theatre named after Isaac Dina, heavily utilized for social sciences, public administration, and faculty lectures.',
-    faculty: 'Faculty of Social & Management Sciences',
-    department: 'Social Sciences',
-    latitude: 6.91646,
-    longitude: 3.87271,
-    capacity: 650,
-    orientation_tips: 'Located along the southern arterial road near the ICAN building and OOU Press.',
-    images: [
+    "id": "loc-ican",
+    "name": "ICAN Building",
+    "code": "ICAN-BLDG",
+    "category": "lecture_hall",
+    "description": "Modern professional learning centre and lecture complex sponsored by ICAN.",
+    "faculty": "Faculty of Administration and Management",
+    "department": "Accounting & Finance",
+    "latitude": 6.915287,
+    "longitude": 3.872797,
+    "capacity": 450,
+    "orientation_tips": "Next to Faculty of Administration and Management, directly west of LLT3.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Isaac Dina Lecture Theatre Facade',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80",
+        "caption": "ICAN Building Front Entrance",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-ican-bldg',
-    name: 'ICAN Lecture Complex',
-    code: 'ICAN-BLDG',
-    category: 'lecture_hall',
-    description: 'Modern accounting lecture auditorium and professional learning centre sponsored by ICAN.',
-    faculty: 'Faculty of Administration & Management',
-    department: 'Accounting & Finance',
-    latitude: 6.91534,
-    longitude: 3.87282,
-    capacity: 500,
-    orientation_tips: 'Opposite Isaac Dina Lecture Theatre on the southern campus avenue.',
-    images: [
+    "id": "loc-admin-mgmt",
+    "name": "Faculty of Administration and Management",
+    "code": "ADMIN-MGMT",
+    "category": "faculty",
+    "description": "Faculty deanery and departmental offices for Business Admin, Accounting, and Public Administration.",
+    "faculty": "Faculty of Administration and Management",
+    "department": "Management Studies",
+    "latitude": 6.915713,
+    "longitude": 3.872578,
+    "capacity": 400,
+    "orientation_tips": "Along the southern faculty row, adjacent to the ICAN building.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
-        caption: 'ICAN Lecture Complex Front Entrance',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Faculty of Administration Complex",
+        "year": "2023"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-eco-h1',
-    name: 'Economics Departmental Hall (ECO-H1)',
-    code: 'ECO-H1',
-    category: 'lecture_hall',
-    description: 'Dedicated hall for Economics seminars, econometric labs, and departmental continuous assessments.',
-    faculty: 'Faculty of Social & Management Sciences',
-    department: 'Economics',
-    latitude: 6.92320,
-    longitude: 3.87155,
-    capacity: 220,
-    orientation_tips: '1st floor corridor directly adjacent to the Head of Department (HOD) office.',
-    images: [
+    "id": "loc-old-moot",
+    "name": "Old University Moot Court",
+    "code": "OLD-MOOT",
+    "category": "lecture_hall",
+    "description": "Historical moot court and tiered law hall used for student legal trials and lectures.",
+    "faculty": "Faculty of Law",
+    "department": "Law",
+    "latitude": 6.916438,
+    "longitude": 3.872703,
+    "capacity": 300,
+    "orientation_tips": "North of ICAN building along the southern legal pathway.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Economics Department Seminar Hall',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Old Moot Court Bench",
+        "year": "2023"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-etf-hall',
-    name: 'Education Trust Fund (ETF) Complex',
-    code: 'ETF-HALL',
-    category: 'lecture_hall',
-    description: 'Lecture complex hosting multidisciplinary tutorials, statistics courses, and combined assessments.',
-    faculty: 'Faculty of Social & Management Sciences',
-    department: 'Economics / Management',
-    latitude: 6.92380,
-    longitude: 3.87110,
-    capacity: 400,
-    orientation_tips: 'Situated north of the SMS block. Shaded outdoor benches available for revision.',
-    images: [
+    "id": "loc-law-main",
+    "name": "Faculty of Law (Main Complex)",
+    "code": "LAW-MAIN",
+    "category": "faculty",
+    "description": "Main administrative deanery and faculty complex for Nigerian Jurisprudence and Commercial Law.",
+    "faculty": "Faculty of Law",
+    "department": "Law",
+    "latitude": 6.916663,
+    "longitude": 3.870297,
+    "capacity": 500,
+    "orientation_tips": "Western law avenue, adjacent to the New Moot Court Building.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
-        caption: 'ETF Lecture Hall Complex & Shaded Corridor',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Faculty of Law Main Entrance",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-ogd-lt',
-    name: 'Otunba Gbenga Daniel (OGD) Hall',
-    code: 'OGD-LT',
-    category: 'lecture_hall',
-    description: 'Major multidisciplinary auditorium hosting university-wide General Studies (GNS) lectures and symposiums.',
-    faculty: 'Central Campus',
-    department: 'General Studies',
-    latitude: 6.92180,
-    longitude: 3.87250,
-    capacity: 1200,
-    orientation_tips: 'East of Senate roundabout. Arrive 15 minutes early for general courses.',
-    images: [
+    "id": "loc-new-moot",
+    "name": "New Moot Court Building (Faculty of Law)",
+    "code": "NEW-MOOT",
+    "category": "faculty",
+    "description": "State-of-the-art modern judicial mock courtroom and law auditorium.",
+    "faculty": "Faculty of Law",
+    "department": "Law",
+    "latitude": 6.916813,
+    "longitude": 3.870234,
+    "capacity": 350,
+    "orientation_tips": "Right next to the Faculty of Law main entrance.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
-        caption: 'OGD Multipurpose Auditorium Main Hall',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80",
+        "caption": "New Moot Court Exterior",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sonuga-hall',
-    name: 'Christopher Oludayo Sonuga Hall',
-    code: 'SONUGA-HALL',
-    category: 'lecture_hall',
-    description: 'Modern conference and lecture auditorium hosting postgraduate seminars, defenses, and inaugural lectures.',
-    faculty: 'Postgraduate School',
-    department: 'Postgraduate Studies',
-    latitude: 6.92150,
-    longitude: 3.87110,
-    capacity: 350,
-    orientation_tips: 'Adjacent to Central Library. Landmark academic hall for public lectures.',
-    images: [
+    "id": "loc-health-ctr",
+    "name": "OOU Health Centre",
+    "code": "HEALTH-CTR",
+    "category": "amenity",
+    "description": "Primary 24/7 university medical clinic, pharmacy, and emergency treatment ward.",
+    "faculty": "Student Welfare",
+    "department": "Medical Services",
+    "latitude": 6.917363,
+    "longitude": 3.874109,
+    "capacity": 150,
+    "orientation_tips": "Accessible along the road leading from New Motion towards the central campus.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Sonuga Conference Hall Facade',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Health Centre Clinic Entrance",
+        "year": "2024"
       }
     ],
-    is_active: true
-  },
-
-  // === FACULTIES & SECRETARIATS ===
-  {
-    id: 'loc-sms-sec',
-    name: 'Faculty of Social Sciences Secretariat',
-    code: 'SMS-SEC',
-    category: 'faculty',
-    description: 'Administrative offices for the Dean, Faculty Officer, and Sub-Dean. Central notice boards for timetables.',
-    faculty: 'Faculty of Social & Management Sciences',
-    department: 'Deanery',
-    latitude: 6.91841,
-    longitude: 3.87214,
-    capacity: 150,
-    orientation_tips: 'Ground floor administrative wing. Notice boards outside display official lecture timetables.',
-    images: [
-      {
-        url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
-        caption: 'SMS Deanery Administrative Wing',
-        year: '2024'
-      }
-    ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-arts-comp',
-    name: 'Faculty of Arts Complex',
-    code: 'ARTS-COMP',
-    category: 'faculty',
-    description: 'Houses departments of English, Philosophy, History & Diplomatic Studies, and Religious Studies.',
-    faculty: 'Faculty of Arts',
-    department: 'Humanities',
-    latitude: 6.92062,
-    longitude: 3.87058,
-    capacity: 350,
-    orientation_tips: 'Accessible via central walkway Road 8, surrounded by landscaped shaded gardens.',
-    images: [
+    "id": "loc-edu-comp",
+    "name": "Faculty of Education",
+    "code": "EDU-COMP",
+    "category": "faculty",
+    "description": "Educational foundations, science education, and pedagogical lecture halls.",
+    "faculty": "Faculty of Education",
+    "department": "Education Foundations",
+    "latitude": 6.918113,
+    "longitude": 3.868453,
+    "capacity": 600,
+    "orientation_tips": "Western loop road next to LLT 2.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Faculty of Arts Shaded Lawn Walkway',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Faculty of Education Complex",
+        "year": "2023"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-edu-hall',
-    name: 'Faculty of Education Lecture Blocks (B & C)',
-    code: 'EDU-HALL',
-    category: 'lecture_hall',
-    description: 'Major faculty lecture complex for educational foundations, guidance counselling, and pedagogy coursework.',
-    faculty: 'Faculty of Education',
-    department: 'Education Foundations',
-    latitude: 6.91876,
-    longitude: 3.86804,
-    capacity: 500,
-    orientation_tips: 'Located along the western faculty loop road adjacent to 1500-Seater Theatre II.',
-    images: [
+    "id": "loc-ict-ctr",
+    "name": "ICT Centre (CBT Testing)",
+    "code": "ICT-CTR",
+    "category": "lab",
+    "description": "Central facility for computer-based testing, student portal registrations, and exams.",
+    "faculty": "Information Technology",
+    "department": "ICT Directorate",
+    "latitude": 6.923187,
+    "longitude": 3.869453,
+    "capacity": 700,
+    "orientation_tips": "Central campus near Admin Block I and Senate axis.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Faculty of Education Building Entrance',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80",
+        "caption": "ICT Testing Hall",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-law-lt',
-    name: 'Faculty of Law Lecture Theatre',
-    code: 'LAW-LT',
-    category: 'lecture_hall',
-    description: 'Premier lecture auditorium for jurisprudence, commercial law, and student bar symposiums.',
-    faculty: 'Faculty of Law',
-    department: 'Law',
-    latitude: 6.91840,
-    longitude: 3.87048,
-    capacity: 450,
-    orientation_tips: 'Law faculty avenue opposite the moot court pavilion and adjacent to LLT1.',
-    images: [
+    "id": "loc-sport-ctr",
+    "name": "OOU Sport Centre & Pavilion",
+    "code": "SPORT-CTR",
+    "category": "amenity",
+    "description": "Northern campus sports complex featuring football stadium, running track, volleyball, and basketball courts.",
+    "faculty": "Sports Directorate",
+    "department": "Sports & Recreation",
+    "latitude": 6.927763,
+    "longitude": 3.871328,
+    "capacity": 2500,
+    "orientation_tips": "Northern campus edge. Landmark for university games and athletics.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Faculty of Law Pillar Entrance',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Sports Complex Field & Pavilion",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sci-lt1',
-    name: 'Faculty of Science Phase I Complex',
-    code: 'SCI-LT1',
-    category: 'lecture_hall',
-    description: 'Central lecture theatre and laboratories for combined science programs including Computer Science, Physics, and Chemistry.',
-    faculty: 'Faculty of Science',
-    department: 'Natural Sciences',
-    latitude: 6.92640,
-    longitude: 3.86926,
-    capacity: 600,
-    orientation_tips: 'Northwestern academic wing along Road 3.',
-    images: [
+    "id": "loc-basketball",
+    "name": "Basketball Court",
+    "code": "B-BALL",
+    "category": "amenity",
+    "description": "Standard outdoor basketball court at the OOU Sport Centre.",
+    "faculty": "Sports Directorate",
+    "department": "Sports",
+    "latitude": 6.927463,
+    "longitude": 3.870328,
+    "capacity": 300,
+    "orientation_tips": "Immediately west of the Sports Pavilion.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Faculty of Science Main Lecture Block',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Basketball Court",
+        "year": "2024"
       }
     ],
-    is_active: true
-  },
-
-  // === LIBRARIES & LABS ===
-  {
-    id: 'loc-oou-lib',
-    name: 'OOU Main Campus Library',
-    code: 'OOU-LIB',
-    category: 'library',
-    description: 'Central university repository featuring reference collections, academic journals, and quiet e-library cubicles.',
-    faculty: 'University Academic Core',
-    department: 'Library Services',
-    latitude: 6.92115,
-    longitude: 3.86935,
-    capacity: 800,
-    orientation_tips: 'Central campus core on Road 5. Upper level houses the air-conditioned e-library.',
-    images: [
-      {
-        url: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Main Library Building Front Facade',
-        year: '2024'
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Central Reference Room & Reading Desks',
-        year: '2022'
-      }
-    ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sopolu-lib',
-    name: 'Sopolu Research Library & Archives',
-    code: 'SOPOLU-LIB',
-    category: 'library',
-    description: 'Special collections wing housing historical manuscripts, government archives, and rare documents.',
-    faculty: 'University Academic Core',
-    department: 'Research & Archives',
-    latitude: 6.92160,
-    longitude: 3.87040,
-    capacity: 200,
-    orientation_tips: 'Special collections wing. Library registration card required at reception.',
-    images: [
+    "id": "loc-volleyball",
+    "name": "Volleyball Court",
+    "code": "V-BALL",
+    "category": "amenity",
+    "description": "Outdoor volleyball courts adjacent to the main stadium pavilion.",
+    "faculty": "Sports Directorate",
+    "department": "Sports",
+    "latitude": 6.927513,
+    "longitude": 3.870828,
+    "capacity": 250,
+    "orientation_tips": "Between the basketball court and the main pavilion.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Sopolu Archives Historical Collections Room',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Volleyball Court",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-law-lib',
-    name: 'Faculty of Law Library & Moot Court',
-    code: 'LAW-LIB',
-    category: 'library',
-    description: 'Specialized legal repository housing Nigerian statutes, law reports, and student practice courts.',
-    faculty: 'Faculty of Law',
-    department: 'Legal Studies',
-    latitude: 6.92095,
-    longitude: 3.87315,
-    capacity: 250,
-    orientation_tips: 'South wing of the Law Complex. Strict silence observed at all times.',
-    images: [
+    "id": "loc-odukale-lib",
+    "name": "Sir Hassan Odukale Library",
+    "code": "ODUKALE-LIB",
+    "category": "library",
+    "description": "Historic university library and study centre.",
+    "faculty": "Library Core",
+    "department": "Library Services",
+    "latitude": 6.916638,
+    "longitude": 3.873266,
+    "capacity": 400,
+    "orientation_tips": "Located along the southern avenue north of New Motion.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Law Library Reading Hall & Statutory Stacks',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Library Front View",
+        "year": "2023"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sci-lab',
-    name: 'Science Research Laboratories',
-    code: 'SCI-LAB',
-    category: 'lab',
-    description: 'Practical training laboratories for physics experiments, chemical synthesis, and biological assays.',
-    faculty: 'Faculty of Science',
-    department: 'Chemical & Physical Sciences',
-    latitude: 6.92460,
-    longitude: 3.87020,
-    capacity: 300,
-    orientation_tips: 'Safety lab coats and badges required for entry.',
-    images: [
+    "id": "loc-soc-sci-econ",
+    "name": "Department Building (Economics & Social Sciences Block)",
+    "code": "ECO-SMS",
+    "category": "faculty",
+    "description": "Main departmental home for 200L Economics, Political Science, and Sociology lectures.",
+    "faculty": "Faculty of Social & Management Sciences",
+    "department": "Economics",
+    "latitude": 6.918538,
+    "longitude": 3.872109,
+    "capacity": 650,
+    "orientation_tips": "Central Social Sciences avenue directly adjacent to the Rasheed Raji Building.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Central Laboratory Benches & Instrumentation',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Economics Department Block",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-ict-cbt',
-    name: 'OOU ICT & CBT Testing Centre',
-    code: 'ICT-CBT',
-    category: 'lab',
-    description: 'Central facility for computer-based testing, portal registration, and digital coursework.',
-    faculty: 'Information Technology Services',
-    department: 'ICT Directorate',
-    latitude: 6.92050,
-    longitude: 3.87320,
-    capacity: 600,
-    orientation_tips: 'Ensure student matriculation slip and biometric verification are ready at entry.',
-    images: [
+    "id": "loc-geography",
+    "name": "Department of Geography",
+    "code": "GEOG-DEPT",
+    "category": "faculty",
+    "description": "Geospatial labs and lecture halls for Geography & Regional Planning.",
+    "faculty": "Faculty of Social & Management Sciences",
+    "department": "Geography",
+    "latitude": 6.918938,
+    "longitude": 3.871891,
+    "capacity": 350,
+    "orientation_tips": "North of the Economics block on the Social Sciences loop.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
-        caption: 'CBT Centre Computer Testing Rows',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Geography Department Entrance",
+        "year": "2023"
       }
     ],
-    is_active: true
-  },
-
-  // === ADMINISTRATION & LANDMARKS ===
-  {
-    id: 'loc-senate-adm',
-    name: 'Senate Building (Central Tower)',
-    code: 'SENATE-ADM',
-    category: 'admin',
-    description: 'Landmark administrative tower housing the Vice Chancellor’s office, Registrar, and Student Affairs.',
-    faculty: 'University Administration',
-    department: 'Central Registry',
-    latitude: 6.92283,
-    longitude: 3.87102,
-    capacity: 300,
-    orientation_tips: 'Main roundabout hub on Road 2. Primary campus transit and administrative tower.',
-    images: [
-      {
-        url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Senate Building Tower & Main Roundabout',
-        year: '2024'
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Senate Administrative Plaza & Car Park',
-        year: '2021'
-      }
-    ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sonuga-hall',
-    name: 'Christopher Oludayo Sonuga Building (P.G. School)',
-    code: 'SONUGA-HALL',
-    category: 'lecture_hall',
-    description: 'Modern conference and lecture auditorium hosting postgraduate seminars, defenses, and inaugural lectures.',
-    faculty: 'Postgraduate School',
-    department: 'Postgraduate Studies',
-    latitude: 6.92379,
-    longitude: 3.87084,
-    capacity: 350,
-    orientation_tips: 'North of the Senate Building along Road 2. Landmark academic hall for postgraduate defenses.',
-    images: [
+    "id": "loc-mass-comm",
+    "name": "Mass Communication Department",
+    "code": "MASS-COMM",
+    "category": "faculty",
+    "description": "Broadcast studios, print lab, and media lecture rooms.",
+    "faculty": "Faculty of Social Sciences",
+    "department": "Mass Communication",
+    "latitude": 6.921813,
+    "longitude": 3.871891,
+    "capacity": 400,
+    "orientation_tips": "Adjacent to Central Facility and OOU Park transit terminal.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Sonuga Conference Hall Facade',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Mass Communication Studios",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-transport-ctr',
-    name: 'Center for Transport Studies',
-    code: 'TRANS-CTR',
-    category: 'faculty',
-    description: 'Specialized research institute and lecture facility for logistics, urban mobility, and transport planning.',
-    faculty: 'Faculty of Social & Management Sciences',
-    department: 'Transport Studies',
-    latitude: 6.91973,
-    longitude: 3.87221,
-    capacity: 250,
-    orientation_tips: 'Located along the central faculty avenue opposite the SMS complex.',
-    images: [
+    "id": "loc-oou-park",
+    "name": "OOU Park (Ago-Iwoye Shuttle Park)",
+    "code": "OOU-PARK",
+    "category": "amenity",
+    "description": "Central campus transport terminal for shuttle cabs, kekes, and town transit.",
+    "faculty": "Transit Directorate",
+    "department": "Transportation",
+    "latitude": 6.922488,
+    "longitude": 3.873297,
+    "capacity": 600,
+    "orientation_tips": "Main campus bus & cab stop near the Security Unit.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Center for Transport Studies Entrance',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Shuttle Park Loading Bay",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sports-comp',
-    name: 'OOU Main Sports Complex',
-    code: 'SPORTS-COMP',
-    category: 'amenity',
-    description: 'University sports pavilion, football stadium, running track, and student recreation center.',
-    faculty: 'Student Welfare',
-    department: 'Sports Directorate',
-    latitude: 6.92769,
-    longitude: 3.87133,
-    capacity: 2500,
-    orientation_tips: 'Northern edge of campus along Road 1 and Road 3.',
-    images: [
+    "id": "loc-security-unit",
+    "name": "OOU Security Unit (Headquarters)",
+    "code": "SECURITY-HQ",
+    "category": "admin",
+    "description": "Campus security headquarters, emergency reporting, and safety operations.",
+    "faculty": "University Administration",
+    "department": "Security Directorate",
+    "latitude": 6.922238,
+    "longitude": 3.872891,
+    "capacity": 100,
+    "orientation_tips": "Adjacent to OOU Park on the eastern campus ring road.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80',
-        caption: 'University Sports Field & Pavilion',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Security Headquarters",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-access-bank',
-    name: 'Commercial Banking Quad & Access Bank',
-    code: 'BANK-QUAD',
-    category: 'amenity',
-    description: 'Key university navigation landmark housing Access Bank (OOU Branch), automated teller machines, student shops, and business kiosks.',
-    faculty: 'Campus Services',
-    department: 'Commercial & Financial Hub',
-    latitude: 6.92010,
-    longitude: 3.87220,
-    capacity: 200,
-    orientation_tips: 'Key navigational pivot: walkway from PS gate leads directly to Access Bank. Opposite Sam Ewang building. Starting point for the footbridge path to LLT1 and LLT2.',
-    images: [
+    "id": "loc-admin-bursary",
+    "name": "Admin Block I & Bursary Unit",
+    "code": "ADMIN-BURSARY",
+    "category": "admin",
+    "description": "University financial bursary, student fee verification, and central administrative offices.",
+    "faculty": "University Administration",
+    "department": "Bursary",
+    "latitude": 6.923812,
+    "longitude": 3.870891,
+    "capacity": 350,
+    "orientation_tips": "Central admin core north of the Senate roundabout.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Access Bank Branch & Commercial Footpath',
-        year: '2024'
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80',
-        caption: 'ATM Gallery & Student Services Area',
-        year: '2022'
+        "url": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Admin Block I Front Entrance",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-health-ctr',
-    name: 'Directorate of Health Services (Health Centre)',
-    code: 'HEALTH-CTR',
-    category: 'amenity',
-    description: 'Primary healthcare facility providing outpatient clinics, emergency medical care, and pharmacy services.',
-    faculty: 'Student Welfare',
-    department: 'Medical Services',
-    latitude: 6.91920,
-    longitude: 3.87280,
-    capacity: 150,
-    orientation_tips: 'South campus loop road. 24/7 emergency entrance accessible from main gate road.',
-    images: [
+    "id": "loc-odutola-bldg",
+    "name": "Adeola Odutola Building",
+    "code": "ODUTOLA-BLDG",
+    "category": "lecture_hall",
+    "description": "Major lecture auditorium and classroom complex for Science and combined disciplines.",
+    "faculty": "Faculty of Science",
+    "department": "Science",
+    "latitude": 6.925713,
+    "longitude": 3.869234,
+    "capacity": 600,
+    "orientation_tips": "Northwestern science corridor south of Mathematical Sciences.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80',
-        caption: 'University Health Centre Clinic Entrance',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Adeola Odutola Building",
+        "year": "2024"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-sug-sec',
-    name: 'Students’ Union Government (SUG) Secretariat',
-    code: 'SUG-SEC',
-    category: 'amenity',
-    description: 'Offices for student union executives, student affairs advocacy, and student council chambers.',
-    faculty: 'Student Affairs',
-    department: 'Student Government',
-    latitude: 6.92210,
-    longitude: 3.87330,
-    capacity: 250,
-    orientation_tips: 'Central student walkway between SMS and Law faculties.',
-    images: [
+    "id": "loc-math-sci",
+    "name": "Department of Mathematical Sciences",
+    "code": "MATH-SCI",
+    "category": "faculty",
+    "description": "Mathematics, Computer Science, and Statistics lecture halls and computing labs.",
+    "faculty": "Faculty of Science",
+    "department": "Mathematics",
+    "latitude": 6.927113,
+    "longitude": 3.869234,
+    "capacity": 450,
+    "orientation_tips": "Northwestern corner of campus beside the sports grounds.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
-        caption: 'SUG Secretariat & Union Meeting Lawn',
-        year: '2023'
+        "url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Mathematical Sciences Block",
+        "year": "2023"
       }
     ],
-    is_active: true
+    "is_active": true
   },
   {
-    id: 'loc-shuttle-hub',
-    name: 'Main Campus Shuttle Hub & Commercial Quad',
-    code: 'SHUTTLE-HUB',
-    category: 'amenity',
-    description: 'Central transit interchange with town shuttles to Ago-Iwoye market, mini campus, and student residences.',
-    faculty: 'Campus Services',
-    department: 'Transit & Services',
-    latitude: 6.91950,
-    longitude: 3.87220,
-    capacity: 200,
-    orientation_tips: 'Adjacent to Senate roundabout. Official point for town and mini-campus shuttles.',
-    images: [
+    "id": "loc-gns-unit",
+    "name": "G.N.S Unit",
+    "code": "GNS-UNIT",
+    "category": "admin",
+    "description": "General Nigerian Studies central coordination registry and exam hall.",
+    "faculty": "Central Academic Core",
+    "department": "GNS",
+    "latitude": 6.924238,
+    "longitude": 3.868047,
+    "capacity": 200,
+    "orientation_tips": "West of Admin Block I along the academic corridor.",
+    "images": [
       {
-        url: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Campus Bus Stop & Shuttle Loading Bay',
-        year: '2024'
+        "url": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+        "caption": "GNS Registry Unit",
+        "year": "2023"
       }
     ],
-    is_active: true
+    "is_active": true
+  },
+  {
+    "id": "loc-ogd-law",
+    "name": "Otunba Gbenga Daniel Building (Faculty of Law)",
+    "code": "OGD-LAW",
+    "category": "lecture_hall",
+    "description": "Expansive law lecture auditorium and conference centre.",
+    "faculty": "Faculty of Law",
+    "department": "Law",
+    "latitude": 6.921838,
+    "longitude": 3.867922,
+    "capacity": 800,
+    "orientation_tips": "Mid-campus western perimeter road.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
+        "caption": "OGD Law Auditorium",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-central-facility",
+    "name": "OOU Central Facility (Quiet Study)",
+    "code": "CENTRAL-FAC",
+    "category": "library",
+    "description": "Modern quiet study facility, reading halls, and academic annex.",
+    "faculty": "University Academic Core",
+    "department": "Library & Study",
+    "latitude": 6.921063,
+    "longitude": 3.869312,
+    "capacity": 500,
+    "orientation_tips": "Heart of campus on the central walkway.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Central Facility Study Hall",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-oou-fm",
+    "name": "OOU FM (92.1 FM)",
+    "code": "OOU-FM",
+    "category": "amenity",
+    "description": "Official campus radio broadcasting station, audio studios, and transmission tower.",
+    "faculty": "Mass Communication & Media",
+    "department": "Broadcasting",
+    "latitude": 6.916963,
+    "longitude": 3.868484,
+    "capacity": 80,
+    "orientation_tips": "Adjacent to the Performing Arts Theatre on the arts loop.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1200&q=80",
+        "caption": "OOU 92.1 FM Studio",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-perf-arts",
+    "name": "Performing Arts Theatre",
+    "code": "PERF-ARTS",
+    "category": "lecture_hall",
+    "description": "Dedicated theatrical stage, drama auditorium, and cultural performance hall.",
+    "faculty": "Faculty of Arts",
+    "department": "Performing Arts",
+    "latitude": 6.923427,
+    "longitude": 3.868748,
+    "capacity": 450,
+    "orientation_tips": "Adjacent to the Arts Complex and OOU FM studios.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Performing Arts Stage & Auditorium",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-arts-main",
+    "name": "Faculty of Art (Main Building)",
+    "code": "ARTS-MAIN",
+    "category": "faculty",
+    "description": "Deanery and administrative offices for English, History, and Philosophy.",
+    "faculty": "Faculty of Arts",
+    "department": "Humanities",
+    "latitude": 6.915838,
+    "longitude": 3.867641,
+    "capacity": 350,
+    "orientation_tips": "Southwestern arts enclave.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Arts Main Building",
+        "year": "2023"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-science-comp",
+    "name": "Faculty of Science Complex",
+    "code": "SCI-COMP",
+    "category": "faculty",
+    "description": "Comprehensive laboratory suites and lecture rooms for Physics, Chemistry, and Zoology.",
+    "faculty": "Faculty of Science",
+    "department": "Pure & Applied Sciences",
+    "latitude": 6.924763,
+    "longitude": 3.867859,
+    "capacity": 700,
+    "orientation_tips": "Northwest academic quadrant along the science avenue.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Faculty of Science Laboratories",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-transport-cts",
+    "name": "Center for Transport Studies",
+    "code": "TRANS-CTS",
+    "category": "lecture_hall",
+    "description": "Specialized logistics and urban transit research and lecture hall.",
+    "faculty": "Faculty of Social Sciences",
+    "department": "Transport Studies",
+    "latitude": 6.919537,
+    "longitude": 3.870641,
+    "capacity": 250,
+    "orientation_tips": "Located along the central faculty avenue.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Center for Transport Studies",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-chapel",
+    "name": "OOU Chapel (Chapel of Abundant Life)",
+    "code": "OOU-CHAPEL",
+    "category": "amenity",
+    "description": "University Christian fellowship auditorium and worship center.",
+    "faculty": "Student Welfare",
+    "department": "Religious Affairs",
+    "latitude": 6.929163,
+    "longitude": 3.877328,
+    "capacity": 1200,
+    "orientation_tips": "Northeastern spiritual zone along the perimeter road.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1548625361-195feeed1599?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Campus Chapel Auditorium",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
+    "id": "loc-mosque",
+    "name": "OOU Central Mosque",
+    "code": "OOU-MOSQUE",
+    "category": "amenity",
+    "description": "University Islamic prayer hall, ablution pavilions, and Muslim Students Society (MSSN) secretariat.",
+    "faculty": "Student Welfare",
+    "department": "Religious Affairs",
+    "latitude": 6.929013,
+    "longitude": 3.878516,
+    "capacity": 1000,
+    "orientation_tips": "Northeastern religious zone adjacent to the Chapel.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=1200&q=80",
+        "caption": "Campus Mosque Minaret & Plaza",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
   }
 ];
 
