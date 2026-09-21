@@ -125,7 +125,8 @@
 }
 
 /* Leaflet custom marker reset so the pin-tip lands on exact coordinate */
-.custom-map-marker {
+.custom-map-marker,
+.custom-user-marker {
   background: transparent !important;
   border: none !important;
 }

@@ -16,14 +16,24 @@ interface CampusMapProps {
   className?: string;
 }
 
-// Controller component to smoothly fly/pan to selected location
-function MapFocusController({ target }: { target: [number, number] | null }) {
+// Ago-Iwoye Main Campus default center (calibrated to Central Academic Quad)
+const DEFAULT_CENTER: [number, number] = [6.9205, 3.8714];
+const DEFAULT_ZOOM = 17;
+
+// Controller component to smoothly fly/pan to selected location or user position
+function MapFocusController({
+  target,
+  zoom = 17,
+}: {
+  target: [number, number] | null;
+  zoom?: number;
+}) {
   const map = useMap();
   React.useEffect(() => {
     if (target) {
-      map.flyTo(target, 17, { duration: 1.2, easeLinearity: 0.25 });
+      map.flyTo(target, zoom, { duration: 1.2, easeLinearity: 0.25 });
     }
-  }, [target, map]);
+  }, [target, zoom, map]);
   return null;
 }
 
@@ -39,9 +49,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   const [mapLayer, setMapLayer] = useState<'satellite' | 'street'>('satellite');
   const { resolvedTheme } = useTheme();
 
-  // Ago-Iwoye Main Campus default center
-  const defaultCenter: [number, number] = [6.9225, 3.8714];
-  const defaultZoom = 17;
+  // Live Geolocation State
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [focusTarget, setFocusTarget] = useState<[number, number] | null>(null);
 
   // Filter locations
   const filteredLocations = useMemo(() => {
@@ -58,9 +71,65 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       const found = locations.find(
         (l) => l.id === selectedLocationId || l.code === selectedLocationId
       );
-      if (found) setActiveLocation(found);
+      if (found) {
+        setActiveLocation(found);
+        setFocusTarget([found.latitude, found.longitude]);
+      }
     }
   }, [selectedLocationId, locations]);
+
+  // Handle Locate Me (Live HTML5 GPS Geolocation)
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser/device.');
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setUserLocation([latitude, longitude]);
+        setLocationAccuracy(accuracy);
+        setFocusTarget([latitude, longitude]);
+        setIsLocating(false);
+      },
+      (error) => {
+        setIsLocating(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError('Location permission was denied. Please allow location access to find your position on campus.');
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setLocationError('GPS signal unavailable. Please ensure your device location is enabled.');
+        } else {
+          setLocationError('Unable to retrieve your current location. Please retry.');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000,
+      }
+    );
+  };
+
+  // Custom User Location Blue Dot Marker (Google Maps style pulsating dot)
+  const createUserMarker = () => {
+    return L.divIcon({
+      className: 'custom-user-marker',
+      html: `
+        <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style="width: 24px; height: 24px;">
+          <div class="absolute inset-0 rounded-full bg-[#0B57D0]/20 dark:bg-[#A8C7FA]/25 animate-ping"></div>
+          <div class="relative h-4 w-4 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] border-2 border-white shadow-lg flex items-center justify-center">
+            <div class="h-1.5 w-1.5 rounded-full bg-white dark:bg-neutral-950"></div>
+          </div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+  };
 
   // Create clean, high-contrast Gemini-style pins calibrated precisely to satellite coordinates
   const createCustomMarker = (location: Location, isSelected: boolean) => {
@@ -194,8 +263,23 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           </button>
         </div>
 
-        {/* Right Action Switchers: Satellite/Map toggle & Focus SMS */}
+        {/* Right Action Switchers: Locate Me, Satellite toggle, and Quick Focus SMS */}
         <div className="flex items-center gap-1.5 pointer-events-auto">
+          {/* Locate Me GPS Button */}
+          <button
+            onClick={handleLocateMe}
+            disabled={isLocating}
+            title="Locate me on campus"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-all shadow-sm active:scale-95"
+          >
+            {isLocating ? (
+              <div className="h-3 w-3 rounded-full border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent animate-spin" />
+            ) : (
+              <GeminiIcon name="compass" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            )}
+            <span className="hidden sm:inline font-sans">Locate Me</span>
+          </button>
+
           {/* Satellite / Street Switcher */}
           <button
             onClick={() => setMapLayer(mapLayer === 'satellite' ? 'street' : 'satellite')}
@@ -209,21 +293,36 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <button
             onClick={() => {
               const sms = locations.find((l) => l.code === 'SMS-LT1');
-              if (sms) setActiveLocation(sms);
+              if (sms) {
+                setActiveLocation(sms);
+                setFocusTarget([sms.latitude, sms.longitude]);
+              }
             }}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-colors shadow-sm"
           >
-            <GeminiIcon name="compass" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-            <span className="hidden sm:inline">Focus SMS</span>
+            <span className="hidden sm:inline">SMS</span>
           </button>
         </div>
       </div>
 
+      {/* Geolocation Alert Toast */}
+      {locationError && (
+        <div className="absolute top-16 left-3 right-3 z-30 mx-auto max-w-md p-2.5 rounded-xl bg-neutral-900/90 text-white text-xs backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-between gap-2 animate-in fade-in">
+          <span>{locationError}</span>
+          <button
+            onClick={() => setLocationError(null)}
+            className="text-neutral-400 hover:text-white"
+          >
+            <GeminiIcon name="close" size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Map Container - guaranteed watermark-free with attributionControl={false} */}
       <MapContainer
         key={`${mapLayer}-${resolvedTheme}`}
-        center={defaultCenter}
-        zoom={defaultZoom}
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
         scrollWheelZoom={true}
         attributionControl={false}
         className="h-full w-full z-10"
@@ -236,8 +335,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
         {/* Dynamic Focus Controller */}
         <MapFocusController
-          target={activeLocation ? [activeLocation.latitude, activeLocation.longitude] : null}
+          target={focusTarget || (activeLocation ? [activeLocation.latitude, activeLocation.longitude] : null)}
         />
+
+        {/* Render Live User Location Marker */}
+        {userLocation && (
+          <Marker
+            position={userLocation}
+            icon={createUserMarker()}
+          />
+        )}
 
         {/* Render Location Markers */}
         {filteredLocations.map((loc) => (

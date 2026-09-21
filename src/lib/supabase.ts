@@ -28,7 +28,7 @@ export const DEFAULT_STUDENT_PROFILE: StudentProfile = {
 };
 
 export const DEFAULT_OOU_LOCATIONS: Location[] = [
-  // === LECTURE THEATRE COMPLEXES (LLT1, LLT2, LLT3, SLR1) ===
+  // === LECTURE THEATRE COMPLEXES (LLT1, LLT2, LLT3, SLR1, DINA, 1500-SEATER) ===
   {
     id: 'loc-llt1',
     name: 'Law Lecture Theatre 1 (LLT 1)',
@@ -37,8 +37,8 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Prominent tiered lecture auditorium situated behind SMS and beside Law Faculty. Known as one of the busiest multidisciplinary halls.',
     faculty: 'Faculty of Law / Inter-faculty',
     department: 'Law & Social Sciences',
-    latitude: 6.92120,
-    longitude: 3.87260,
+    latitude: 6.91840,
+    longitude: 3.87048,
     capacity: 750,
     orientation_tips: 'From PS Gate, take the paved walkway past the Access Bank ATM gallery, turn at the Sam Ewang building across the road, and walk straight across the small bridge. LLT1 is on your right after a few steps. Arrive 20 mins early to secure a seat!',
     images: [
@@ -68,8 +68,8 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Sister auditorium to LLT1, heavily utilized for large joint lectures across Law, Economics, and Management sciences.',
     faculty: 'Faculty of Law / Inter-faculty',
     department: 'Law & Social Sciences',
-    latitude: 6.92140,
-    longitude: 3.87275,
+    latitude: 6.91839,
+    longitude: 3.86972,
     capacity: 650,
     orientation_tips: 'Directly adjacent to LLT1 across the connecting courtyard. Follow the same path across the small bridge from Access Bank.',
     images: [
@@ -94,8 +94,8 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Major student lecture auditorium located opposite Professor Saburi Modern Market in the area widely known to students as Motion Ground.',
     faculty: 'Central Campus',
     department: 'General Studies & Combined Arts',
-    latitude: 6.92510,
-    longitude: 3.87350,
+    latitude: 6.91520,
+    longitude: 3.87365,
     capacity: 900,
     orientation_tips: 'Head towards Motion Ground in front of Professor Saburi Modern Market. Landmark: commercial shops and student food pavilions nearby.',
     images: [
@@ -120,8 +120,8 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Primary lecture theatre for undergraduate Economics, Accounting, and Business cohorts. Equipped with tiered seating.',
     faculty: 'Faculty of Social & Management Sciences',
     department: 'Economics',
-    latitude: 6.92295,
-    longitude: 3.87180,
+    latitude: 6.91841,
+    longitude: 3.87214,
     capacity: 550,
     orientation_tips: 'Eastern wing of SMS Complex ground floor. Main access via the central departmental quadrangle.',
     images: [
@@ -134,6 +134,48 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
         url: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80',
         caption: 'Tiered Seating Section B Interior',
         year: '2020'
+      }
+    ],
+    is_active: true
+  },
+  {
+    id: 'loc-dina-lt',
+    name: 'Isaac Dina Lecture Theatre',
+    code: 'DINA-LT',
+    category: 'lecture_hall',
+    description: 'Prominent lecture theatre named after Isaac Dina, heavily utilized for social sciences, public administration, and faculty lectures.',
+    faculty: 'Faculty of Social & Management Sciences',
+    department: 'Social Sciences',
+    latitude: 6.91646,
+    longitude: 3.87271,
+    capacity: 650,
+    orientation_tips: 'Located along the southern arterial road near the ICAN building and OOU Press.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Isaac Dina Lecture Theatre Facade',
+        year: '2023'
+      }
+    ],
+    is_active: true
+  },
+  {
+    id: 'loc-ican-bldg',
+    name: 'ICAN Lecture Complex',
+    code: 'ICAN-BLDG',
+    category: 'lecture_hall',
+    description: 'Modern accounting lecture auditorium and professional learning centre sponsored by ICAN.',
+    faculty: 'Faculty of Administration & Management',
+    department: 'Accounting & Finance',
+    latitude: 6.91534,
+    longitude: 3.87282,
+    capacity: 500,
+    orientation_tips: 'Opposite Isaac Dina Lecture Theatre on the southern campus avenue.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
+        caption: 'ICAN Lecture Complex Front Entrance',
+        year: '2024'
       }
     ],
     is_active: true
@@ -232,8 +274,8 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Administrative offices for the Dean, Faculty Officer, and Sub-Dean. Central notice boards for timetables.',
     faculty: 'Faculty of Social & Management Sciences',
     department: 'Deanery',
-    latitude: 6.92305,
-    longitude: 3.87140,
+    latitude: 6.91841,
+    longitude: 3.87214,
     capacity: 150,
     orientation_tips: 'Ground floor administrative wing. Notice boards outside display official lecture timetables.',
     images: [
@@ -253,10 +295,10 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Houses departments of English, Philosophy, History & Diplomatic Studies, and Religious Studies.',
     faculty: 'Faculty of Arts',
     department: 'Humanities',
-    latitude: 6.92350,
-    longitude: 3.87240,
+    latitude: 6.92062,
+    longitude: 3.87058,
     capacity: 350,
-    orientation_tips: 'Northeast of Senate lawn, surrounded by landscaped shaded gardens.',
+    orientation_tips: 'Accessible via central walkway Road 8, surrounded by landscaped shaded gardens.',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80',
@@ -268,16 +310,16 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
   },
   {
     id: 'loc-edu-hall',
-    name: 'Faculty of Education Lecture Hall',
+    name: 'Faculty of Education Lecture Blocks (B & C)',
     code: 'EDU-HALL',
     category: 'lecture_hall',
-    description: 'Lecture venue for educational foundations, guidance counselling, and pedagogy coursework.',
+    description: 'Major faculty lecture complex for educational foundations, guidance counselling, and pedagogy coursework.',
     faculty: 'Faculty of Education',
     department: 'Education Foundations',
-    latitude: 6.92410,
-    longitude: 3.87190,
+    latitude: 6.91876,
+    longitude: 3.86804,
     capacity: 500,
-    orientation_tips: 'Accessible via Road 4 from the main avenue. Adjacent to educational resource centre.',
+    orientation_tips: 'Located along the western faculty loop road adjacent to 1500-Seater Theatre II.',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80',
@@ -295,10 +337,10 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Premier lecture auditorium for jurisprudence, commercial law, and student bar symposiums.',
     faculty: 'Faculty of Law',
     department: 'Law',
-    latitude: 6.92080,
-    longitude: 3.87290,
+    latitude: 6.91840,
+    longitude: 3.87048,
     capacity: 450,
-    orientation_tips: 'Law faculty avenue opposite the moot court pavilion.',
+    orientation_tips: 'Law faculty avenue opposite the moot court pavilion and adjacent to LLT1.',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80',
@@ -310,16 +352,16 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
   },
   {
     id: 'loc-sci-lt1',
-    name: 'Faculty of Science Lecture Theatre',
+    name: 'Faculty of Science Phase I Complex',
     code: 'SCI-LT1',
     category: 'lecture_hall',
-    description: 'Central lecture theatre for combined science programs including Computer Science, Physics, and Chemistry.',
+    description: 'Central lecture theatre and laboratories for combined science programs including Computer Science, Physics, and Chemistry.',
     faculty: 'Faculty of Science',
     department: 'Natural Sciences',
-    latitude: 6.92420,
-    longitude: 3.87050,
+    latitude: 6.92640,
+    longitude: 3.86926,
     capacity: 600,
-    orientation_tips: 'Western campus academic wing, accessible past the central faculty walkway.',
+    orientation_tips: 'Northwestern academic wing along Road 3.',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
@@ -339,10 +381,10 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Central university repository featuring reference collections, academic journals, and quiet e-library cubicles.',
     faculty: 'University Academic Core',
     department: 'Library Services',
-    latitude: 6.92120,
-    longitude: 3.87080,
+    latitude: 6.92115,
+    longitude: 3.86935,
     capacity: 800,
-    orientation_tips: 'Central campus hub. E-library section equipped with power backup on the upper level.',
+    orientation_tips: 'Central campus core on Road 5. Upper level houses the air-conditioned e-library.',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80',
@@ -451,10 +493,10 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     description: 'Landmark administrative tower housing the Vice Chancellor’s office, Registrar, and Student Affairs.',
     faculty: 'University Administration',
     department: 'Central Registry',
-    latitude: 6.91980,
-    longitude: 3.87190,
+    latitude: 6.92283,
+    longitude: 3.87102,
     capacity: 300,
-    orientation_tips: 'Main roundabout hub. Primary campus transit and shuttle stop.',
+    orientation_tips: 'Main roundabout hub on Road 2. Primary campus transit and administrative tower.',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
@@ -465,6 +507,69 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
         url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
         caption: 'Senate Administrative Plaza & Car Park',
         year: '2021'
+      }
+    ],
+    is_active: true
+  },
+  {
+    id: 'loc-sonuga-hall',
+    name: 'Christopher Oludayo Sonuga Building (P.G. School)',
+    code: 'SONUGA-HALL',
+    category: 'lecture_hall',
+    description: 'Modern conference and lecture auditorium hosting postgraduate seminars, defenses, and inaugural lectures.',
+    faculty: 'Postgraduate School',
+    department: 'Postgraduate Studies',
+    latitude: 6.92379,
+    longitude: 3.87084,
+    capacity: 350,
+    orientation_tips: 'North of the Senate Building along Road 2. Landmark academic hall for postgraduate defenses.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Sonuga Conference Hall Facade',
+        year: '2023'
+      }
+    ],
+    is_active: true
+  },
+  {
+    id: 'loc-transport-ctr',
+    name: 'Center for Transport Studies',
+    code: 'TRANS-CTR',
+    category: 'faculty',
+    description: 'Specialized research institute and lecture facility for logistics, urban mobility, and transport planning.',
+    faculty: 'Faculty of Social & Management Sciences',
+    department: 'Transport Studies',
+    latitude: 6.91973,
+    longitude: 3.87221,
+    capacity: 250,
+    orientation_tips: 'Located along the central faculty avenue opposite the SMS complex.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+        caption: 'Center for Transport Studies Entrance',
+        year: '2024'
+      }
+    ],
+    is_active: true
+  },
+  {
+    id: 'loc-sports-comp',
+    name: 'OOU Main Sports Complex',
+    code: 'SPORTS-COMP',
+    category: 'amenity',
+    description: 'University sports pavilion, football stadium, running track, and student recreation center.',
+    faculty: 'Student Welfare',
+    department: 'Sports Directorate',
+    latitude: 6.92769,
+    longitude: 3.87133,
+    capacity: 2500,
+    orientation_tips: 'Northern edge of campus along Road 1 and Road 3.',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80',
+        caption: 'University Sports Field & Pavilion',
+        year: '2024'
       }
     ],
     is_active: true
