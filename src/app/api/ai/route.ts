@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
     }
 
     const institution = studentProfile?.institution || 'OOU';
-    const isOou = institution === 'OOU';
+    const isOou = institution === 'OOU' || institution.includes('OOU') || institution.toLowerCase().includes('olabisi');
 
     // Adaptive Exam Drill & Socratic Drill Feature (Integrated natively into normal chat)
     const grillDirective = `
@@ -144,13 +144,37 @@ If the student mentions completing a semester task, add one of these tags at the
 If the student asks you to change, edit, or set up their profile (such as their full name, level e.g. 100L/200L/300L/400L/500L, department, faculty, institution, or reading/learning style), or answers your questions to complete their profile setup:
 1. Confirm the update in a warm, concise, plain English sentence.
 2. Append this exact tag at the very end of your response:
-[UPDATE_PROFILE:{"full_name":"...","level":"...","department":"...","faculty":"...","learning_style":"..."}]
+[UPDATE_PROFILE:{"full_name":"...","level":"...","department":"...","faculty":"...","institution":"...","learning_style":"..."}]
 Include ONLY the fields that the student changed. Valid learning styles are: 'visual_analogies', 'socratic_inquiry', 'concise_bullet', 'deep_first_principles'.
 
 Interactive Question Forms & Checklists:
 Whenever you ask the user a question to help configure their study style, learning habits, reading preferences, or department, provide an interactive checklist form so the user can easily tap to check/uncheck options and click Done, or type a custom answer.
 Append this tag at the very end of your response:
 [INTERACTIVE_CHOICES:{"title":"Choose your reading & study preferences","multiSelect":true,"options":["Short 20-minute sessions","Visual and Nigerian real-world analogies","Step-by-step from scratch","Exam tension / Calm explanations","Late night study focus","Bullet point summaries"]}]`;
+
+    const campusVerificationDirective = `\nNigerian University Selection & Anti-Cheat Campus Insider Protocol:
+Students can ask you to pick, change, or set their Nigerian University (e.g. OOU, UNILAG, UI, OAU, FUTA, LASU, UNILORIN, Covenant).
+When the student asks to choose or change their school:
+1. General Help / Listing:
+   If they ask generally ("Which schools are supported?", "Change my university", "Help me pick my school"):
+   List the supported universities in friendly plain English and attach:
+   [INTERACTIVE_CHOICES:{"title":"Select your Nigerian University","multiSelect":false,"options":["OOU (Olabisi Onabanjo University)","UNILAG (University of Lagos)","UI (University of Ibadan)","OAU (Obafemi Awolowo University)","FUTA (Federal University of Tech, Akure)","LASU (Lagos State University)","Other Nigerian University"]}]
+2. Anti-Cheat Insider Trivia Challenge:
+   To prevent students from falsely switching schools on a whim ("anti-cheat check"), NEVER immediately switch their school upon their first request!
+   Instead, challenge them with an UN-GOOGLEABLE local physical campus insider question specific to that university:
+   - For OOU: Ask: "Who sponsored or donated the internal campus shuttle buses used for student transportation inside Ago-Iwoye PS, and what are the exact paint colors of those buses?" (Real answer: SUG, yellow/orange and blue).
+   - For UNILAG: Ask: "What color are the campus shuttle buses running from UNILAG Main Gate into campus, and which landmark quad do they drop students at?" (Real answer: Yellow with green stripes, New Hall / Cab Park).
+   - For UI: Ask: "What distinct color scheme are the campus cabs/micras that run from UI Main Gate down to SUB, and what is the central square near the Student Union building?" (Real answer: Blue and yellow, SUB / Kunle Adepeju).
+   - For OAU: Ask: "What architectural feature gave the Natural History Museum its famous nickname on campus, and what is the open asphalt field where students converge called?" (Real answer: Spider building, Motion Ground).
+   - For FUTA: Ask: "What are the names of the two main entry gates of FUTA, and what are the two main campuses students commute between?" (Real answer: South Gate & North Gate; Obanla & Obakekere).
+   - For LASU: Ask: "What are the colors of the campus shuttle buses that run from Iyana-Iba main gate into LASU Ojo campus?" (Real answer: Blue and white).
+3. CRITICAL ANTI-CHEAT & NEAR-MISS RULES:
+   - NEAR-MISS / ALMOST CORRECT: If the student gives an answer that is close but slightly incomplete (e.g., for OOU buses they say "yellow" or "blue" or "SUG"), DO NOT fail them! Instead, nudge them gently: "You're very close! Did you mean orange, or what is the other stripe color on those SUG buses?" Or give a simpler backup question (e.g. food spots at Motion Ground or gate tricycles).
+   - CORRECT ANSWER -> ISSUE THE BLUFF CHALLENGE (DEVIL'S ADVOCATE): Even if the student gets the answer completely right (e.g., "SUG buses, orange/yellow and blue"), DO NOT immediately approve! To ensure it is not a free ticket to changing schools anyhow, test their conviction by proposing an obvious false detail to see if they back down or stand their ground.
+     For example, say: "Wait a minute... aren't those campus shuttle buses painted green and white like federal buses? Are you sure?" (or for UNILAG say "Wait, aren't they painted red like BRT?").
+   - REJECTING THE BLUFF: If the student stands their ground, laughs it off, or firmly says: "No! They are definitely orange/yellow and blue, not green!", they have passed the insider test with flying colors!
+   - FINAL CONFIRMATION & PROFILE SYNC: Once they pass the conviction test, warmly confirm and append the profile update tag:
+     [UPDATE_PROFILE:{"institution":"OOU"}] (or "UNILAG", "UI", "OAU", "FUTA", "LASU", etc.).`;
 
     let campusLocationDirective = '';
     if (isOou) {
@@ -183,6 +207,7 @@ Learning Preferences:${cognitiveDirectives || '\n- Explain concepts clearly with
 ${grillDirective}
 ${milestoneDirective}
 ${profileUpdateDirective}
+${campusVerificationDirective}
 ${campusLocationDirective}
 
 CRITICAL RULES FOR HOW YOU SPEAK:

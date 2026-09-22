@@ -9,12 +9,21 @@ import { useTheme, Theme } from '@/components/ThemeProvider';
 import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
 import { fetchSavedExplanations } from '@/lib/supabase';
 import { ALL_OOU_DEPARTMENTS } from '@/lib/oouCourses';
+import {
+  NIGERIAN_UNIVERSITIES,
+  CAMPUS_INSIDER_QUESTIONS,
+  getRandomCampusQuestion,
+  evaluateCampusAnswer,
+  NigerianUniversity,
+  CampusInsiderQuestion,
+} from '@/lib/campusVerification';
 
 interface ProfileViewProps {
   profile: StudentProfile;
   onUpdateProfile: (updated: Partial<StudentProfile>) => Promise<void>;
   onOpenSchedule: () => void;
   onOpenReader?: () => void;
+  onOpenAiChat?: (initialPrompt?: string) => void;
   onSignOut?: () => void;
 }
 
@@ -23,12 +32,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onUpdateProfile,
   onOpenSchedule,
   onOpenReader,
+  onOpenAiChat,
   onSignOut,
 }) => {
   const { theme, setTheme } = useTheme();
   const [isEditingBasic, setIsEditingBasic] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+
+  // Nigerian Campus Insider Verification State
+  const [showCampusModal, setShowCampusModal] = useState(false);
+  const [selectedTargetUniv, setSelectedTargetUniv] = useState<string>('OOU');
+  const [currentInsiderQuestion, setCurrentInsiderQuestion] = useState<CampusInsiderQuestion | null>(null);
+  const [campusUserAnswer, setCampusUserAnswer] = useState('');
+  const [campusVerificationStep, setCampusVerificationStep] = useState<
+    'question' | 'near_miss' | 'bluff' | 'verified' | 'failed'
+  >('question');
+  const [campusNudgeMessage, setCampusNudgeMessage] = useState('');
+  const [campusBluffMessage, setCampusBluffMessage] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -68,6 +89,83 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         setPlayingVoiceId(null);
       }
     }
+  };
+
+  const handleStartCampusChange = (targetCode?: string) => {
+    const defaultCode = targetCode || (profile.institution?.includes('OOU') ? 'UNILAG' : 'OOU');
+    setSelectedTargetUniv(defaultCode);
+    const q = getRandomCampusQuestion(defaultCode);
+    setCurrentInsiderQuestion(q);
+    setCampusUserAnswer('');
+    setCampusVerificationStep('question');
+    setCampusNudgeMessage('');
+    setCampusBluffMessage('');
+    setShowCampusModal(true);
+  };
+
+  const handleSelectTargetUniv = (code: string) => {
+    setSelectedTargetUniv(code);
+    const q = getRandomCampusQuestion(code);
+    setCurrentInsiderQuestion(q);
+    setCampusUserAnswer('');
+    setCampusVerificationStep('question');
+    setCampusNudgeMessage('');
+    setCampusBluffMessage('');
+  };
+
+  const handleSubmitCampusAnswer = () => {
+    if (!currentInsiderQuestion || !campusUserAnswer.trim()) return;
+
+    const evalResult = evaluateCampusAnswer(currentInsiderQuestion, campusUserAnswer, false);
+    if (evalResult.status === 'correct') {
+      setCampusBluffMessage(evalResult.bluffPrompt || currentInsiderQuestion.bluffChallenge);
+      setCampusVerificationStep('bluff');
+    } else if (evalResult.status === 'near_miss') {
+      setCampusNudgeMessage(evalResult.nudgePrompt || currentInsiderQuestion.nearMissNudge);
+      setCampusVerificationStep('near_miss');
+    } else {
+      setCampusNudgeMessage(evalResult.feedbackText);
+      setCampusVerificationStep('failed');
+    }
+  };
+
+  const handleAnswerBluff = async (rejectsBluff: boolean, customText?: string) => {
+    if (!currentInsiderQuestion) return;
+
+    if (rejectsBluff) {
+      setCampusVerificationStep('verified');
+      const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === selectedTargetUniv);
+      const univName = univ ? `${univ.name} (${univ.shortName})` : selectedTargetUniv;
+      await onUpdateProfile({ institution: univName });
+      setTimeout(() => {
+        setShowCampusModal(false);
+      }, 1600);
+      return;
+    }
+
+    if (customText && customText.trim()) {
+      const res = evaluateCampusAnswer(currentInsiderQuestion, customText, true);
+      if (res.isVerified) {
+        setCampusVerificationStep('verified');
+        const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === selectedTargetUniv);
+        const univName = univ ? `${univ.name} (${univ.shortName})` : selectedTargetUniv;
+        await onUpdateProfile({ institution: univName });
+        setTimeout(() => {
+          setShowCampusModal(false);
+        }, 1600);
+        return;
+      }
+    }
+
+    setCampusVerificationStep('failed');
+    setCampusNudgeMessage('You wavered or accepted the false detail. Real campus students know their campus reality with confidence.');
+  };
+
+  const handleVerifyWithAi = (targetCode: string) => {
+    setShowCampusModal(false);
+    const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === targetCode);
+    const targetName = univ ? `${univ.name} (${univ.shortName})` : targetCode;
+    onOpenAiChat?.(`I want to set my institution to ${targetName}. Please test me with the un-googleable campus insider question so I can verify my campus!`);
   };
 
   // Form states for basic info
@@ -272,12 +370,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <p className="text-xs font-mono text-neutral-500 dark:text-neutral-400 mt-1">
                 {profile.department
                   ? `${profile.matric_number || 'Matric Pending'} • ${profile.department} • ${profile.level || '100L'}`
-                  : 'Tap Edit to set your Department & Level • OOU PS'}
+                  : 'Tap Edit to set your Department & Level • Campus Profile'}
               </p>
 
-              <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans mt-0.5">
-                {profile.institution} • Ago-Iwoye Main PS
-              </p>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans">
+                  {profile.institution || 'Olabisi Onabanjo University (OOU)'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleStartCampusChange()}
+                  className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#0B57D0]/20 transition-all cursor-pointer font-medium"
+                >
+                  Change School
+                </button>
+              </div>
             </div>
           </div>
 
@@ -469,6 +576,62 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         </GeminiCard>
       </div>
+
+      {/* Nigerian University & Campus Preferences Card */}
+      <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
+        <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+              <GeminiIcon name="compass" size={16} />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">University & Campus Preferences</h2>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                Anti-Cheat Physical Attendance Check • Nigerian Institutions
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => handleStartCampusChange()}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#0B57D0]/20 transition-all active:scale-95 cursor-pointer font-medium"
+          >
+            <span>Change School</span>
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] gap-3">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                {profile.institution || 'Olabisi Onabanjo University (OOU)'}
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold">
+                Campus Verified
+              </span>
+            </div>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+              {profile.institution?.includes('OOU')
+                ? 'Ago-Iwoye Main PS • Live Interactive Map Navigation Active'
+                : 'Interactive campus map currently exclusive to OOU. Full Cohart study AI companion active.'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleStartCampusChange()}
+              className="px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs text-neutral-800 dark:text-neutral-200 font-mono transition-colors cursor-pointer"
+            >
+              Switch Campus
+            </button>
+            <button
+              onClick={() => handleVerifyWithAi(profile.institution || 'OOU')}
+              className="px-3 py-1.5 rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] text-xs font-mono transition-colors cursor-pointer"
+            >
+              Verify via AI &rarr;
+            </button>
+          </div>
+        </div>
+      </GeminiCard>
 
       {/* Deepgram AI Voice Preference Card */}
       <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
@@ -719,6 +882,195 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Campus Insider Anti-Cheat Verification Modal */}
+      {showCampusModal && currentInsiderQuestion && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-3">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA]">
+                  <GeminiIcon name="shield" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Campus Insider Verification</h3>
+                  <p className="text-[10px] font-mono text-neutral-500">Anti-cheat physical attendance check</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowCampusModal(false)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+              >
+                <GeminiIcon name="close" size={16} />
+              </button>
+            </div>
+
+            {/* Target University Selector */}
+            <div className="mb-4">
+              <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Select New University</label>
+              <select
+                value={selectedTargetUniv}
+                onChange={(e) => handleSelectTargetUniv(e.target.value)}
+                className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-[#0B57D0]"
+              >
+                {NIGERIAN_UNIVERSITIES.map((u) => (
+                  <option key={u.code} value={u.code}>
+                    {u.shortName} - {u.name} ({u.state})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Question Card */}
+            <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] mb-4">
+              <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-mono uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA]">
+                <GeminiIcon name="sparkle" size={12} />
+                <span>Physical Campus Trivia (Un-googleable)</span>
+              </div>
+              <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed font-medium">
+                {currentInsiderQuestion.question}
+              </p>
+            </div>
+
+            {/* Step: Answering Question */}
+            {campusVerificationStep === 'question' && (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Type your insider answer here..."
+                  value={campusUserAnswer}
+                  onChange={(e) => setCampusUserAnswer(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSubmitCampusAnswer();
+                  }}
+                  className="w-full p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#0B57D0]"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSubmitCampusAnswer}
+                    disabled={!campusUserAnswer.trim()}
+                    className="flex-1 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity disabled:opacity-40 cursor-pointer shadow-xs"
+                  >
+                    Verify Answer
+                  </button>
+                  <button
+                    onClick={() => handleVerifyWithAi(selectedTargetUniv)}
+                    className="py-2.5 px-3.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] transition-colors cursor-pointer"
+                  >
+                    Verify via AI Chat &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step: Near Miss Nudge */}
+            {campusVerificationStep === 'near_miss' && (
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                  {campusNudgeMessage}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Clarify or update your answer..."
+                  value={campusUserAnswer}
+                  onChange={(e) => setCampusUserAnswer(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSubmitCampusAnswer();
+                  }}
+                  className="w-full p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#0B57D0]"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSubmitCampusAnswer}
+                    className="flex-1 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    Submit Clarification
+                  </button>
+                  <button
+                    onClick={() => handleVerifyWithAi(selectedTargetUniv)}
+                    className="py-2.5 px-3 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs font-mono text-neutral-700 dark:text-neutral-300 cursor-pointer"
+                  >
+                    Ask AI &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step: The Bluff Challenge (Devil's Advocate) */}
+            {campusVerificationStep === 'bluff' && (
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 leading-relaxed font-medium">
+                  <p className="font-bold mb-1 text-[11px] uppercase tracking-wider font-mono">
+                    Conviction Check (Devil's Advocate):
+                  </p>
+                  <p>{campusBluffMessage}</p>
+                </div>
+
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  How do you respond? Real students stand their ground with conviction:
+                </p>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleAnswerBluff(true)}
+                    className="w-full text-left p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-200 font-medium transition-colors cursor-pointer"
+                  >
+                    No, definitely not! You are wrong, my answer is 100% correct!
+                  </button>
+                  <button
+                    onClick={() => handleAnswerBluff(false)}
+                    className="w-full text-left p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] border border-black/[0.06] text-xs text-neutral-600 dark:text-neutral-400 transition-colors cursor-pointer"
+                  >
+                    Wait... maybe you are right, let me guess again.
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step: Verified */}
+            {campusVerificationStep === 'verified' && (
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
+                <div className="flex justify-center text-emerald-600 dark:text-emerald-400">
+                  <GeminiIcon name="check-circle" size={32} />
+                </div>
+                <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-200">
+                  Campus Verified!
+                </h4>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  You stood your ground and proved you are a genuine campus insider. Updating your school preference...
+                </p>
+              </div>
+            )}
+
+            {/* Step: Failed */}
+            {campusVerificationStep === 'failed' && (
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-700 dark:text-rose-300 leading-relaxed">
+                  {campusNudgeMessage || 'Verification failed. Try the simpler backup question or verify with Cohart AI in chat.'}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setCampusVerificationStep('question');
+                      setCampusUserAnswer('');
+                    }}
+                    className="flex-1 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] cursor-pointer"
+                  >
+                    Try Again
+                  </button>
+                  <button
+                    onClick={() => handleVerifyWithAi(selectedTargetUniv)}
+                    className="flex-1 py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 cursor-pointer"
+                  >
+                    Verify in AI Chat &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

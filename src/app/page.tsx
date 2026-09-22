@@ -23,6 +23,7 @@ export default function AppHomePage() {
   const [pendingTab, setPendingTab] = useState<NavTab | null>(null);
   const [isAiFullscreen, setIsAiFullscreen] = useState(false);
   const [verifiedMilestones, setVerifiedMilestones] = useState<string[]>([]);
+  const [aiInitialPrompt, setAiInitialPrompt] = useState<string | null>(null);
 
   const { profile, userId, saveProfile, signOut } = useStudentProfile();
   const isAuthenticated = Boolean(userId);
@@ -111,7 +112,13 @@ export default function AppHomePage() {
     }
 
     if (targetTab === 'map') {
-      if (profile?.institution && profile.institution !== 'OOU') {
+      const isStudentOou =
+        !profile?.institution ||
+        profile.institution === 'OOU' ||
+        profile.institution.includes('OOU') ||
+        profile.institution.toLowerCase().includes('olabisi');
+
+      if (!isStudentOou) {
         changeTab('ai');
         return;
       }
@@ -240,6 +247,7 @@ export default function AppHomePage() {
               onMilestoneAction={handleMarkMilestone}
               onUpdateProfile={saveProfile}
               onExitFullscreen={() => changeTab('reader')}
+              initialPrompt={aiInitialPrompt || undefined}
             />
           </div>
         )}
@@ -250,6 +258,10 @@ export default function AppHomePage() {
             onUpdateProfile={saveProfile}
             onOpenSchedule={() => handleTabChange('schedule')}
             onOpenReader={() => handleTabChange('reader')}
+            onOpenAiChat={(prompt) => {
+              if (prompt) setAiInitialPrompt(prompt);
+              changeTab('ai');
+            }}
             onSignOut={signOut}
           />
         )}

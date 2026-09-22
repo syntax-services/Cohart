@@ -95,8 +95,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   const studentName = profile.full_name?.trim() ? profile.full_name.trim().split(' ')[0] : 'Scholar';
   const [currentMode, setCurrentMode] = useState<'general' | 'grill_mode'>(initialMode);
 
-  const institutionName = profile.institution === 'OOU' ? 'OOU' : profile.institution || 'University';
-  const isOou = profile.institution === 'OOU';
+  const institutionName = profile.institution || 'University';
+  const isOou = !profile.institution || profile.institution === 'OOU' || profile.institution.includes('OOU') || profile.institution.toLowerCase().includes('olabisi');
 
   const defaultInitialMessage: Message = {
     id: 'msg_welcome',
