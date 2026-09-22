@@ -47,6 +47,18 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
     }
   };
 
+  const {
+    timetable,
+    logs,
+    markAttendance,
+    hasMarkedToday,
+    getAttendanceAdvice,
+  } = useAttendanceTracker(profile.id);
+
+  const [activeTab, setActiveTab] = useState<'attendance' | 'calendar'>('attendance');
+  const [markingCourse, setMarkingCourse] = useState<string | null>(null);
+  const [notifySubscribed, setNotifySubscribed] = useState(false);
+
   // Find next class day from a given day
   const getNextClassDay = (fromDay: string) => {
     const fromIdx = DAYS_OF_WEEK.indexOf(fromDay);
@@ -68,14 +80,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
     isTodaySelected &&
     dayClasses.length > 0 &&
     dayClasses.every((item) => hasMarkedToday(item.courseCode) || isClassPast(item.time));
-
-  const {
-    timetable,
-    logs,
-    markAttendance,
-    hasMarkedToday,
-    getAttendanceAdvice,
-  } = useAttendanceTracker(profile.id);
 
   const advice = getAttendanceAdvice();
 

@@ -474,12 +474,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             title="Switch View"
           >
             <GeminiIcon
-              name={activeView === 'ai' ? 'sparkle' : activeView === 'vault' ? 'bookmark' : 'reader'}
+              name={activeView === 'vault' ? 'bookmark' : 'reader'}
               size={14}
               className="text-[#0B57D0] dark:text-[#A8C7FA]"
             />
             <span className="font-semibold capitalize">
-              {activeView === 'ai' ? 'AI Copilot' : activeView === 'vault' ? 'Vault' : 'Course Reader'}
+              {activeView === 'vault' ? 'Vault' : 'Course Reader'}
             </span>
             <GeminiIcon name="chevron-down" size={12} className="text-neutral-400" />
           </button>
@@ -517,17 +517,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     setActiveView('ai');
                     setIsModeDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
-                    activeView === 'ai'
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-semibold'
-                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                  }`}
+                  className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <GeminiIcon name="sparkle" size={13} />
                     <span>AI Copilot</span>
                   </div>
-                  {activeView === 'ai' && <GeminiIcon name="check" size={12} />}
                 </button>
 
                 <button
