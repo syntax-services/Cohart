@@ -1,8 +1,11 @@
+import { SUPPORTED_INSTITUTIONS } from '@/lib/types';
+
 export interface NigerianUniversity {
   code: string;
   name: string;
   shortName: string;
   state: string;
+  category?: 'Federal' | 'State';
   mainCampus: string;
   badgeColor: string;
 }
@@ -22,72 +25,28 @@ export interface CampusInsiderQuestion {
   };
 }
 
-export const NIGERIAN_UNIVERSITIES: NigerianUniversity[] = [
-  {
-    code: 'OOU',
-    name: 'Olabisi Onabanjo University',
-    shortName: 'OOU',
-    state: 'Ogun State',
-    mainCampus: 'Ago-Iwoye Main Campus',
-    badgeColor: '#0B57D0',
-  },
-  {
-    code: 'UNILAG',
-    name: 'University of Lagos',
-    shortName: 'UNILAG',
-    state: 'Lagos State',
-    mainCampus: 'Akoka Campus, Yaba',
-    badgeColor: '#9333EA',
-  },
-  {
-    code: 'UI',
-    name: 'University of Ibadan',
-    shortName: 'UI',
-    state: 'Oyo State',
-    mainCampus: 'Ibadan Main Campus',
-    badgeColor: '#D97706',
-  },
-  {
-    code: 'OAU',
-    name: 'Obafemi Awolowo University',
-    shortName: 'OAU',
-    state: 'Osun State',
-    mainCampus: 'Ile-Ife Campus',
-    badgeColor: '#2563EB',
-  },
-  {
-    code: 'FUTA',
-    name: 'Federal University of Technology, Akure',
-    shortName: 'FUTA',
-    state: 'Ondo State',
-    mainCampus: 'Obanla / Obakekere',
-    badgeColor: '#059669',
-  },
-  {
-    code: 'LASU',
-    name: 'Lagos State University',
-    shortName: 'LASU',
-    state: 'Lagos State',
-    mainCampus: 'Ojo Main Campus',
-    badgeColor: '#0284C7',
-  },
-  {
-    code: 'UNILORIN',
-    name: 'University of Ilorin',
-    shortName: 'UNILORIN',
-    state: 'Kwara State',
-    mainCampus: 'PS Campus, Ilorin',
-    badgeColor: '#4F46E5',
-  },
-  {
-    code: 'COVENANT',
-    name: 'Covenant University',
-    shortName: 'Covenant',
-    state: 'Ogun State',
-    mainCampus: 'Canaanland, Ota',
-    badgeColor: '#DC2626',
-  },
-];
+const BADGE_COLORS: Record<string, string> = {
+  OOU: '#0B57D0',
+  UNILAG: '#9333EA',
+  UI: '#D97706',
+  OAU: '#2563EB',
+  FUTA: '#059669',
+  LASU: '#0284C7',
+  UNILORIN: '#4F46E5',
+  UNIBEN: '#7C3AED',
+  UNN: '#10B981',
+  ABU: '#047857',
+};
+
+export const NIGERIAN_UNIVERSITIES: NigerianUniversity[] = SUPPORTED_INSTITUTIONS.map((inst) => ({
+  code: inst.id,
+  name: inst.name,
+  shortName: inst.shortName,
+  state: inst.locationState,
+  category: inst.category,
+  mainCampus: inst.city ? `${inst.city} Campus` : `${inst.name} Main Campus`,
+  badgeColor: BADGE_COLORS[inst.id] || (inst.category === 'Federal' ? '#0B57D0' : '#059669'),
+}));
 
 export const CAMPUS_INSIDER_QUESTIONS: Record<string, CampusInsiderQuestion[]> = {
   OOU: [

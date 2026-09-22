@@ -5,6 +5,7 @@ import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile, LearningStyle, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
+import { UniversityCombobox } from '@/components/ui/UniversityCombobox';
 import { useTheme, Theme } from '@/components/ThemeProvider';
 import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
 import { fetchSavedExplanations } from '@/lib/supabase';
@@ -911,18 +912,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
             {/* Target University Selector */}
             <div className="mb-4">
-              <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Select New University</label>
-              <select
+              <UniversityCombobox
+                label="Select New University"
                 value={selectedTargetUniv}
-                onChange={(e) => handleSelectTargetUniv(e.target.value)}
-                className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-[#0B57D0]"
-              >
-                {NIGERIAN_UNIVERSITIES.map((u) => (
-                  <option key={u.code} value={u.code}>
-                    {u.shortName} - {u.name} ({u.state})
-                  </option>
-                ))}
-              </select>
+                onChange={(code) => handleSelectTargetUniv(code)}
+                placeholder="Search university to switch..."
+              />
             </div>
 
             {/* Question Card */}

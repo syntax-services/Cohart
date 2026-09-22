@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { supabase } from '@/lib/supabase';
-import { SUPPORTED_INSTITUTIONS } from '@/lib/types';
+import { UniversityCombobox } from '@/components/ui/UniversityCombobox';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -376,18 +376,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-mono text-neutral-500 uppercase">Institution</label>
-                    <select
+                    <UniversityCombobox
+                      label="University / Institution"
                       value={institution}
-                      onChange={(e) => setInstitution(e.target.value)}
-                      className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                    >
-                      {SUPPORTED_INSTITUTIONS.map((inst) => (
-                        <option key={inst.id} value={inst.id}>
-                          {inst.name} ({inst.shortName}) {inst.hasMap ? '• Active Map' : ''}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(code) => setInstitution(code)}
+                      placeholder="Search Nigerian public university..."
+                    />
                   </div>
                 </>
               )}
