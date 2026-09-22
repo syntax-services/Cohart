@@ -29,6 +29,7 @@ export type IconName =
   | 'copy'
   | 'check-circle'
   | 'filter'
+  | 'shield'
   | 'shield-check'
   | 'sun'
   | 'moon'
@@ -267,6 +268,7 @@ export const GeminiIcon: React.FC<GeminiIconProps> = ({
           <path d="M3 5H21L14 13.5V19L10 20.5V13.5L3 5Z" />
         </svg>
       );
+    case 'shield':
     case 'shield-check':
       return (
         <svg {...commonProps}>

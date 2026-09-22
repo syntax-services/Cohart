@@ -9,10 +9,11 @@ import { ScheduleView } from '@/components/organisms/ScheduleView';
 import { ProfileView } from '@/components/organisms/ProfileView';
 import { CampusMapWrapper } from '@/components/map/CampusMapWrapper';
 import { CampusAiAssistant } from '@/components/organisms/CampusAiAssistant';
-import { Location } from '@/lib/types';
+import { Location, QuizData } from '@/lib/types';
 import { fetchLocations } from '@/lib/supabase';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { QuizRunner } from '@/components/organisms/QuizRunner';
 
 export default function AppHomePage() {
   const [activeTab, setActiveTab] = useState<NavTab>('hub');
@@ -24,6 +25,7 @@ export default function AppHomePage() {
   const [isAiFullscreen, setIsAiFullscreen] = useState(false);
   const [verifiedMilestones, setVerifiedMilestones] = useState<string[]>([]);
   const [aiInitialPrompt, setAiInitialPrompt] = useState<string | null>(null);
+  const [sharedQuiz, setSharedQuiz] = useState<QuizData | null>(null);
 
   const { profile, userId, saveProfile, signOut } = useStudentProfile();
   const isAuthenticated = Boolean(userId);
@@ -48,6 +50,18 @@ export default function AppHomePage() {
           setVerifiedMilestones(JSON.parse(savedMilestones));
         } catch {
           // Ignore parse error
+        }
+      }
+
+      const quizPayload = params.get('quizPayload');
+      if (quizPayload) {
+        try {
+          const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(quizPayload)))));
+          if (decoded && decoded.questions && decoded.questions.length > 0) {
+            setSharedQuiz(decoded);
+          }
+        } catch (e) {
+          console.warn('Failed to parse shared quiz', e);
         }
       }
     }
@@ -248,6 +262,7 @@ export default function AppHomePage() {
               onUpdateProfile={saveProfile}
               onExitFullscreen={() => changeTab('reader')}
               initialPrompt={aiInitialPrompt || undefined}
+              onStartQuiz={(q) => setSharedQuiz(q)}
             />
           </div>
         )}
@@ -273,6 +288,24 @@ export default function AppHomePage() {
         onChangeTab={handleTabChange} 
         institution={profile?.institution}
       />
+
+      {/* Shared Peer Quiz Runner */}
+      {sharedQuiz && (
+        <QuizRunner
+          quiz={sharedQuiz}
+          onClose={() => setSharedQuiz(null)}
+          onReviewWithAi={(debriefPrompt) => {
+            setSharedQuiz(null);
+            setAiInitialPrompt(debriefPrompt);
+            changeTab('ai');
+          }}
+          onAddMoreQuestions={() => {
+            setSharedQuiz(null);
+            setAiInitialPrompt(`Please add 10 more questions to this ${sharedQuiz.courseCode} practice quiz under the same syllabus.`);
+            changeTab('ai');
+          }}
+        />
+      )}
 
       {/* Guest Authentication Modal */}
       <AuthModal

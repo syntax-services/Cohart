@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { MarkdownText } from '@/components/atoms/MarkdownText';
-import { StudentProfile, Location, COHART_VOICES, DEFAULT_COHART_VOICE, CohartVoiceOption } from '@/lib/types';
+import { StudentProfile, Location, COHART_VOICES, DEFAULT_COHART_VOICE, CohartVoiceOption, QuizData } from '@/lib/types';
+import { QuizRunner } from './QuizRunner';
 
 interface CampusAiAssistantProps {
   profile: StudentProfile;
@@ -14,6 +15,7 @@ interface CampusAiAssistantProps {
   onUpdateProfile?: (updated: Partial<StudentProfile>) => void;
   initialMode?: 'general' | 'grill_mode';
   initialPrompt?: string;
+  onStartQuiz?: (quiz: QuizData) => void;
 }
 
 interface InteractiveChoices {
@@ -33,6 +35,7 @@ interface Message {
   };
   profileUpdatedBadge?: string;
   interactiveChoices?: InteractiveChoices;
+  generatedQuiz?: QuizData;
 }
 
 interface Conversation {
@@ -91,9 +94,11 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   onUpdateProfile,
   initialMode = 'general',
   initialPrompt,
+  onStartQuiz,
 }) => {
   const studentName = profile.full_name?.trim() ? profile.full_name.trim().split(' ')[0] : 'Scholar';
   const [currentMode, setCurrentMode] = useState<'general' | 'grill_mode'>(initialMode);
+  const [activeRunningQuiz, setActiveRunningQuiz] = useState<QuizData | null>(null);
 
   const institutionName = profile.institution || 'University';
   const isOou = !profile.institution || profile.institution === 'OOU' || profile.institution.includes('OOU') || profile.institution.toLowerCase().includes('olabisi');
@@ -103,7 +108,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     role: 'assistant',
     content: initialMode === 'grill_mode'
       ? `Hello ${studentName}! We are now in Exam Practice Mode. I will ask you course exam questions one by one and tell you honestly if you are correct or if you missed anything.\n\nAre you ready for your first exam question? Type "Ready" or your answer to begin.`
-      : `Hello ${studentName}! I am Cohart AI, your study companion for ${institutionName}. Ask me anything about your courses in simple English, or ask me to help you set up or update your profile (such as your name, level, department, or learning style).${isOou ? ' I can also guide you to lecture halls across Ago-Iwoye campus.' : ''}`,
+      : `Hello ${studentName}! I am Cohart AI, your study companion for ${institutionName}. I can help you read your course materials faster with smart pacing, set practice exam questions (objective CBT or theory) tailored to your lecturers' patterns, and help you configure your study profile.${isOou ? ' I can also guide you to lecture halls across Ago-Iwoye campus.' : ''}\n\nWhat course or topic are we prepping for today?`,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
 
@@ -552,6 +557,16 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         replyContent = replyContent.replace(/\[UPDATE_PROFILE:\{[\s\S]*?\}\]/g, '').trim();
       }
 
+      // Parse any [QUIZ_GENERATED:{...}] payload in reply text
+      let detectedQuiz: QuizData | undefined;
+      const quizMatch = replyContent.match(/\[QUIZ_GENERATED:(\{[\s\S]*?\})\]/);
+      if (quizMatch) {
+        try {
+          detectedQuiz = JSON.parse(quizMatch[1]);
+        } catch {}
+        replyContent = replyContent.replace(/\[QUIZ_GENERATED:\{[\s\S]*?\}\]/g, '').trim();
+      }
+
       if (detectedProfileUpdate) {
         const fields = Object.entries(detectedProfileUpdate)
           .map(([k, v]) => `${k.replace('_', ' ')}: ${v}`)
@@ -583,6 +598,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestedAction: venueCode ? { label: `Show ${venueCode} on Map`, venueCode } : undefined,
         interactiveChoices: detectedChoices,
+        generatedQuiz: detectedQuiz,
       };
 
       const finalMessages = [...newMessages, assistantMsg];
@@ -979,6 +995,80 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                     </div>
                   )}
 
+                  {/* Generated Quiz Action Card */}
+                  {m.generatedQuiz && (
+                    <div className="mt-3.5 p-4 rounded-2xl bg-gradient-to-br from-[#0B57D0]/10 to-[#A8C7FA]/5 border border-[#0B57D0]/30 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] border border-[#0B57D0]/30">
+                            {m.generatedQuiz.courseCode}
+                          </span>
+                          <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                            {m.generatedQuiz.title}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-neutral-500">
+                          {m.generatedQuiz.questions?.length || 0} Questions • {m.generatedQuiz.type === 'theory' ? 'Theory' : 'Objective'}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-neutral-600 dark:text-neutral-300">
+                        Exam practice questions ready. Start the quiz in a distraction-free test interface or share it with your peers.
+                      </p>
+
+                      <div className="flex items-center gap-2 flex-wrap pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onStartQuiz && m.generatedQuiz) {
+                              onStartQuiz(m.generatedQuiz);
+                            } else if (m.generatedQuiz) {
+                              setActiveRunningQuiz(m.generatedQuiz);
+                            }
+                          }}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-bold font-mono text-xs hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-md shadow-[#0B57D0]/20"
+                        >
+                          <GeminiIcon name="zap" size={13} />
+                          <span>Start Quiz</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (typeof window !== 'undefined' && m.generatedQuiz) {
+                              try {
+                                const encoded = encodeURIComponent(
+                                  btoa(unescape(encodeURIComponent(JSON.stringify(m.generatedQuiz))))
+                                );
+                                const shareUrl = `${window.location.origin}/?tab=quiz&quizPayload=${encoded}`;
+                                navigator.clipboard.writeText(shareUrl);
+                                alert('Quiz share link copied to clipboard! Share it with your course mates.');
+                              } catch {
+                                const shareUrl = `${window.location.origin}/?tab=quiz&quizId=${m.generatedQuiz.id}`;
+                                navigator.clipboard.writeText(shareUrl);
+                                alert('Quiz link copied to clipboard!');
+                              }
+                            }
+                          }}
+                          className="flex items-center gap-1 px-3 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-mono text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                        >
+                          <GeminiIcon name="share" size={13} />
+                          <span>Share</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleSend(`Please add 10 more questions to the ${m.generatedQuiz?.courseCode} practice quiz under the same syllabus.`);
+                          }}
+                          className="px-3 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-mono text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                        >
+                          + Add 10 More
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Suggested Map Action Pin */}
                   {m.suggestedAction && onSelectVenue && (
                     <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
@@ -1109,6 +1199,22 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           </div>
         </footer>
       </div>
+
+      {/* Dedicated Full-Screen Distraction-Free QuizRunner */}
+      {activeRunningQuiz && (
+        <QuizRunner
+          quiz={activeRunningQuiz}
+          onClose={() => setActiveRunningQuiz(null)}
+          onReviewWithAi={(debriefPrompt) => {
+            setActiveRunningQuiz(null);
+            handleSend(debriefPrompt);
+          }}
+          onAddMoreQuestions={() => {
+            setActiveRunningQuiz(null);
+            handleSend(`Please add 10 more questions to this ${activeRunningQuiz.courseCode} practice quiz under the same syllabus.`);
+          }}
+        />
+      )}
     </div>
   );
 };

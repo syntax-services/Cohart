@@ -253,3 +253,43 @@ export const COHART_VOICES: CohartVoiceOption[] = [
 export const DEFAULT_COHART_VOICE = 'aura-2-thalia-en';
 export const DEFAULT_VOICE_RATE = 1.0;
 
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[]; // for objective style: e.g. ["A. ...", "B. ...", "C. ...", "D. ..."]
+  correctIndex: number;
+  explanation: string; // short, simple English explanation of why the correct option is right and others are wrong
+  theorySampleAnswer?: string; // for theory questions
+  courseContext?: string;
+  isAssisted?: boolean; // marked if user consulted mini AI
+}
+
+export interface QuizData {
+  id: string;
+  title: string;
+  courseCode: string;
+  institution?: string;
+  type: 'objective' | 'theory';
+  questions: QuizQuestion[];
+  createdAt: string;
+  createdBy?: string;
+}
+
+export interface QuizAttemptResult {
+  quizId: string;
+  courseCode: string;
+  title: string;
+  totalQuestions: number;
+  score: number;
+  assistedCount: number;
+  missedQuestionIds: string[];
+  missedQuestionsSummary: {
+    question: string;
+    chosenAnswer: string;
+    correctAnswer: string;
+    explanation: string;
+  }[];
+  timeTakenSeconds: number;
+  completedAt: string;
+}
+

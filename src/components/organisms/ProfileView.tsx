@@ -894,7 +894,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="shield" size={16} />
+                  <GeminiIcon name="shield-check" size={16} />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Campus Insider Verification</h3>
