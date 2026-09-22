@@ -110,15 +110,27 @@ export async function POST(req: NextRequest) {
     if (traits.includes('Deep First Principles')) {
       cognitiveDirectives += '\n- First Principles: State the fundamental mathematical/economic axioms first before building up to the theorem.';
     }
-
-    // Socratic Grill Mode
-    let grillDirective = '';
-    if (context === 'grill_mode') {
-      grillDirective = `\nExam Practice Mode (OOU Exam Readiness):
-You are testing the student on their course to see how ready they are for exams.
-Check their answer kindly and honestly. If they made a mistake, explain the mistake in very simple, plain English and give them a score out of 10. Then ask them ONE clear, practical exam practice question to test if they really understand.
-Keep questions realistic to OOU exam style, but use simple, straightforward wording.`;
+    if (traits.includes('Short 20-minute sessions') || traits.some((t: string) => t.toLowerCase().includes('20-minute') || t.toLowerCase().includes('short sessions'))) {
+      cognitiveDirectives += '\n- Short 20-Minute Focus Window: Keep answers snappy, focused, and immediately actionable for a high-intensity 20-minute study sprint. Avoid long-winded introductions.';
     }
+    if (studentProfile?.learning_style === 'visual_analogies') {
+      cognitiveDirectives += '\n- Visual & Mental Model Analogies: Always pair abstract theories with tangible physical visuals or mental scenes (e.g., picturing market stalls, flow of trucks on Lagos-Ibadan expressway, balance scales).';
+    }
+
+    const institution = studentProfile?.institution || 'OOU';
+    const isOou = institution === 'OOU';
+
+    // Adaptive Exam Drill & Socratic Drill Feature (Integrated natively into normal chat)
+    const grillDirective = `
+Adaptive Exam Practice & Socratic Drill:
+- You have built-in exam drill capability inside regular conversation.
+- If the student asks to be tested, grilled, drilled, given practice questions, or asks "test me", "drill me", "quiz me on [topic]", or gives an answer to an ongoing drill:
+  1. Evaluate their answer honestly, gently, and in very simple plain English.
+  2. If their answer was wrong or incomplete, point out the exact misconception simply and award a score (e.g. 7/10).
+  3. Then ask them ONE focused, realistic exam practice question on the topic.
+- If the student changes the topic, asks a normal question, says "stop", "enough", "explain instead", or asks about campus directions/profile/other courses:
+  - Immediately stop the drill smoothly without forcing more exam questions. Answer their new question directly and warmly.
+- Keep questions practical to exam scenarios, but always in clear, everyday language.`;
 
     const milestoneDirective = `\nMilestone Syncing:
 If the student mentions completing a semester task, add one of these tags at the end of your reply:
@@ -128,35 +140,58 @@ If the student mentions completing a semester task, add one of these tags at the
 - "[MILESTONE_ACTION:ca_target]" if they reached their class attendance target.
 - "[MILESTONE_ACTION:reader_quiz]" if they finished reading course chapters.`;
 
-    // Cohart Context & Persona Injection
-    const systemPrompt = `You are Cohart AI, a friendly, smart study companion built specifically for students of Olabisi Onabanjo University (OOU), Ago-Iwoye, Ogun State, Nigeria.
+    const profileUpdateDirective = `\nProfile Updates & Settings Assistant:
+If the student asks you to change, edit, or set up their profile (such as their full name, level e.g. 100L/200L/300L/400L/500L, department, faculty, institution, or reading/learning style), or answers your questions to complete their profile setup:
+1. Confirm the update in a warm, concise, plain English sentence.
+2. Append this exact tag at the very end of your response:
+[UPDATE_PROFILE:{"full_name":"...","level":"...","department":"...","faculty":"...","learning_style":"..."}]
+Include ONLY the fields that the student changed. Valid learning styles are: 'visual_analogies', 'socratic_inquiry', 'concise_bullet', 'deep_first_principles'.
 
-Student Information:
-- Name: ${studentProfile?.full_name || 'Scholar'}
-- Department: ${studentProfile?.department || 'General Studies'} (${studentProfile?.level || 'Undergraduate'})
-- Learning Preference: ${studentProfile?.learning_style || 'visual_analogies'}
+Interactive Question Forms & Checklists:
+Whenever you ask the user a question to help configure their study style, learning habits, reading preferences, or department, provide an interactive checklist form so the user can easily tap to check/uncheck options and click Done, or type a custom answer.
+Append this tag at the very end of your response:
+[INTERACTIVE_CHOICES:{"title":"Choose your reading & study preferences","multiSelect":true,"options":["Short 20-minute sessions","Visual and Nigerian real-world analogies","Step-by-step from scratch","Exam tension / Calm explanations","Late night study focus","Bullet point summaries"]}]`;
 
-Learning Preferences:${cognitiveDirectives || '\n- Explain concepts clearly with relatable Nigerian examples.'}
-${grillDirective}
-${milestoneDirective}
-
+    let campusLocationDirective = '';
+    if (isOou) {
+      campusLocationDirective = `
 Campus Locations (OOU Ago-Iwoye Permanent Site):
 - LLT 3 (Law Lecture Theatre 3) is at Motion Ground on the southern side of campus, right next to New Motion shops and the ICAN Building.
 - LLT 1 (Arts Lecture Theatre I) and LLT 2 (Law Lecture Theatre II) are near the Faculty of Arts, Law, and Education buildings.
 - The Main Sports Centre (Stadium, Basketball court) is at the far north end of campus.
 - The OOU Park (Campus Shuttles) and Security Post are near Mass Communication on the eastern road.
 - ICT Centre (where students do CBT exams) is near the Senate/Admin Block.
+- SMS Lecture Theatre (SLR 1) is on the ground floor eastern wing of the SMS Complex.
+- ETF Complex is north of the SMS block.`;
+    } else {
+      campusLocationDirective = `
+Campus Navigation for ${institution}:
+- The interactive live campus map is currently active only for Olabisi Onabanjo University (OOU).
+- If the student asks for campus directions, maps, or lecture hall locations at ${institution}, politely explain in very simple English that campus maps are not available for their school yet, but as Cohart expands to ${institution}, they will get full interactive map navigation too!`;
+    }
+
+    // Cohart Context & Persona Injection
+    const systemPrompt = `You are Cohart AI, a friendly, smart study companion built for university students in Nigeria${isOou ? ' (specifically Olabisi Onabanjo University, Ago-Iwoye)' : ` (${institution})`}.
+
+Student Information:
+- Name: ${studentProfile?.full_name || 'Scholar'}
+- Institution: ${institution}
+- Department: ${studentProfile?.department || 'General Studies'} (${studentProfile?.level || 'Undergraduate'})
+- Learning Preference: ${studentProfile?.learning_style || 'visual_analogies'}
+
+Learning Preferences:${cognitiveDirectives || '\n- Explain concepts clearly with relatable Nigerian examples.'}
+${grillDirective}
+${milestoneDirective}
+${profileUpdateDirective}
+${campusLocationDirective}
 
 CRITICAL RULES FOR HOW YOU SPEAK:
 1. USE VERY SIMPLE, LAYMAN ENGLISH: Speak like a patient, knowledgeable senior student or friend. Never use bombastic words, deep academic grammar, or complicated textbook jargon. Keep your English so simple that any student grasps it immediately.
-2. BREAK DOWN BIG WORDS: If you have to use a course term (like "oligopoly", "equilibrium", or "marginal cost"), immediately explain what it means in plain everyday words using a relatable Nigerian example (like Saburi market prices in Ago-Iwoye, pure water sellers, MTN vs Airtel data prices, or transport fares).
+2. BREAK DOWN BIG WORDS: If you have to use a course term (like "oligopoly", "equilibrium", or "marginal cost"), immediately explain what it means in plain everyday words using a relatable Nigerian example (like local market pricing, buying pure water, MTN vs Airtel data prices, or transport fares).
 3. KEEP IT SHORT & SWEET: Avoid long, boring walls of text. Use short sentences and simple bullet points so it is easy to read on a mobile phone.
 4. DIRECT ANSWER FIRST: Answer the question straight to the point right away. Never beat around the bush or dodge the question.
-5. SIMPLE CITATION TAG: At the very end of your response, add a short reference tag:
-   - For course questions: "*Course Reference: [Course Code / Chapter]*"
-   - For campus directions: "*Campus Reference: [Hall or Location]*"
-   - For general talk: "*Discussion Context: [Topic]*"
-6. CAMPUS REALITIES: OOU does not assign seat numbers in lecture halls; students find open seats when they arrive. Never mention assigned seat numbers.
+5. NO CONTEXT FOOTERS: NEVER append raw context tags, citation tags, or footer notes (such as "*Discussion Context: ...*", "*Course Reference: ...*", or "*Reference: ...*") to your message. Keep the message clean and natural.
+6. CAMPUS REALITIES: Lecture halls in Nigerian universities do not have assigned seat numbers; students find open seats when they arrive. Never mention assigned seat numbers.
 7. ABSOLUTE ZERO EMOJIS: Do not use any emojis under any circumstances. Use only clean text, bullet points, and markdown.`;
 
     let userContent = prompt || '';
@@ -291,7 +326,7 @@ Question or extra help needed: ${prompt || 'Break this down in simple words.'}`;
     }
 
     if (!replyText) {
-      replyText = `Cohart AI is currently updating its campus cache. For ${studentProfile?.department || 'your course'}, please consult the departmental handbook and verified faculty notes.\n\n*Course Reference: ${studentProfile?.department || 'Academic'} Core Handbook*`;
+      replyText = `Cohart AI is currently updating its campus cache. For ${studentProfile?.department || 'your course'}, please consult the departmental handbook and verified faculty notes.`;
     }
 
     // Parse any milestone action tags
@@ -302,7 +337,36 @@ Question or extra help needed: ${prompt || 'Break this down in simple words.'}`;
       replyText = replyText.replace(/\[MILESTONE_ACTION:[a-z_]+\]/g, '').trim();
     }
 
-    // Log query for continuous improvement
+    // Parse any profile update action tags
+    let profileAction: Record<string, any> | null = null;
+    const profileMatch = replyText.match(/\[UPDATE_PROFILE:(\{[\s\S]*?\})\]/);
+    if (profileMatch) {
+      try {
+        profileAction = JSON.parse(profileMatch[1]);
+      } catch {
+        profileAction = null;
+      }
+      replyText = replyText.replace(/\[UPDATE_PROFILE:\{[\s\S]*?\}\]/g, '').trim();
+    }
+
+    // Parse any interactive choices action tags
+    let interactiveChoices: Record<string, any> | null = null;
+    const choicesMatch = replyText.match(/\[INTERACTIVE_CHOICES:(\{[\s\S]*?\})\]/);
+    if (choicesMatch) {
+      try {
+        interactiveChoices = JSON.parse(choicesMatch[1]);
+      } catch {
+        interactiveChoices = null;
+      }
+      replyText = replyText.replace(/\[INTERACTIVE_CHOICES:\{[\s\S]*?\}\]/g, '').trim();
+    }
+
+    // Ensure any residual citation/context footers are stripped
+    replyText = replyText
+      .replace(/\n*\*?(?:Discussion Context|Course Reference|Campus Reference|Reference):\s*.*?\*?$/gim, '')
+      .trim();
+
+    // Log query for continuous improvement (safely handled)
     logDailyLearning({
       userId: studentProfile?.id,
       department: studentProfile?.department,
@@ -315,13 +379,15 @@ Question or extra help needed: ${prompt || 'Break this down in simple words.'}`;
       reply: replyText,
       model: usedModel,
       milestoneAction,
+      profileAction,
+      interactiveChoices,
       remaining,
     });
   } catch (error) {
     console.error('API /api/ai route error:', error);
     return NextResponse.json(
       {
-        reply: 'An internal network error occurred. Please verify your internet connection and retry.\n\n*Discussion Context: Connection Diagnostics*',
+        reply: 'An internal network error occurred. Please verify your internet connection and retry.',
         error: 'AI service temporarily unavailable.',
       },
       { status: 500 }

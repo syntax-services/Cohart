@@ -5,7 +5,7 @@ import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { formatBionicText } from '@/lib/bionic';
-import { StudentProfile, ReaderChapter, SavedExplanation } from '@/lib/types';
+import { StudentProfile, ReaderChapter, SavedExplanation, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
 import { saveExplanation, fetchSavedExplanations, deleteSavedExplanation } from '@/lib/supabase';
 
 import { CampusAiAssistant } from './CampusAiAssistant';
@@ -90,6 +90,7 @@ interface InteractiveReaderProps {
   onLocateVenue?: (code: string) => void;
   onAiModeChange?: (isAi: boolean) => void;
   onMilestoneAction?: (actionId: string) => void;
+  onUpdateProfile?: (updated: Partial<StudentProfile>) => void;
 }
 
 export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
@@ -97,6 +98,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   onLocateVenue,
   onAiModeChange,
   onMilestoneAction,
+  onUpdateProfile,
 }) => {
   const [activeView, setActiveView] = useState<'reader' | 'ai' | 'vault'>(() => {
     if (typeof window !== 'undefined') {
@@ -121,11 +123,81 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
   const [isBionic, setIsBionic] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
+  const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
   const [selectedText, setSelectedText] = useState<string>('');
   const [showAiSheet, setShowAiSheet] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Deepgram Audio Reader State
+  const [selectedVoice, setSelectedVoice] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cohart_selected_voice') || DEFAULT_COHART_VOICE;
+    }
+    return DEFAULT_COHART_VOICE;
+  });
+  const [isVoiceDropdownOpen, setIsVoiceDropdownOpen] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isSynthesizingAudio, setIsSynthesizingAudio] = useState(false);
+  const readerAudioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  const handleToggleReadAloud = async () => {
+    if (isPlayingAudio) {
+      if (readerAudioRef.current) {
+        readerAudioRef.current.pause();
+        readerAudioRef.current = null;
+      }
+      setIsPlayingAudio(false);
+      return;
+    }
+
+    if (readerAudioRef.current) {
+      readerAudioRef.current.pause();
+      readerAudioRef.current = null;
+    }
+
+    setIsSynthesizingAudio(true);
+    try {
+      const fullText = `${currentChapter.title}. ${currentChapter.paragraphs.join(' ')}`;
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: fullText, voiceId: selectedVoice }),
+      });
+
+      if (!res.ok) throw new Error('Audio synthesis failed');
+
+      const blob = await res.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      readerAudioRef.current = audio;
+
+      audio.onplay = () => {
+        setIsSynthesizingAudio(false);
+        setIsPlayingAudio(true);
+      };
+
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        readerAudioRef.current = null;
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = () => {
+        setIsSynthesizingAudio(false);
+        setIsPlayingAudio(false);
+        readerAudioRef.current = null;
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error('Audio playback failed:', err);
+      setIsSynthesizingAudio(false);
+      setIsPlayingAudio(false);
+    }
+  };
 
   // Saved explanations vault state
   const [savedExplanations, setSavedExplanations] = useState<SavedExplanation[]>([]);
@@ -376,6 +448,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           profile={profile}
           onSelectVenue={onLocateVenue}
           onMilestoneAction={onMilestoneAction}
+          onUpdateProfile={onUpdateProfile}
           initialMode={activeAiMode}
           initialPrompt={activeAiPrompt}
           onExitFullscreen={() => {
@@ -391,60 +464,140 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Compact In-App Style Mode Switcher */}
+      {/* Compact In-App Style Mode Switcher with Dropdown */}
       <div className="flex items-center justify-between gap-2">
-        <div className="inline-flex items-center p-0.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md">
+        {/* View Mode Dropdown */}
+        <div className="relative">
           <button
-            onClick={() => setActiveView('reader')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
-              activeView === 'reader'
-                ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-semibold'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-medium'
-            }`}
+            onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-[#1E1F20] text-xs font-medium text-neutral-800 dark:text-neutral-200 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title="Switch View"
           >
-            <GeminiIcon name="reader" size={13} />
-            <span>Reader</span>
+            <GeminiIcon
+              name={activeView === 'ai' ? 'sparkle' : activeView === 'vault' ? 'bookmark' : 'reader'}
+              size={14}
+              className="text-[#0B57D0] dark:text-[#A8C7FA]"
+            />
+            <span className="font-semibold capitalize">
+              {activeView === 'ai' ? 'AI Copilot' : activeView === 'vault' ? 'Vault' : 'Course Reader'}
+            </span>
+            <GeminiIcon name="chevron-down" size={12} className="text-neutral-400" />
           </button>
 
-          <button
-            onClick={() => setActiveView('ai')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-medium hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
-          >
-            <GeminiIcon name="sparkle" size={13} />
-            <span>AI Copilot</span>
-          </button>
+          {isModeDropdownOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsModeDropdownOpen(false)}
+              />
+              <div className="absolute left-0 top-full mt-1.5 w-48 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-lg backdrop-blur-xl p-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2.5 py-1.5 text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
+                  Select Workspace
+                </div>
+                <button
+                  onClick={() => {
+                    setActiveView('reader');
+                    setIsModeDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                    activeView === 'reader'
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-semibold'
+                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <GeminiIcon name="reader" size={13} />
+                    <span>Course Reader</span>
+                  </div>
+                  {activeView === 'reader' && <GeminiIcon name="check" size={12} />}
+                </button>
 
-          <button
-            onClick={() => setActiveView('vault')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
-              activeView === 'vault'
-                ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-semibold'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-medium'
-            }`}
-          >
-            <GeminiIcon name="bookmark" size={13} />
-            <span>Vault</span>
-            {savedExplanations.length > 0 && (
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono leading-none ${
-                activeView === 'vault'
-                  ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-bold'
-                  : 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-300'
-              }`}>
-                {savedExplanations.length}
-              </span>
-            )}
-          </button>
+                <button
+                  onClick={() => {
+                    setActiveView('ai');
+                    setIsModeDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                    activeView === 'ai'
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-semibold'
+                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <GeminiIcon name="sparkle" size={13} />
+                    <span>AI Copilot</span>
+                  </div>
+                  {activeView === 'ai' && <GeminiIcon name="check" size={12} />}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveView('vault');
+                    setIsModeDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                    activeView === 'vault'
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-semibold'
+                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <GeminiIcon name="bookmark" size={13} />
+                    <span>Saved Notes Vault</span>
+                  </div>
+                  {savedExplanations.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-300">
+                      {savedExplanations.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* In-App Style Fast Switch Toggle */}
-        <button
-          onClick={() => setActiveView(activeView === 'reader' ? 'ai' : 'reader')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-600 dark:text-neutral-300 text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-2xs"
-          title={`Switch to ${activeView === 'reader' ? 'AI Copilot' : 'Course Reader'}`}
-        >
-          <GeminiIcon name="switch" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-          <span className="hidden sm:inline">Switch to {activeView === 'reader' ? 'AI Copilot' : 'Reader'}</span>
-        </button>
+        {/* Reader Customizer Actions */}
+        {activeView === 'reader' && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsBionic(!isBionic)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
+                isBionic
+                  ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                  : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
+              }`}
+            >
+              <span>Bionic: {isBionic ? 'On' : 'Off'}</span>
+            </button>
+
+            <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
+              <button
+                onClick={() => setFontSize('sm')}
+                className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                  fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                }`}
+              >
+                A-
+              </button>
+              <button
+                onClick={() => setFontSize('md')}
+                className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                  fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                }`}
+              >
+                A
+              </button>
+              <button
+                onClick={() => setFontSize('lg')}
+                className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                  fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                }`}
+              >
+                A+
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {activeView === 'vault' ? (
@@ -638,6 +791,78 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
             {/* Reader Customizer Actions */}
             <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+              {/* Listen to Chapter Audio (Deepgram Aura-2) */}
+              <div className="relative flex items-center gap-1">
+                <button
+                  onClick={handleToggleReadAloud}
+                  disabled={isSynthesizingAudio}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-all active:scale-95 cursor-pointer ${
+                    isPlayingAudio
+                      ? 'bg-rose-500 text-white font-medium shadow-sm'
+                      : isSynthesizingAudio
+                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                      : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.06] dark:hover:bg-white/[0.08]'
+                  }`}
+                  title={isPlayingAudio ? 'Stop reading' : 'Read chapter aloud with Cohart AI Voice'}
+                >
+                  {isSynthesizingAudio ? (
+                    <GeminiIcon name="loader" size={13} />
+                  ) : isPlayingAudio ? (
+                    <GeminiIcon name="volume-x" size={13} />
+                  ) : (
+                    <GeminiIcon name="volume" size={13} />
+                  )}
+                  <span>{isPlayingAudio ? 'Stop' : isSynthesizingAudio ? 'Synthesizing...' : 'Listen'}</span>
+                </button>
+
+                {/* Voice Selection Pill */}
+                <button
+                  onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
+                  className="p-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+                  title="Choose reading voice"
+                >
+                  <GeminiIcon name="chevron-down" size={12} />
+                </button>
+
+                {isVoiceDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsVoiceDropdownOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-1.5 w-64 max-h-72 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                      <div className="px-2.5 py-1 text-[10px] font-mono text-neutral-400 uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
+                        Reader Voice (Aura-2)
+                      </div>
+                      <div className="space-y-0.5">
+                        {COHART_VOICES.map((v) => (
+                          <button
+                            key={v.id}
+                            onClick={() => {
+                              setSelectedVoice(v.id);
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('cohart_selected_voice', v.id);
+                              }
+                              setIsVoiceDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
+                              selectedVoice === v.id
+                                ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
+                                : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                            }`}
+                          >
+                            <span className="truncate">{v.label}</span>
+                            {selectedVoice === v.id && (
+                              <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#A8C7FA] shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               {/* Bionic Toggle */}
               <button
                 onClick={() => setIsBionic(!isBionic)}

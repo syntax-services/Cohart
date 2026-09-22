@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { supabase } from '@/lib/supabase';
+import { SUPPORTED_INSTITUTIONS } from '@/lib/types';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (fullName: string, email: string, userId?: string) => void;
+  onSuccess: (fullName: string, email: string, userId?: string, institution?: string) => void;
   initialMode?: 'signin' | 'signup';
 }
 
@@ -19,6 +20,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'verify_email'>(initialMode);
   const [fullName, setFullName] = useState('');
+  const [institution, setInstitution] = useState('OOU');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -73,6 +75,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           options: {
             data: {
               full_name: fullName.trim(),
+              institution: institution,
             },
           },
         });
@@ -96,7 +99,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         // If email is pre-confirmed (rare dev environment setup)
         const studentName = fullName.trim() || cleanEmail.split('@')[0];
-        onSuccess(studentName, cleanEmail, data.user?.id);
+        onSuccess(studentName, cleanEmail, data.user?.id, institution);
         onClose();
       } else if (mode === 'signin') {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -359,17 +362,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-3">
               {mode === 'signup' && (
-                <div>
-                  <label className="text-[11px] font-mono text-neutral-500 uppercase">Full Name</label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Adewale Johnson"
-                    required
-                    className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                  />
-                </div>
+                <>
+                  <div>
+                    <label className="text-[11px] font-mono text-neutral-500 uppercase">Full Name</label>
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Adewale Johnson"
+                      required
+                      className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-neutral-500 uppercase">Institution</label>
+                    <select
+                      value={institution}
+                      onChange={(e) => setInstitution(e.target.value)}
+                      className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                    >
+                      {SUPPORTED_INSTITUTIONS.map((inst) => (
+                        <option key={inst.id} value={inst.id}>
+                          {inst.name} ({inst.shortName}) {inst.hasMap ? '• Active Map' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
               )}
 
               <div>

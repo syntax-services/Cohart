@@ -8,6 +8,7 @@ import { InteractiveReader } from '@/components/organisms/InteractiveReader';
 import { ScheduleView } from '@/components/organisms/ScheduleView';
 import { ProfileView } from '@/components/organisms/ProfileView';
 import { CampusMapWrapper } from '@/components/map/CampusMapWrapper';
+import { CampusAiAssistant } from '@/components/organisms/CampusAiAssistant';
 import { Location } from '@/lib/types';
 import { fetchLocations } from '@/lib/supabase';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
@@ -32,7 +33,7 @@ export default function AppHomePage() {
       const params = new URLSearchParams(window.location.search);
       const urlTab = params.get('tab') as NavTab | null;
       const cachedTab = localStorage.getItem('cohart_active_tab') as NavTab | null;
-      const validTabs: NavTab[] = ['hub', 'reader', 'schedule', 'map', 'profile'];
+      const validTabs: NavTab[] = ['hub', 'reader', 'schedule', 'map', 'ai', 'profile'];
 
       if (urlTab && validTabs.includes(urlTab)) {
         setActiveTab(urlTab);
@@ -51,6 +52,30 @@ export default function AppHomePage() {
     }
   }, []);
 
+  // Listen to browser/phone back button (popstate) to smoothly revert to previous screen
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // If AI fullscreen was open, back closes it
+      if (isAiFullscreen) {
+        setIsAiFullscreen(false);
+        return;
+      }
+      if (e.state && e.state.tab) {
+        setActiveTab(e.state.tab);
+        localStorage.setItem('cohart_active_tab', e.state.tab);
+      } else {
+        // Default back to hub
+        setActiveTab('hub');
+        localStorage.setItem('cohart_active_tab', 'hub');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isAiFullscreen]);
+
   useEffect(() => {
     async function loadLocations() {
       const data = await fetchLocations();
@@ -64,7 +89,7 @@ export default function AppHomePage() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('cohart_active_tab', targetTab);
       const newUrl = targetTab === 'hub' ? window.location.pathname : `?tab=${targetTab}`;
-      window.history.replaceState(null, '', newUrl);
+      window.history.pushState({ tab: targetTab }, '', newUrl);
     }
   };
 
@@ -81,11 +106,15 @@ export default function AppHomePage() {
 
   // Intercept navigation for unauthenticated guests
   const handleTabChange = (targetTab: NavTab) => {
-    if (isAiFullscreen) {
+    if (isAiFullscreen && targetTab !== 'ai') {
       setIsAiFullscreen(false);
     }
 
     if (targetTab === 'map') {
+      if (profile?.institution && profile.institution !== 'OOU') {
+        changeTab('ai');
+        return;
+      }
       changeTab('map');
       return;
     }
@@ -99,11 +128,12 @@ export default function AppHomePage() {
     changeTab(targetTab);
   };
 
-  const handleAuthSuccess = (fullName: string, email: string, newUserId?: string) => {
+  const handleAuthSuccess = (fullName: string, email: string, newUserId?: string, userInstitution?: string) => {
     saveProfile({
       id: newUserId,
       full_name: fullName,
       email,
+      ...(userInstitution ? { institution: userInstitution } : {}),
     });
     if (pendingTab) {
       changeTab(pendingTab);
@@ -140,7 +170,7 @@ export default function AppHomePage() {
     );
   }, [locations, searchFilter]);
 
-  const isAiActive = isAiFullscreen && activeTab === 'reader';
+  const isAiActive = (isAiFullscreen && activeTab === 'reader') || activeTab === 'ai';
 
   return (
     <div className={`min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans transition-colors duration-200 ${isAiActive ? 'h-screen overflow-hidden' : ''}`}>
@@ -181,6 +211,7 @@ export default function AppHomePage() {
             onLocateVenue={handleSelectVenue}
             onAiModeChange={setIsAiFullscreen}
             onMilestoneAction={handleMarkMilestone}
+            onUpdateProfile={saveProfile}
           />
         )}
 
@@ -201,6 +232,18 @@ export default function AppHomePage() {
           </div>
         )}
 
+        {activeTab === 'ai' && (
+          <div className="h-full w-full">
+            <CampusAiAssistant
+              profile={profile}
+              onSelectVenue={handleSelectVenue}
+              onMilestoneAction={handleMarkMilestone}
+              onUpdateProfile={saveProfile}
+              onExitFullscreen={() => changeTab('reader')}
+            />
+          </div>
+        )}
+
         {activeTab === 'profile' && (
           <ProfileView
             profile={profile}
@@ -214,7 +257,11 @@ export default function AppHomePage() {
 
       {/* PWA Floating Bottom Navigation Bar - Hidden in AI Mode */}
       {!isAiActive && (
-        <BottomNav activeTab={activeTab} onChangeTab={handleTabChange} />
+        <BottomNav 
+          activeTab={activeTab} 
+          onChangeTab={handleTabChange} 
+          institution={profile?.institution}
+        />
       )}
 
       {/* Guest Authentication Modal */}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { MarkdownText } from '@/components/atoms/MarkdownText';
-import { StudentProfile, Location } from '@/lib/types';
+import { StudentProfile, Location, COHART_VOICES, DEFAULT_COHART_VOICE, CohartVoiceOption } from '@/lib/types';
 
 interface CampusAiAssistantProps {
   profile: StudentProfile;
@@ -11,8 +11,15 @@ interface CampusAiAssistantProps {
   onSelectVenue?: (code: string) => void;
   onExitFullscreen?: () => void;
   onMilestoneAction?: (actionId: string) => void;
+  onUpdateProfile?: (updated: Partial<StudentProfile>) => void;
   initialMode?: 'general' | 'grill_mode';
   initialPrompt?: string;
+}
+
+interface InteractiveChoices {
+  title?: string;
+  multiSelect?: boolean;
+  options: string[];
 }
 
 interface Message {
@@ -24,6 +31,8 @@ interface Message {
     label: string;
     venueCode: string;
   };
+  profileUpdatedBadge?: string;
+  interactiveChoices?: InteractiveChoices;
 }
 
 interface Conversation {
@@ -33,36 +42,30 @@ interface Conversation {
   messages: Message[];
 }
 
-const KNOWLEDGE_BASE: Record<string, { reply: string; venueCode?: string; reference: string }> = {
+const KNOWLEDGE_BASE: Record<string, { reply: string; venueCode?: string }> = {
   llt1: {
     reply: "Here is how to walk to LLT1 (Arts Lecture Theatre I) from the PS Main Gate:\n1. Walk down the main tarred walkway straight past the Security Post towards the bank area (about 2 minutes walk).\n2. Look to your left and you will see the Access Bank ATM.\n3. Turn right directly opposite Access Bank at the Sam Ewang building, and cross the covered footbridge.\n4. LLT1 is the big lecture hall right on your right hand side.",
     venueCode: 'LLT-1',
-    reference: "Campus Reference: Faculty of Arts • Beside Sam Ewang Footbridge",
   },
   llt2: {
     reply: "LLT2 (Law Lecture Theatre II) is right beside LLT1.\nFrom the Access Bank / Sam Ewang side, cross the covered footbridge into the LLT compound. LLT2 is right next to LLT1 heading towards the Faculty of Education.",
     venueCode: 'LLT-2',
-    reference: "Campus Reference: Law & Education Wing • Next to LLT 1",
   },
   llt3: {
     reply: "LLT3 (Law Lecture Theatre III) is down at Motion Ground (New Motion).\nFrom the Main Gate, follow the main road past the Senate building roundabout straight down to Motion Ground. LLT3 is the big hall directly opposite Professor Saburi Market and right next to the ICAN Building.",
     venueCode: 'LLT-3',
-    reference: "Campus Reference: Motion Ground • Opposite Saburi Market",
   },
   bank: {
     reply: "The bank area is along the main central walkway, about 200 metres from the Main Gate. You will find the 24/7 Access Bank ATM gallery and branch there for your school fees and cash withdrawals.",
     venueCode: 'BANK-QUAD',
-    reference: "Campus Reference: Bank Area • Main Campus Walkway",
   },
   sms: {
     reply: "SMS Lecture Theatre (Faculty of Administration & Management Sciences) is along the faculty walkway. From the central roundabout, follow the walkway past the Odukale Library and ETF Hall.",
     venueCode: 'SMS-LT1',
-    reference: "Campus Reference: SMS Building • Faculty Walkway",
   },
   market: {
     reply: "Professor Saburi Market is at Motion Ground, directly facing LLT3. You can print documents, buy snacks, stationery, or do photocopying there.",
     venueCode: 'MKT-SABURI',
-    reference: "Campus Reference: Motion Ground • Opposite LLT 3",
   },
 };
 
@@ -72,14 +75,8 @@ function generateConversationTitle(query: string): string {
 
   if (lower.includes('grill') || lower.includes('exam test')) return 'Exam Readiness Grill';
   if (lower.includes('llt1') || lower.includes('llt 1')) return 'LLT 1 Walking Route';
-  if (lower.includes('llt2') || lower.includes('llt 2')) return 'LLT 2 Hall Location';
+  if (lower.includes('llt2') || lower.includes('llt 2')) return 'LLT 2 Directions';
   if (lower.includes('llt3') || lower.includes('llt 3')) return 'LLT 3 Motion Ground';
-  if (lower.includes('cournot')) return 'Cournot Oligopoly Analysis';
-  if (lower.includes('bertrand')) return 'Bertrand Competition Model';
-  if (lower.includes('access bank') || lower.includes('atm') || lower.includes('bank')) return 'Access Bank ATM Gallery';
-  if (lower.includes('health') || lower.includes('clinic')) return 'OOU Health Centre';
-  if (lower.includes('sport') || lower.includes('stadium')) return 'Sports Centre & Pavilion';
-  if (lower.includes('market') || lower.includes('motion')) return 'Saburi Market & Motion Ground';
   if (lower.includes('exam') || lower.includes('test') || lower.includes('ca')) return 'Continuous Assessment Prep';
 
   const words = clean.split(/\s+/).slice(0, 4).join(' ');
@@ -91,61 +88,242 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   onSelectVenue,
   onExitFullscreen,
   onMilestoneAction,
+  onUpdateProfile,
   initialMode = 'general',
   initialPrompt,
 }) => {
   const studentName = profile.full_name?.trim() ? profile.full_name.trim().split(' ')[0] : 'Scholar';
   const [currentMode, setCurrentMode] = useState<'general' | 'grill_mode'>(initialMode);
 
+  const institutionName = profile.institution === 'OOU' ? 'OOU' : profile.institution || 'University';
+  const isOou = profile.institution === 'OOU';
+
   const defaultInitialMessage: Message = {
     id: 'msg_welcome',
     role: 'assistant',
     content: initialMode === 'grill_mode'
-      ? `Hello ${studentName}! We are now in Exam Practice Mode. I will ask you challenging OOU exam questions one by one and tell you honestly if you are correct or if you missed anything.\n\nAre you ready for your first exam question? Type "Ready" or your answer to begin.`
-      : `Hello ${studentName}! I am Cohart AI, your OOU study assistant. Ask me anything about your courses in simple English, or ask for simple directions to any lecture hall or building in Ago-Iwoye Main Campus.\n\n*Reference: OOU Courses & Ago-Iwoye Campus Map*`,
+      ? `Hello ${studentName}! We are now in Exam Practice Mode. I will ask you course exam questions one by one and tell you honestly if you are correct or if you missed anything.\n\nAre you ready for your first exam question? Type "Ready" or your answer to begin.`
+      : `Hello ${studentName}! I am Cohart AI, your study companion for ${institutionName}. Ask me anything about your courses in simple English, or ask me to help you set up or update your profile (such as your name, level, department, or learning style).${isOou ? ' I can also guide you to lecture halls across Ago-Iwoye campus.' : ''}`,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+
+  // Intercept phone back button: if menu is open, pressing back button closes menu instead of exiting screen
+  useEffect(() => {
+    if (isSidebarOpen) {
+      window.history.pushState({ cohartModal: 'ai_menu' }, '');
+      const handlePopState = () => {
+        setIsSidebarOpen(false);
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isSidebarOpen]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([defaultInitialMessage]);
   const [input, setInput] = useState(initialPrompt || '');
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedChoices, setSelectedChoices] = useState<Record<string, string[]>>({});
+
+  // Deepgram Voice & Audio State
+  const [selectedVoice, setSelectedVoice] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cohart_selected_voice') || DEFAULT_COHART_VOICE;
+    }
+    return DEFAULT_COHART_VOICE;
+  });
+  const [isVoicePickerOpen, setIsVoicePickerOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+  const [isSynthesizing, setIsSynthesizing] = useState<string | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize fresh conversation session on page load/refresh
+  // Save selected voice to localStorage
+  const handleSelectVoice = (voiceId: string) => {
+    setSelectedVoice(voiceId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cohart_selected_voice', voiceId);
+    }
+    setIsVoicePickerOpen(false);
+  };
+
+  // Text-To-Speech: Read aloud AI response using selected Deepgram Aura-2 model
+  const handleSpeakMessage = async (msgId: string, text: string) => {
+    // If already speaking this message, stop it
+    if (speakingMsgId === msgId) {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
+      setSpeakingMsgId(null);
+      return;
+    }
+
+    // Stop any existing audio
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+
+    setIsSynthesizing(msgId);
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voiceId: selectedVoice }),
+      });
+
+      if (!res.ok) {
+        throw new Error('TTS synthesis failed');
+      }
+
+      const blob = await res.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      currentAudioRef.current = audio;
+
+      audio.onplay = () => {
+        setIsSynthesizing(null);
+        setSpeakingMsgId(msgId);
+      };
+
+      audio.onended = () => {
+        setSpeakingMsgId(null);
+        currentAudioRef.current = null;
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = () => {
+        setIsSynthesizing(null);
+        setSpeakingMsgId(null);
+        currentAudioRef.current = null;
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error('Failed to play audio:', err);
+      setIsSynthesizing(null);
+      setSpeakingMsgId(null);
+    }
+  };
+
+  // Speech-To-Text: Record audio from microphone and transcribe via Deepgram Nova-3
+  const handleStartRecording = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Microphone access is not supported on your browser.');
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+        ? 'audio/mp4'
+        : '';
+
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || 'audio/webm',
+        });
+
+        if (audioBlob.size < 500) {
+          setIsTranscribing(false);
+          setIsRecording(false);
+          return;
+        }
+
+        setIsTranscribing(true);
+        try {
+          const res = await fetch('/api/stt', {
+            method: 'POST',
+            headers: {
+              'Content-Type': audioBlob.type || 'audio/webm',
+            },
+            body: audioBlob,
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.transcript && data.transcript.trim()) {
+              setInput((prev) => (prev ? `${prev} ${data.transcript.trim()}` : data.transcript.trim()));
+              setTimeout(() => inputRef.current?.focus(), 100);
+            }
+          }
+        } catch (err) {
+          console.error('STT failed:', err);
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+
+      recorder.start(250);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Microphone error:', err);
+      setIsRecording(false);
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  // Initialize conversation session on page load: only load chats that have actual user messages!
   useEffect(() => {
     const saved = localStorage.getItem('cohart_ai_conversations');
     let loadedConversations: Conversation[] = [];
     if (saved) {
       try {
-        loadedConversations = JSON.parse(saved);
+        const raw = JSON.parse(saved);
+        // Eliminate ghost conversations with zero user messages
+        loadedConversations = raw.filter((c: Conversation) =>
+          c.messages && c.messages.some((m) => m.role === 'user')
+        );
       } catch {
         loadedConversations = [];
       }
     }
 
     const newSessionId = `conv_${Date.now()}`;
-    const newSession: Conversation = {
-      id: newSessionId,
-      title: initialMode === 'grill_mode' ? 'Exam Readiness Grill' : 'New Conversation',
-      createdAt: new Date().toISOString(),
-      messages: [defaultInitialMessage],
-    };
-
-    const updatedList = [newSession, ...loadedConversations.slice(0, 15)];
-    setConversations(updatedList);
+    setConversations(loadedConversations.slice(0, 20));
     setActiveConvId(newSessionId);
     setMessages([defaultInitialMessage]);
-    localStorage.setItem('cohart_ai_conversations', JSON.stringify(updatedList));
+    // NOTE: We deliberately DO NOT save newSession to localStorage here.
+    // It will ONLY be saved once the user actually sends their first query!
 
     if (initialPrompt) {
       setTimeout(() => handleSend(initialPrompt), 400);
     }
-  }, [studentName, initialMode]);
+  }, [studentName, initialMode, profile.institution]);
 
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
@@ -172,18 +350,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    const newSession: Conversation = {
-      id: newSessionId,
-      title: mode === 'grill_mode' ? 'Exam Readiness Grill' : 'New Conversation',
-      createdAt: new Date().toISOString(),
-      messages: [newInitialMsg],
-    };
-
-    setConversations((prev) => {
-      const updated = [newSession, ...prev];
-      localStorage.setItem('cohart_ai_conversations', JSON.stringify(updated));
-      return updated;
-    });
+    // Do NOT write to localStorage or add to history until the user sends a message!
     setActiveConvId(newSessionId);
     setMessages([newInitialMsg]);
     setIsSidebarOpen(false);
@@ -228,15 +395,28 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     if (!userText) setInput('');
     setIsTyping(true);
 
-    // Auto-name conversation on first user query
+    // Save/update conversation in list only now that the user has sent a message
+    const convTitle = generateConversationTitle(query);
     setConversations((prev) => {
-      const updated = prev.map((c) => {
-        if (c.id === activeConvId) {
-          const newTitle = c.title === 'New Conversation' ? generateConversationTitle(query) : c.title;
-          return { ...c, title: newTitle, messages: newMessages };
-        }
-        return c;
-      });
+      const exists = prev.some((c) => c.id === activeConvId);
+      let updated: Conversation[];
+      if (exists) {
+        updated = prev.map((c) => {
+          if (c.id === activeConvId) {
+            const currentTitle = c.title === 'New Conversation' ? convTitle : c.title;
+            return { ...c, title: currentTitle, messages: newMessages };
+          }
+          return c;
+        });
+      } else {
+        const newConv: Conversation = {
+          id: activeConvId,
+          title: convTitle,
+          createdAt: new Date().toISOString(),
+          messages: newMessages,
+        };
+        updated = [newConv, ...prev];
+      }
       localStorage.setItem('cohart_ai_conversations', JSON.stringify(updated));
       return updated;
     });
@@ -244,6 +424,9 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     try {
       let replyContent = '';
       let detectedMilestone: string | null = null;
+      let detectedProfileUpdate: Record<string, any> | null = null;
+
+      let detectedChoices: InteractiveChoices | undefined;
 
       // Tier 1: Local /api/ai Next.js route with Multi-Turn History
       try {
@@ -263,6 +446,15 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           replyContent = data.reply;
           if (data.milestoneAction) {
             detectedMilestone = data.milestoneAction;
+          }
+          if (data.interactiveChoices) {
+            detectedChoices = data.interactiveChoices;
+          }
+          if (data.profileAction) {
+            detectedProfileUpdate = data.profileAction;
+            if (onUpdateProfile) {
+              onUpdateProfile(data.profileAction);
+            }
           }
         }
       } catch {
@@ -288,6 +480,9 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           if (edgeRes.ok) {
             const data = await edgeRes.json();
             replyContent = data.reply;
+            if (data.milestoneAction) {
+              detectedMilestone = data.milestoneAction;
+            }
           }
         } catch {
           // Fallback to Tier 3 Knowledge Base
@@ -299,29 +494,66 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         const lower = query.toLowerCase();
         for (const [k, v] of Object.entries(KNOWLEDGE_BASE)) {
           if (lower.includes(k)) {
-            replyContent = `${v.reply}\n\n${v.reference}`;
+            replyContent = v.reply;
             break;
           }
         }
       }
 
       if (!replyContent) {
-        replyContent = `Here is the guidance for your question: "${query}".\n\nFor topics in ${profile.department || 'your department'}, review your lecture notes or ask me to explain any specific concept in simple English.\n\n*Reference: ${profile.department || 'OOU'} Course Materials*`;
+        replyContent = `Here is the guidance for your question: "${query}".\n\nFor topics in ${profile.department || 'your department'}, review your lecture notes or ask me to explain any specific concept in simple English.`;
       }
 
       if (detectedMilestone && onMilestoneAction) {
         onMilestoneAction(detectedMilestone);
       }
 
-      // Detect venue match for direct map pin button
+      // Parse any [INTERACTIVE_CHOICES:{...}] payload in reply text
+      const choicesMatch = replyContent.match(/\[INTERACTIVE_CHOICES:(\{[\s\S]*?\})\]/);
+      if (choicesMatch) {
+        try {
+          detectedChoices = JSON.parse(choicesMatch[1]);
+        } catch {}
+        replyContent = replyContent.replace(/\[INTERACTIVE_CHOICES:\{[\s\S]*?\}\]/g, '').trim();
+      }
+
+      // Parse and sync any [UPDATE_PROFILE:{...}] payload in reply text
+      let profileUpdatedNote: string | undefined;
+      const profileMatch = replyContent.match(/\[UPDATE_PROFILE:(\{[\s\S]*?\})\]/);
+      if (profileMatch) {
+        try {
+          const parsed = JSON.parse(profileMatch[1]);
+          if (onUpdateProfile) {
+            onUpdateProfile(parsed);
+          }
+          detectedProfileUpdate = parsed;
+        } catch {}
+        replyContent = replyContent.replace(/\[UPDATE_PROFILE:\{[\s\S]*?\}\]/g, '').trim();
+      }
+
+      if (detectedProfileUpdate) {
+        const fields = Object.entries(detectedProfileUpdate)
+          .map(([k, v]) => `${k.replace('_', ' ')}: ${v}`)
+          .join(', ');
+        profileUpdatedNote = `Profile Synced: ${fields}`;
+      }
+
+      // Strictly strip any residual citation or context footers
+      replyContent = replyContent
+        .replace(/\n*\*?(?:Discussion Context|Course Reference|Campus Reference|Reference):\s*.*?\*?$/gim, '')
+        .trim();
+
+      // Detect venue match for direct map pin button (Only for OOU students)
       let venueCode: string | undefined;
-      const lower = query.toLowerCase();
-      if (lower.includes('llt3') || lower.includes('llt 3')) venueCode = 'LLT-3';
-      else if (lower.includes('llt1') || lower.includes('llt 1')) venueCode = 'LLT-1';
-      else if (lower.includes('llt2') || lower.includes('llt 2')) venueCode = 'LLT-2';
-      else if (lower.includes('sport') || lower.includes('stadium')) venueCode = 'SPORT-CTR';
-      else if (lower.includes('motion') || lower.includes('saburi')) venueCode = 'NEW-MOTION';
-      else if (lower.includes('health') || lower.includes('clinic')) venueCode = 'HEALTH-CTR';
+      if (profile.institution === 'OOU') {
+        const lower = query.toLowerCase();
+        if (lower.includes('llt3') || lower.includes('llt 3')) venueCode = 'LLT-3';
+        else if (lower.includes('llt1') || lower.includes('llt 1')) venueCode = 'LLT-1';
+        else if (lower.includes('llt2') || lower.includes('llt 2')) venueCode = 'LLT-2';
+        else if (lower.includes('sport') || lower.includes('stadium')) venueCode = 'SPORT-CTR';
+        else if (lower.includes('motion') || lower.includes('saburi')) venueCode = 'NEW-MOTION';
+        else if (lower.includes('health') || lower.includes('clinic')) venueCode = 'HEALTH-CTR';
+      }
 
       const assistantMsg: Message = {
         id: `ai_${Date.now()}`,
@@ -329,6 +561,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         content: replyContent,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestedAction: venueCode ? { label: `Show ${venueCode} on Map`, venueCode } : undefined,
+        profileUpdatedBadge: profileUpdatedNote,
+        interactiveChoices: detectedChoices,
       };
 
       const finalMessages = [...newMessages, assistantMsg];
@@ -396,21 +630,14 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             </button>
           </div>
 
-          {/* New Chat Actions */}
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          {/* New Chat Action */}
+          <div className="mt-3">
             <button
               onClick={() => handleStartNewChat('general')}
-              className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-xs"
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-xs"
             >
               <span className="text-sm font-bold leading-none">+</span>
-              <span>New Chat</span>
-            </button>
-            <button
-              onClick={() => handleStartNewChat('grill_mode')}
-              className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium transition-all active:scale-95 cursor-pointer"
-            >
-              <GeminiIcon name="zap" size={13} />
-              <span>Exam Drill</span>
+              <span>New Conversation</span>
             </button>
           </div>
 
@@ -495,37 +722,117 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Compact In-App Style Segmented Switcher: Reader <-> AI */}
-            <div className="flex items-center p-0.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08]">
-              {onExitFullscreen && (
+            {/* View Switch Dropdown: AI Copilot <-> Reader <-> Vault */}
+            {onExitFullscreen && (
+              <div className="relative">
                 <button
-                  onClick={onExitFullscreen}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer"
-                  title="Switch to Reader"
+                  onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-white/90 dark:bg-[#181B24]/90 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-neutral-800 dark:text-neutral-200 text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-2xs"
+                  title="Switch View"
                 >
-                  <GeminiIcon name="reader" size={13} />
-                  <span className="hidden xs:inline">Reader</span>
+                  <GeminiIcon name="sparkle" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+                  <span className="font-semibold">AI Copilot</span>
+                  <GeminiIcon name="chevron-down" size={12} className="text-neutral-400" />
                 </button>
-              )}
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-[#181B24] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs border border-black/[0.04] dark:border-white/[0.06]">
-                <GeminiIcon name="sparkle" size={13} />
-                <span>AI</span>
-              </div>
-            </div>
 
-            {/* Socratic Grill Mode toggle */}
-            <button
-              onClick={() => handleStartNewChat(currentMode === 'grill_mode' ? 'general' : 'grill_mode')}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
-                currentMode === 'grill_mode'
-                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
-                  : 'bg-black/[0.03] dark:bg-white/[0.04] border-black/[0.08] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300'
-              }`}
-              title="Toggle Socratic Grill Mode"
-            >
-              <GeminiIcon name={currentMode === 'grill_mode' ? 'zap' : 'shield-check'} size={13} />
-              <span className="hidden sm:inline">{currentMode === 'grill_mode' ? 'Exit Drill' : 'Exam Drill'}</span>
-            </button>
+                {isViewDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsViewDropdownOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-1.5 w-44 rounded-2xl bg-white/95 dark:bg-[#181B24]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-lg backdrop-blur-xl p-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                      <div className="px-2.5 py-1.5 text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
+                        Switch View
+                      </div>
+                      <button
+                        onClick={() => setIsViewDropdownOpen(false)}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] cursor-pointer"
+                      >
+                        <GeminiIcon name="sparkle" size={13} />
+                        <span>AI Copilot</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsViewDropdownOpen(false);
+                          onExitFullscreen();
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      >
+                        <GeminiIcon name="reader" size={13} />
+                        <span>Course Reader</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Voice Model Selector Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsVoicePickerOpen(!isVoicePickerOpen)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-white/90 dark:bg-[#181B24]/90 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-neutral-800 dark:text-neutral-200 text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-2xs"
+                title="Select Deepgram Voice Model"
+              >
+                <GeminiIcon name="volume" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+                <span className="font-mono text-[11px] hidden sm:inline">
+                  {COHART_VOICES.find((v) => v.id === selectedVoice)?.label.split(' ')[1] || 'Nova'}
+                </span>
+                <GeminiIcon name="chevron-down" size={11} className="text-neutral-400" />
+              </button>
+
+              {isVoicePickerOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsVoicePickerOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1.5 w-72 max-h-80 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#181B24]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-2.5 py-1.5 border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
+                      <div className="text-[11px] font-bold text-neutral-900 dark:text-white">
+                        AI Reading Voice
+                      </div>
+                      <p className="text-[10px] font-mono text-neutral-500">
+                        Deepgram Aura-2 Models • Natural Academic Cadence
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      {COHART_VOICES.map((v) => {
+                        const isSelected = v.id === selectedVoice;
+                        return (
+                          <button
+                            key={v.id}
+                            onClick={() => handleSelectVoice(v.id)}
+                            className={`w-full text-left p-2 rounded-xl text-xs transition-colors flex items-start justify-between gap-2 cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-medium border border-[#0B57D0]/20'
+                                : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-medium">{v.label}</span>
+                                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-md bg-black/[0.05] dark:bg-white/[0.08] text-neutral-500">
+                                  {v.gender}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-neutral-500 line-clamp-1 mt-0.5">
+                                {v.persona}
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <GeminiIcon name="check" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA] shrink-0 mt-0.5" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
@@ -548,14 +855,118 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                       : 'bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 rounded-bl-xs backdrop-blur-md'
                   }`}
                 >
-                  <div className={`text-[10px] font-mono mb-1 ${isUser ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'}`}>
-                    {isUser ? 'You' : 'Cohart AI'} • {m.timestamp}
+                  <div className={`flex items-center justify-between text-[10px] font-mono mb-1 ${isUser ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'}`}>
+                    <span>{isUser ? 'You' : 'Cohart AI'} • {m.timestamp}</span>
+                    {!isUser && (
+                      <button
+                        onClick={() => handleSpeakMessage(m.id, m.content)}
+                        className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md transition-colors cursor-pointer ${
+                          speakingMsgId === m.id
+                            ? 'bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] font-bold'
+                            : 'hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                        }`}
+                        title={speakingMsgId === m.id ? 'Stop listening' : 'Listen with Cohart AI Voice'}
+                      >
+                        {isSynthesizing === m.id ? (
+                          <GeminiIcon name="loader" size={11} />
+                        ) : speakingMsgId === m.id ? (
+                          <>
+                            <GeminiIcon name="volume-x" size={11} />
+                            <span className="text-[9px]">Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <GeminiIcon name="volume" size={11} />
+                            <span className="text-[9px]">Listen</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
 
                   {isUser ? (
                     <p className="whitespace-pre-wrap">{m.content}</p>
                   ) : (
                     <MarkdownText content={m.content} />
+                  )}
+
+                  {/* Interactive Choices Checklist Form */}
+                  {m.interactiveChoices && m.interactiveChoices.options && (
+                    <div className="mt-3 pt-3 border-t border-black/[0.08] dark:border-white/[0.08] space-y-2.5">
+                      {m.interactiveChoices.title && (
+                        <p className="text-[11px] font-mono font-medium text-neutral-600 dark:text-neutral-400">
+                          {m.interactiveChoices.title}
+                        </p>
+                      )}
+                      <div className="flex flex-col gap-1.5">
+                        {m.interactiveChoices.options.map((opt) => {
+                          const currentSelected = selectedChoices[m.id] || [];
+                          const isChecked = currentSelected.includes(opt);
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() => {
+                                const multi = m.interactiveChoices?.multiSelect !== false;
+                                setSelectedChoices((prev) => {
+                                  const existing = prev[m.id] || [];
+                                  if (multi) {
+                                    const next = existing.includes(opt)
+                                      ? existing.filter((item) => item !== opt)
+                                      : [...existing, opt];
+                                    return { ...prev, [m.id]: next };
+                                  } else {
+                                    return { ...prev, [m.id]: [opt] };
+                                  }
+                                });
+                              }}
+                              className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs text-left transition-all border cursor-pointer ${
+                                isChecked
+                                  ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/40 dark:border-[#A8C7FA]/40 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
+                                  : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.04]'
+                              }`}
+                            >
+                              <span>{opt}</span>
+                              <div
+                                className={`h-4 w-4 rounded-md flex items-center justify-center border transition-all ${
+                                  isChecked
+                                    ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] border-transparent text-white dark:text-neutral-950'
+                                    : 'border-neutral-400 dark:border-neutral-600'
+                                }`}
+                              >
+                                {isChecked && <GeminiIcon name="check" size={11} />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Done Submit Button */}
+                      {(selectedChoices[m.id] || []).length > 0 && (
+                        <div className="pt-1 flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const chosen = selectedChoices[m.id] || [];
+                              handleSend(`I choose: ${chosen.join(', ')}`);
+                            }}
+                            className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+                          >
+                            Done ({selectedChoices[m.id]?.length})
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Profile Updated Confirmation Badge */}
+                  {m.profileUpdatedBadge && (
+                    <div className="mt-3 pt-2 border-t border-emerald-500/20">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-mono font-medium">
+                        <GeminiIcon name="shield-check" size={12} />
+                        <span>{m.profileUpdatedBadge}</span>
+                      </div>
+                    </div>
                   )}
 
                   {/* Suggested Map Action Pin */}
@@ -612,16 +1023,16 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   <span>Where is LLT3</span>
                 </button>
                 <button
-                  onClick={() => handleStartNewChat('grill_mode')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  onClick={() => handleSend('Test me with a practice exam question on Cournot competition')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#0B57D0]/30 bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
-                  <GeminiIcon name="zap" size={11} />
-                  <span>Test Me with Exam Questions</span>
+                  <GeminiIcon name="shield-check" size={11} />
+                  <span>Practice Exam Question</span>
                 </button>
               </div>
             )}
 
-            {/* Input Bar Form */}
+            {/* Input Bar Form with Deepgram Nova-3 Voice Input */}
             <div className="relative flex items-center gap-2">
               <input
                 ref={inputRef}
@@ -635,20 +1046,54 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   }
                 }}
                 placeholder={
-                  currentMode === 'grill_mode'
-                    ? 'Type your answer to this question...'
-                    : 'Ask any question about your courses or campus directions in simple English...'
+                  isRecording
+                    ? 'Listening with Deepgram Nova-3... (Speak clearly into mic)'
+                    : isTranscribing
+                    ? 'Transcribing your speech...'
+                    : currentMode === 'grill_mode'
+                    ? 'Type your answer or tap mic to speak...'
+                    : 'Ask anything or tap mic to speak in English or Nigerian academic terms...'
                 }
-                className="w-full rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] px-4 py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-colors pr-12 font-sans"
+                className={`w-full rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border px-4 py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none transition-colors pr-22 font-sans ${
+                  isRecording
+                    ? 'border-rose-500 ring-2 ring-rose-500/20 animate-pulse'
+                    : 'border-black/[0.08] dark:border-white/[0.1] focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]'
+                }`}
               />
 
-              <button
-                onClick={() => handleSend()}
-                disabled={!input.trim()}
-                className="absolute right-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-xs"
-              >
-                <GeminiIcon name="arrow-right" size={15} />
-              </button>
+              {/* Action Buttons Right: Mic & Send */}
+              <div className="absolute right-2 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={isRecording ? handleStopRecording : handleStartRecording}
+                  disabled={isTranscribing}
+                  className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all active:scale-95 cursor-pointer ${
+                    isRecording
+                      ? 'bg-rose-500 text-white animate-bounce shadow-md'
+                      : isTranscribing
+                      ? 'bg-amber-500/20 text-amber-500'
+                      : 'bg-black/[0.04] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.08] dark:hover:bg-white/[0.12]'
+                  }`}
+                  title={isRecording ? 'Stop Recording' : 'Voice Input (Deepgram Nova-3)'}
+                >
+                  {isTranscribing ? (
+                    <GeminiIcon name="loader" size={14} />
+                  ) : isRecording ? (
+                    <GeminiIcon name="mic-off" size={15} />
+                  ) : (
+                    <GeminiIcon name="mic" size={15} />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => handleSend()}
+                  disabled={!input.trim()}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-xs"
+                  title="Send message"
+                >
+                  <GeminiIcon name="arrow-right" size={15} />
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 px-1">

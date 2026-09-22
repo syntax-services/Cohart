@@ -4,11 +4,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GeminiIcon, IconName } from '@/components/atoms/GeminiIcon';
 
-export type NavTab = 'hub' | 'reader' | 'schedule' | 'map' | 'profile';
+export type NavTab = 'hub' | 'reader' | 'schedule' | 'map' | 'ai' | 'profile';
 
 interface BottomNavProps {
   activeTab: NavTab;
   onChangeTab: (tab: NavTab) => void;
+  institution?: string;
 }
 
 interface NavItem {
@@ -17,7 +18,7 @@ interface NavItem {
   icon: IconName;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const OOU_NAV_ITEMS: NavItem[] = [
   { id: 'hub', label: 'Hub', icon: 'home' },
   { id: 'reader', label: 'Reader', icon: 'reader' },
   { id: 'schedule', label: 'Schedule', icon: 'calendar' },
@@ -25,7 +26,22 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'profile', label: 'Profile', icon: 'user' },
 ];
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) => {
+const NON_OOU_NAV_ITEMS: NavItem[] = [
+  { id: 'hub', label: 'Hub', icon: 'home' },
+  { id: 'reader', label: 'Reader', icon: 'reader' },
+  { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+  { id: 'ai', label: 'Cohart AI', icon: 'sparkle' },
+  { id: 'profile', label: 'Profile', icon: 'user' },
+];
+
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, institution = 'OOU' }) => {
+  // For OOU students: Map tab. For non-OOU students: AI tab replaces the Map tab!
+  const navItems = React.useMemo(() => {
+    if (institution && institution !== 'OOU') {
+      return NON_OOU_NAV_ITEMS;
+    }
+    return OOU_NAV_ITEMS;
+  }, [institution]);
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-safe px-3 sm:px-6 pb-2 pt-1">
       <div className="max-w-md mx-auto pointer-events-auto">
@@ -33,7 +49,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
           aria-label="Bottom Navigation"
           className="relative flex items-center justify-around rounded-full bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-xl px-2 py-1 shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
         >
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button

@@ -35,6 +35,7 @@ export function useStudentProfile() {
                 ...userProfile,
                 email: session.user.email || userProfile.email,
                 full_name: session.user.user_metadata?.full_name || userProfile.full_name,
+                institution: session.user.user_metadata?.institution || userProfile.institution || 'OOU',
               });
             }
           } else {
@@ -72,6 +73,7 @@ export function useStudentProfile() {
               ...userProfile,
               email: session.user.email || userProfile.email,
               full_name: session.user.user_metadata?.full_name || userProfile.full_name,
+              institution: session.user.user_metadata?.institution || userProfile.institution || 'OOU',
             });
           } else {
             setUserId(null);

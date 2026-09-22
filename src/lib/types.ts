@@ -127,3 +127,107 @@ export interface QuickNote {
   lastEdited: string;
 }
 
+export interface Institution {
+  id: string;
+  name: string;
+  shortName: string;
+  hasMap: boolean;
+  locationState: string;
+}
+
+export const SUPPORTED_INSTITUTIONS: Institution[] = [
+  { id: 'OOU', name: 'Olabisi Onabanjo University', shortName: 'OOU', hasMap: true, locationState: 'Ogun State' },
+  { id: 'UNILAG', name: 'University of Lagos', shortName: 'UNILAG', hasMap: false, locationState: 'Lagos State' },
+  { id: 'UI', name: 'University of Ibadan', shortName: 'UI', hasMap: false, locationState: 'Oyo State' },
+  { id: 'LASU', name: 'Lagos State University', shortName: 'LASU', hasMap: false, locationState: 'Lagos State' },
+  { id: 'OAU', name: 'Obafemi Awolowo University', shortName: 'OAU', hasMap: false, locationState: 'Osun State' },
+  { id: 'FUTA', name: 'Federal University of Technology Akure', shortName: 'FUTA', hasMap: false, locationState: 'Ondo State' },
+];
+
+export interface CohartVoiceOption {
+  id: string;
+  label: string;
+  gender: 'Female' | 'Male';
+  persona: string;
+  generation: 'aura-2' | 'aura';
+}
+
+export const COHART_VOICES: CohartVoiceOption[] = [
+  // Aura-2 Flagship Enterprise Conversational Voice Models
+  {
+    id: 'aura-2-thalia-en',
+    label: 'Cohart Nova (Clear Tutor)',
+    gender: 'Female',
+    persona: 'Warm, engaging, articulates lecture concepts clearly',
+    generation: 'aura-2',
+  },
+  {
+    id: 'aura-2-orion-en',
+    label: 'Cohart Atlas (Professorial)',
+    gender: 'Male',
+    persona: 'Calm, authoritative, articulate lecture style',
+    generation: 'aura-2',
+  },
+  {
+    id: 'aura-2-luna-en',
+    label: 'Cohart Aura (Gentle Mentor)',
+    gender: 'Female',
+    persona: 'Encouraging, conversational, patient pacing',
+    generation: 'aura-2',
+  },
+  {
+    id: 'aura-2-zeus-en',
+    label: 'Cohart Pulse (Crisp Leader)',
+    gender: 'Male',
+    persona: 'Dynamic, confident, energetic exam coach',
+    generation: 'aura-2',
+  },
+  {
+    id: 'aura-2-asteria-en',
+    label: 'Cohart Sage (Balanced Reader)',
+    gender: 'Female',
+    persona: 'Natural, poised, balanced academic reader',
+    generation: 'aura-2',
+  },
+  {
+    id: 'aura-2-apollo-en',
+    label: 'Cohart Peer (Study Mate)',
+    gender: 'Male',
+    persona: 'Approachable, warm discussion partner',
+    generation: 'aura-2',
+  },
+  {
+    id: 'aura-2-athena-en',
+    label: 'Cohart Logic (Concise Guide)',
+    gender: 'Female',
+    persona: 'Structured, direct, concise explanations',
+    generation: 'aura-2',
+  },
+  {
+    id: 'aura-2-hermes-en',
+    label: 'Cohart Swift (Rapid Review)',
+    gender: 'Male',
+    persona: 'Quick, sharp, articulate review partner',
+    generation: 'aura-2',
+  },
+
+  // Aura Legacy Models
+  {
+    id: 'aura-asteria-en',
+    label: 'Cohart Classic (Asteria)',
+    gender: 'Female',
+    persona: 'Original conversational voice',
+    generation: 'aura',
+  },
+  {
+    id: 'aura-orion-en',
+    label: 'Cohart Classic (Orion)',
+    gender: 'Male',
+    persona: 'Original deep resonant voice',
+    generation: 'aura',
+  },
+];
+
+export const DEFAULT_COHART_VOICE = 'aura-2-thalia-en';
+export const DEFAULT_VOICE_RATE = 1.0;
+

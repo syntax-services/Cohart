@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
-import { StudentProfile, LearningStyle } from '@/lib/types';
+import { StudentProfile, LearningStyle, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
 import { useTheme, Theme } from '@/components/ThemeProvider';
 import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
 import { fetchSavedExplanations } from '@/lib/supabase';
@@ -30,6 +30,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cohart_selected_voice') || DEFAULT_COHART_VOICE;
+    }
+    return DEFAULT_COHART_VOICE;
+  });
+
+  const handleSelectVoice = (vId: string) => {
+    setSelectedVoice(vId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cohart_selected_voice', vId);
+    }
+  };
 
   // Form states for basic info
   const [name, setName] = useState(profile.full_name || '');
@@ -217,13 +230,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white font-sans tracking-tight">
-                  {profile.full_name?.trim() || 'Complete Profile'}
+                  {profile.full_name?.trim() || 'Student Profile'}
                 </h1>
-                {profile.is_verified_coordinator && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-bold">
-                    Dept Rep
-                  </span>
-                )}
                 {isProfileIncomplete ? (
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold">
                     Setup Needed
@@ -435,6 +443,62 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         </GeminiCard>
       </div>
+
+      {/* Deepgram AI Voice Preference Card */}
+      <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+              <GeminiIcon name="volume" size={16} />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">AI Voice & Audio Model</h2>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                Deepgram Aura-2 Conversational Models • Premium Reading Pacing
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-3">
+          Select the voice model Cohart AI uses to read lectures and explain topics to you:
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+          {COHART_VOICES.map((v) => {
+            const isSelected = v.id === selectedVoice;
+            return (
+              <button
+                key={v.id}
+                onClick={() => handleSelectVoice(v.id)}
+                className={`text-left p-3 rounded-2xl transition-all border cursor-pointer active:scale-98 ${
+                  isSelected
+                    ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/40 dark:border-[#A8C7FA]/40 shadow-xs'
+                    : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] hover:border-black/[0.12] dark:hover:border-white/[0.12]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-semibold ${isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                    {v.label}
+                  </span>
+                  {isSelected && <GeminiIcon name="check" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-black/[0.05] dark:bg-white/[0.08] text-neutral-500">
+                    {v.gender}
+                  </span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-black/[0.05] dark:bg-white/[0.08] text-neutral-500">
+                    {v.generation.toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
+                  {v.persona}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </GeminiCard>
 
       {/* Referral Program & Paystack Wallet Card */}
       <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
