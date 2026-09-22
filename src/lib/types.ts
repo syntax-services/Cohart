@@ -150,6 +150,8 @@ export interface CohartVoiceOption {
   gender: 'Female' | 'Male';
   persona: string;
   generation: 'aura-2' | 'aura';
+  sampleText: string;
+  audioUrl: string;
 }
 
 export const COHART_VOICES: CohartVoiceOption[] = [
@@ -160,6 +162,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Female',
     persona: 'Warm, engaging, articulates lecture concepts clearly',
     generation: 'aura-2',
+    sampleText: 'Hello scholar! I am Cohart Nova, your lead academic tutor. Let us break down your course materials together with clear analogies and step-by-step logic.',
+    audioUrl: '/audio/voices/aura-2-thalia-en.mp3',
   },
   {
     id: 'aura-2-orion-en',
@@ -167,6 +171,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Male',
     persona: 'Calm, authoritative, articulate lecture style',
     generation: 'aura-2',
+    sampleText: 'Welcome. I am Cohart Atlas, your professorial guide. We will analyze your lectures rigorously, focusing on first principles and central senate exam concepts.',
+    audioUrl: '/audio/voices/aura-2-orion-en.mp3',
   },
   {
     id: 'aura-2-luna-en',
@@ -174,6 +180,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Female',
     persona: 'Encouraging, conversational, patient pacing',
     generation: 'aura-2',
+    sampleText: 'Hi there! I am Cohart Aura, your study mentor. Take a deep breath; we will master every complex topic gently, at whatever pace feels comfortable for you.',
+    audioUrl: '/audio/voices/aura-2-luna-en.mp3',
   },
   {
     id: 'aura-2-zeus-en',
@@ -181,6 +189,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Male',
     persona: 'Dynamic, confident, energetic exam coach',
     generation: 'aura-2',
+    sampleText: 'Hey champion, Cohart Pulse in the building! Get focused, lock in on past questions, and let us crush your upcoming semester exams with top grades.',
+    audioUrl: '/audio/voices/aura-2-zeus-en.mp3',
   },
   {
     id: 'aura-2-asteria-en',
@@ -188,6 +198,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Female',
     persona: 'Natural, poised, balanced academic reader',
     generation: 'aura-2',
+    sampleText: 'Greetings. I am Cohart Sage. I deliver balanced, structured overviews of your syllabus, ensuring every lecture detail is clear and readily accessible.',
+    audioUrl: '/audio/voices/aura-2-asteria-en.mp3',
   },
   {
     id: 'aura-2-apollo-en',
@@ -195,6 +207,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Male',
     persona: 'Approachable, warm discussion partner',
     generation: 'aura-2',
+    sampleText: 'What is up study partner! Cohart Orion here. Think of me as your course mate who actually paid attention in class. Let us compare notes and prepare together.',
+    audioUrl: '/audio/voices/aura-2-apollo-en.mp3',
   },
   {
     id: 'aura-2-athena-en',
@@ -202,6 +216,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Female',
     persona: 'Structured, direct, concise explanations',
     generation: 'aura-2',
+    sampleText: 'Salutations. I am Cohart Wisdom. Expect direct, concise, and logically organized bullet points with zero fluff. Let us review the essentials right away.',
+    audioUrl: '/audio/voices/aura-2-athena-en.mp3',
   },
   {
     id: 'aura-2-hermes-en',
@@ -209,6 +225,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Male',
     persona: 'Quick, sharp, articulate review partner',
     generation: 'aura-2',
+    sampleText: 'Quick check-in! I am Cohart Swift. When you have ten minutes before a test at the lecture hall, I deliver high-speed rapid fire revision drills.',
+    audioUrl: '/audio/voices/aura-2-hermes-en.mp3',
   },
 
   // Aura Legacy Models
@@ -218,6 +236,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Female',
     persona: 'Original conversational voice',
     generation: 'aura',
+    sampleText: 'Hello, I am Cohart Classic. Reliable, clear, and steady for all your daily campus coursework.',
+    audioUrl: '/audio/voices/aura-asteria-en.mp3',
   },
   {
     id: 'aura-orion-en',
@@ -225,6 +245,8 @@ export const COHART_VOICES: CohartVoiceOption[] = [
     gender: 'Male',
     persona: 'Original deep resonant voice',
     generation: 'aura',
+    sampleText: 'Greetings scholar. I am Cohart Classic Resonant. Ready to guide you through your textbooks.',
+    audioUrl: '/audio/voices/aura-orion-en.mp3',
   },
 ];
 

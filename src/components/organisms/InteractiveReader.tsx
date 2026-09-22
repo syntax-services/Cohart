@@ -199,6 +199,37 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     }
   };
 
+  const handleSelectVoice = (voiceId: string) => {
+    setSelectedVoice(voiceId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cohart_selected_voice', voiceId);
+    }
+    setIsVoiceDropdownOpen(false);
+
+    if (readerAudioRef.current) {
+      readerAudioRef.current.pause();
+      readerAudioRef.current = null;
+      setIsPlayingAudio(false);
+      setIsSynthesizingAudio(false);
+    }
+
+    const voiceObj = COHART_VOICES.find((v) => v.id === voiceId);
+    if (voiceObj && voiceObj.audioUrl) {
+      try {
+        const previewAudio = new Audio(voiceObj.audioUrl);
+        readerAudioRef.current = previewAudio;
+        previewAudio.play().catch((err) => {
+          console.warn('Audio preview autoplay prevented:', err);
+        });
+        previewAudio.onended = () => {
+          readerAudioRef.current = null;
+        };
+      } catch (err) {
+        console.warn('Failed to play local voice preview:', err);
+      }
+    }
+  };
+
   // Saved explanations vault state
   const [savedExplanations, setSavedExplanations] = useState<SavedExplanation[]>([]);
   const [vaultSearch, setVaultSearch] = useState('');
@@ -822,10 +853,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 {isVoiceDropdownOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-40"
+                      className="fixed inset-0 z-[99]"
                       onClick={() => setIsVoiceDropdownOpen(false)}
                     />
-                    <div className="absolute right-0 top-full mt-1.5 w-64 max-h-72 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-0 top-full mt-1.5 w-64 max-h-72 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-xl p-1.5 z-[100] animate-in fade-in zoom-in-95 duration-100">
                       <div className="px-2.5 py-1 text-[10px] font-mono text-neutral-400 uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
                         Reader Voice (Aura-2)
                       </div>
@@ -833,13 +864,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         {COHART_VOICES.map((v) => (
                           <button
                             key={v.id}
-                            onClick={() => {
-                              setSelectedVoice(v.id);
-                              if (typeof window !== 'undefined') {
-                                localStorage.setItem('cohart_selected_voice', v.id);
-                              }
-                              setIsVoiceDropdownOpen(false);
-                            }}
+                            onClick={() => handleSelectVoice(v.id)}
                             className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
                               selectedVoice === v.id
                                 ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'

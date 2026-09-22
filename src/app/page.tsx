@@ -233,7 +233,7 @@ export default function AppHomePage() {
         )}
 
         {activeTab === 'ai' && (
-          <div className="h-full w-full">
+          <div className="h-full w-full pb-20">
             <CampusAiAssistant
               profile={profile}
               onSelectVenue={handleSelectVenue}
@@ -255,14 +255,12 @@ export default function AppHomePage() {
         )}
       </main>
 
-      {/* PWA Floating Bottom Navigation Bar - Hidden in AI Mode */}
-      {!isAiActive && (
-        <BottomNav 
-          activeTab={activeTab} 
-          onChangeTab={handleTabChange} 
-          institution={profile?.institution}
-        />
-      )}
+      {/* PWA Floating Bottom Navigation Bar */}
+      <BottomNav 
+        activeTab={activeTab} 
+        onChangeTab={handleTabChange} 
+        institution={profile?.institution}
+      />
 
       {/* Guest Authentication Modal */}
       <AuthModal

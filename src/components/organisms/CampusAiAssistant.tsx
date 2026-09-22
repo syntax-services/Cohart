@@ -150,13 +150,34 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Save selected voice to localStorage
+  // Save selected voice to localStorage and play its unique pre-recorded sample audio locally
   const handleSelectVoice = (voiceId: string) => {
     setSelectedVoice(voiceId);
     if (typeof window !== 'undefined') {
       localStorage.setItem('cohart_selected_voice', voiceId);
     }
     setIsVoicePickerOpen(false);
+
+    // Stop any currently playing audio
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    setSpeakingMsgId(null);
+
+    // Find the unique pre-recorded intro audio for this voice model
+    const voiceObj = COHART_VOICES.find((v) => v.id === voiceId);
+    if (voiceObj && voiceObj.audioUrl) {
+      try {
+        const previewAudio = new Audio(voiceObj.audioUrl);
+        currentAudioRef.current = previewAudio;
+        previewAudio.play().catch((err) => {
+          console.warn('Audio preview autoplay prevented:', err);
+        });
+      } catch (err) {
+        console.warn('Could not play voice preview:', err);
+      }
+    }
   };
 
   // Text-To-Speech: Read aloud AI response using selected Deepgram Aura-2 model
@@ -561,7 +582,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         content: replyContent,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestedAction: venueCode ? { label: `Show ${venueCode} on Map`, venueCode } : undefined,
-        profileUpdatedBadge: profileUpdatedNote,
         interactiveChoices: detectedChoices,
       };
 
@@ -738,10 +758,10 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 {isViewDropdownOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-40"
+                      className="fixed inset-0 z-[99]"
                       onClick={() => setIsViewDropdownOpen(false)}
                     />
-                    <div className="absolute right-0 top-full mt-1.5 w-44 rounded-2xl bg-white/95 dark:bg-[#181B24]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-lg backdrop-blur-xl p-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-0 top-full mt-1.5 w-44 rounded-2xl bg-white/98 dark:bg-[#181B24]/98 border border-black/[0.1] dark:border-white/[0.1] shadow-2xl backdrop-blur-2xl p-1 z-[100] animate-in fade-in zoom-in-95 duration-100">
                       <div className="px-2.5 py-1.5 text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
                         Switch View
                       </div>
@@ -785,10 +805,10 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               {isVoicePickerOpen && (
                 <>
                   <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0 z-[99]"
                     onClick={() => setIsVoicePickerOpen(false)}
                   />
-                  <div className="absolute right-0 top-full mt-1.5 w-72 max-h-80 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#181B24]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute right-0 top-full mt-1.5 w-72 max-h-80 overflow-y-auto rounded-2xl bg-white/98 dark:bg-[#181B24]/98 border border-black/[0.1] dark:border-white/[0.1] shadow-2xl backdrop-blur-2xl p-1.5 z-[100] animate-in fade-in zoom-in-95 duration-100">
                     <div className="px-2.5 py-1.5 border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
                       <div className="text-[11px] font-bold text-neutral-900 dark:text-white">
                         AI Reading Voice
@@ -959,16 +979,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                     </div>
                   )}
 
-                  {/* Profile Updated Confirmation Badge */}
-                  {m.profileUpdatedBadge && (
-                    <div className="mt-3 pt-2 border-t border-emerald-500/20">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-mono font-medium">
-                        <GeminiIcon name="shield-check" size={12} />
-                        <span>{m.profileUpdatedBadge}</span>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Suggested Map Action Pin */}
                   {m.suggestedAction && onSelectVenue && (
                     <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
@@ -1033,7 +1043,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             )}
 
             {/* Input Bar Form with Deepgram Nova-3 Voice Input */}
-            <div className="relative flex items-center gap-2">
+            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] focus-within:border-[#0B57D0] dark:focus-within:border-[#A8C7FA] transition-colors">
               <input
                 ref={inputRef}
                 type="text"
@@ -1047,27 +1057,23 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 }}
                 placeholder={
                   isRecording
-                    ? 'Listening with Deepgram Nova-3... (Speak clearly into mic)'
+                    ? 'Listening... (Speak clearly into mic)'
                     : isTranscribing
-                    ? 'Transcribing your speech...'
+                    ? 'Transcribing speech...'
                     : currentMode === 'grill_mode'
-                    ? 'Type your answer or tap mic to speak...'
-                    : 'Ask anything or tap mic to speak in English or Nigerian academic terms...'
+                    ? 'Type your answer or tap mic...'
+                    : 'Ask questions or tap mic...'
                 }
-                className={`w-full rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border px-4 py-3 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none transition-colors pr-22 font-sans ${
-                  isRecording
-                    ? 'border-rose-500 ring-2 ring-rose-500/20 animate-pulse'
-                    : 'border-black/[0.08] dark:border-white/[0.1] focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]'
-                }`}
+                className="flex-1 min-w-0 bg-transparent px-3 py-2 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none font-sans"
               />
 
               {/* Action Buttons Right: Mic & Send */}
-              <div className="absolute right-2 flex items-center gap-1">
+              <div className="flex items-center gap-1.5 shrink-0 pr-1">
                 <button
                   type="button"
                   onClick={isRecording ? handleStopRecording : handleStartRecording}
                   disabled={isTranscribing}
-                  className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all active:scale-95 cursor-pointer ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-95 cursor-pointer shrink-0 ${
                     isRecording
                       ? 'bg-rose-500 text-white animate-bounce shadow-md'
                       : isTranscribing
@@ -1077,18 +1083,18 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   title={isRecording ? 'Stop Recording' : 'Voice Input (Deepgram Nova-3)'}
                 >
                   {isTranscribing ? (
-                    <GeminiIcon name="loader" size={14} />
+                    <GeminiIcon name="loader" size={15} />
                   ) : isRecording ? (
-                    <GeminiIcon name="mic-off" size={15} />
+                    <GeminiIcon name="mic-off" size={16} />
                   ) : (
-                    <GeminiIcon name="mic" size={15} />
+                    <GeminiIcon name="mic" size={16} />
                   )}
                 </button>
 
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim()}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-xs"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
                   title="Send message"
                 >
                   <GeminiIcon name="arrow-right" size={15} />

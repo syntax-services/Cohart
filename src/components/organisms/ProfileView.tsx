@@ -37,10 +37,36 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     return DEFAULT_COHART_VOICE;
   });
 
+  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const voiceAudioRef = React.useRef<HTMLAudioElement | null>(null);
+
   const handleSelectVoice = (vId: string) => {
     setSelectedVoice(vId);
     if (typeof window !== 'undefined') {
       localStorage.setItem('cohart_selected_voice', vId);
+    }
+
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current = null;
+    }
+
+    const voiceObj = COHART_VOICES.find((v) => v.id === vId);
+    if (voiceObj && voiceObj.audioUrl) {
+      try {
+        const audio = new Audio(voiceObj.audioUrl);
+        voiceAudioRef.current = audio;
+        setPlayingVoiceId(vId);
+        audio.onended = () => setPlayingVoiceId(null);
+        audio.onerror = () => setPlayingVoiceId(null);
+        audio.play().catch((err) => {
+          console.warn('Preview play prevented:', err);
+          setPlayingVoiceId(null);
+        });
+      } catch (err) {
+        console.warn('Error playing preview:', err);
+        setPlayingVoiceId(null);
+      }
     }
   };
 
