@@ -22,3 +22,5 @@
 - [x] Integrated post-quiz lecturer-style debrief with realistic examination phrasing re-tests
 - [x] Added comprehensive dataset of all public Nigerian universities (103 Federal & State institutions, excluding private)
 - [x] Built custom glassmorphic UniversityCombobox with real-time keyword search, Federal/State filters, and keyboard navigation to replace device pickers in Sign Up and Settings
+- [x] Stripped AI jargon, promotional essays, fake checklists, and psycho-analysis modals across Hub, Profile, and AI Assistant for high-utility minimalism
+

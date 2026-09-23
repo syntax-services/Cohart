@@ -1,21 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile, LearningStyle, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
 import { UniversityCombobox } from '@/components/ui/UniversityCombobox';
-import { useTheme, Theme } from '@/components/ThemeProvider';
+import { useTheme } from '@/components/ThemeProvider';
 import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
 import { fetchSavedExplanations } from '@/lib/supabase';
 import { ALL_OOU_DEPARTMENTS } from '@/lib/oouCourses';
 import {
   NIGERIAN_UNIVERSITIES,
-  CAMPUS_INSIDER_QUESTIONS,
   getRandomCampusQuestion,
   evaluateCampusAnswer,
-  NigerianUniversity,
   CampusInsiderQuestion,
 } from '@/lib/campusVerification';
 
@@ -38,10 +36,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 }) => {
   const { theme, setTheme } = useTheme();
   const [isEditingBasic, setIsEditingBasic] = useState(false);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
-  // Nigerian Campus Insider Verification State
+  // Campus Verification State
   const [showCampusModal, setShowCampusModal] = useState(false);
   const [selectedTargetUniv, setSelectedTargetUniv] = useState<string>('OOU');
   const [currentInsiderQuestion, setCurrentInsiderQuestion] = useState<CampusInsiderQuestion | null>(null);
@@ -52,15 +49,68 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [campusNudgeMessage, setCampusNudgeMessage] = useState('');
   const [campusBluffMessage, setCampusBluffMessage] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Voice Preview State
   const [selectedVoice, setSelectedVoice] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('cohart_selected_voice') || DEFAULT_COHART_VOICE;
     }
     return DEFAULT_COHART_VOICE;
   });
-
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
-  const voiceAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Form states for basic info
+  const [name, setName] = useState(profile.full_name || '');
+  const [matric, setMatric] = useState(profile.matric_number || '');
+  const [dept, setDept] = useState(profile.department || '');
+  const [level, setLevel] = useState(profile.level || '100L');
+
+  // Attendance & Notes
+  const { logs, getAttendanceAdvice } = useAttendanceTracker(profile.id);
+  const advice = getAttendanceAdvice();
+  const [savedVaultCount, setSavedVaultCount] = useState<number>(0);
+
+  // Bank Withdrawal form states
+  const [bankName, setBankName] = useState('Opay');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountName, setAccountName] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState('1000');
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [withdrawSuccess, setWithdrawSuccess] = useState(false);
+
+  useEffect(() => {
+    setName(profile.full_name || '');
+    setMatric(profile.matric_number || '');
+    setDept(profile.department || '');
+    setLevel(profile.level || '100L');
+  }, [profile]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadVault() {
+      try {
+        const data = await fetchSavedExplanations();
+        if (mounted) setSavedVaultCount(data.length);
+      } catch {
+        // Fallback gracefully
+      }
+    }
+    loadVault();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSaveBasic = async () => {
+    await onUpdateProfile({
+      full_name: name.trim(),
+      matric_number: matric.trim(),
+      department: dept.trim(),
+      level: level.trim(),
+    });
+    setIsEditingBasic(false);
+  };
 
   const handleSelectVoice = (vId: string) => {
     setSelectedVoice(vId);
@@ -130,7 +180,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
-  const handleAnswerBluff = async (rejectsBluff: boolean, customText?: string) => {
+  const handleAnswerBluff = async (rejectsBluff: boolean) => {
     if (!currentInsiderQuestion) return;
 
     if (rejectsBluff) {
@@ -144,109 +194,29 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       return;
     }
 
-    if (customText && customText.trim()) {
-      const res = evaluateCampusAnswer(currentInsiderQuestion, customText, true);
-      if (res.isVerified) {
-        setCampusVerificationStep('verified');
-        const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === selectedTargetUniv);
-        const univName = univ ? `${univ.name} (${univ.shortName})` : selectedTargetUniv;
-        await onUpdateProfile({ institution: univName });
-        setTimeout(() => {
-          setShowCampusModal(false);
-        }, 1600);
-        return;
-      }
-    }
-
     setCampusVerificationStep('failed');
-    setCampusNudgeMessage('You wavered or accepted the false detail. Real campus students know their campus reality with confidence.');
+    setCampusNudgeMessage('Verification failed. Try the simpler backup question or verify with Cohart AI in chat.');
   };
 
   const handleVerifyWithAi = (targetCode: string) => {
     setShowCampusModal(false);
     const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === targetCode);
     const targetName = univ ? `${univ.name} (${univ.shortName})` : targetCode;
-    onOpenAiChat?.(`I want to set my institution to ${targetName}. Please test me with the un-googleable campus insider question so I can verify my campus!`);
-  };
-
-  // Form states for basic info
-  const [name, setName] = useState(profile.full_name || '');
-  const [matric, setMatric] = useState(profile.matric_number || '');
-  const [dept, setDept] = useState(profile.department || '');
-  const [level, setLevel] = useState(profile.level || '100L');
-
-  // Questionnaire answers
-  const [qStep, setQStep] = useState(0);
-
-  // Paystack mock state
-  const [withdrawAmount, setWithdrawAmount] = useState('5000');
-  const [bankName, setBankName] = useState('Access Bank');
-  const [accountNumber, setAccountNumber] = useState('0123456789');
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
-  const [withdrawSuccess, setWithdrawSuccess] = useState(false);
-
-  // Attendance & Vault live metrics
-  const { getAttendanceAdvice } = useAttendanceTracker(profile.id);
-  const advice = getAttendanceAdvice();
-  const [savedVaultCount, setSavedVaultCount] = useState(0);
-
-  useEffect(() => {
-    setName(profile.full_name || '');
-    setMatric(profile.matric_number || '');
-    setDept(profile.department || '');
-    setLevel(profile.level || '100L');
-  }, [profile.full_name, profile.matric_number, profile.department, profile.level]);
-
-  useEffect(() => {
-    async function loadVaultCount() {
-      const data = await fetchSavedExplanations(profile.id);
-      setSavedVaultCount(data.length);
-    }
-    loadVaultCount();
-  }, [profile.id]);
-
-  const cognitiveTraitOptions = [
-    'Short attention span / Fast pace',
-    'Exam tension / Calm explanations',
-    'Everyday Nigerian examples',
-    'Clear text spacing',
-    'Step-by-step from scratch',
-    'Late night study focus',
-    'Visual & summary style',
-    'Short 20-minute sessions',
-  ];
-
-  const handleToggleTrait = async (trait: string) => {
-    const current = profile.cognitive_traits || [];
-    const exists = current.includes(trait);
-    const updated = exists ? current.filter((t) => t !== trait) : [...current, trait];
-    await onUpdateProfile({ cognitive_traits: updated });
-  };
-
-  const handleSaveBasic = async () => {
-    await onUpdateProfile({
-      full_name: name.trim(),
-      matric_number: matric.trim(),
-      department: dept.trim(),
-      level,
-    });
-    setIsEditingBasic(false);
+    onOpenAiChat?.(`I want to set my institution to ${targetName}. Please test me with the campus question so I can verify my school.`);
   };
 
   const handleCopyReferral = () => {
-    navigator.clipboard.writeText(
-      `https://cohart.app/join?ref=${profile.referral_code}`
-    );
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    if (typeof window !== 'undefined' && profile.referral_code) {
+      navigator.clipboard.writeText(profile.referral_code);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    }
   };
 
-  const handleExecuteWithdrawal = () => {
+  const handleWithdraw = (e: React.FormEvent) => {
+    e.preventDefault();
     setIsWithdrawing(true);
-    setTimeout(async () => {
-      const amt = parseFloat(withdrawAmount) || 0;
-      const newBal = Math.max(0, (profile.wallet_balance || 0) - amt);
-      await onUpdateProfile({ wallet_balance: newBal });
+    setTimeout(() => {
       setIsWithdrawing(false);
       setWithdrawSuccess(true);
       setTimeout(() => {
@@ -254,49 +224,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         setShowWithdrawModal(false);
       }, 2000);
     }, 1200);
-  };
-
-  const questionnaireQuestions = [
-    {
-      q: 'When a lecturer teaches a tough topic in class, what helps you understand it best?',
-      options: [
-        'A simple Nigerian real-life example (like market prices in Ago-Iwoye)',
-        'A step-by-step mathematical breakdown from scratch',
-        'A short summary with bullet points highlighting key formulas',
-        'A simple question-and-answer discussion on why it works',
-      ],
-      styleMapping: [
-        'visual_analogies',
-        'deep_first_principles',
-        'concise_bullet',
-        'socratic_inquiry',
-      ] as LearningStyle[],
-    },
-    {
-      q: 'How do you like to study best during long hours?',
-      options: [
-        'In quick, short bursts because my mind moves fast',
-        'By reading quietly at my own pace',
-        'With calm, patient explanations because exams make me anxious',
-        'By testing myself with practice questions',
-      ],
-      traitAdd: 'Short attention span / Fast pace',
-    },
-  ];
-
-  const handleSelectQuestionnaireOption = async (optionIdx: number) => {
-    const currentQ = questionnaireQuestions[qStep];
-    if (qStep === 0 && currentQ.styleMapping) {
-      const selectedStyle = currentQ.styleMapping[optionIdx];
-      await onUpdateProfile({ learning_style: selectedStyle });
-    }
-
-    if (qStep < questionnaireQuestions.length - 1) {
-      setQStep(qStep + 1);
-    } else {
-      setShowQuestionnaire(false);
-      setQStep(0);
-    }
   };
 
   const isProfileIncomplete =
@@ -316,40 +243,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Incomplete Profile Callout Banner */}
-      {isProfileIncomplete && (
-        <div className="p-4 sm:p-5 rounded-3xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
-              <GeminiIcon name="user" size={19} />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
-                Complete Your Student Profile
-              </h3>
-              <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
-                Add your name, OOU department, level, and matric number so Cohart can give you simple notes, class alerts, and directions.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setIsEditingBasic(true)}
-            className="self-start sm:self-auto px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs shrink-0 transition-all active:scale-95 cursor-pointer shadow-xs"
-          >
-            Complete Profile
-          </button>
-        </div>
-      )}
-
-      {/* Lit Student Identity Card with Ambient Gradient & Liquid Glass */}
-      <GeminiCard className="p-5 sm:p-7 rounded-3xl bg-gradient-to-br from-white/90 via-white/80 to-blue-50/40 dark:from-[#131620]/90 dark:via-[#11131A]/85 dark:to-[#0B1528]/50 backdrop-blur-2xl border border-black/[0.08] dark:border-white/[0.08] shadow-md">
+      {/* Student Profile Card */}
+      <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#0B57D0] to-[#6894ea] dark:from-[#0B57D0] dark:to-[#A8C7FA] font-mono text-base font-bold text-white dark:text-neutral-950 shrink-0 shadow-[0_0_20px_rgba(11,87,208,0.3)] ring-2 ring-white dark:ring-[#1E2230]">
+            <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border border-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] font-mono text-base font-bold shrink-0">
               {initials}
-              <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#1E2230]" title="Active student session">
-                <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
-              </span>
             </div>
 
             <div>
@@ -357,35 +256,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <h1 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white font-sans tracking-tight">
                   {profile.full_name?.trim() || 'Student Profile'}
                 </h1>
-                {isProfileIncomplete ? (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold">
-                    Setup Needed
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold">
-                    Verified
-                  </span>
-                )}
+                <Badge variant={isProfileIncomplete ? 'amber' : 'emerald'} size="sm">
+                  {isProfileIncomplete ? 'Setup Needed' : 'Active'}
+                </Badge>
               </div>
 
               <p className="text-xs font-mono text-neutral-500 dark:text-neutral-400 mt-1">
                 {profile.department
                   ? `${profile.matric_number || 'Matric Pending'} • ${profile.department} • ${profile.level || '100L'}`
-                  : 'Tap Edit to set your Department & Level • Campus Profile'}
+                  : 'Tap Edit to set your Department & Level'}
               </p>
 
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans">
-                  {profile.institution || 'Olabisi Onabanjo University (OOU)'}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => handleStartCampusChange()}
-                  className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#0B57D0]/20 transition-all cursor-pointer font-medium"
-                >
-                  Change School
-                </button>
-              </div>
+              <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans mt-0.5">
+                {profile.institution || 'Olabisi Onabanjo University (OOU)'}
+              </p>
             </div>
           </div>
 
@@ -397,9 +281,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </button>
         </div>
 
-        {/* Compact Quick Details Inline Editor */}
+        {/* Quick Details Inline Editor */}
         {isEditingBasic && (
-          <div className="mt-5 pt-5 border-t border-black/[0.06] dark:border-white/[0.07] space-y-3.5 animate-in fade-in">
+          <div className="mt-5 pt-5 border-t border-black/[0.06] dark:border-white/[0.07] space-y-3.5">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <div>
                 <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Full Name</label>
@@ -424,7 +308,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">OOU Department</label>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Department</label>
                 <input
                   list="oou-depts-list"
                   type="text"
@@ -441,7 +325,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Academic Level</label>
+                <label className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Level</label>
                 <select
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
@@ -452,8 +336,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <option value="300L">300 Level</option>
                   <option value="400L">400 Level</option>
                   <option value="500L">500 Level</option>
-                  <option value="600L">600 Level (MBBS)</option>
-                  <option value="PG">Postgraduate</option>
+                  <option value="600L">600 Level</option>
                 </select>
               </div>
             </div>
@@ -471,16 +354,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 onClick={handleSaveBasic}
                 className="px-5 py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-xs"
               >
-                Save Profile
+                Save
               </button>
             </div>
           </div>
         )}
       </GeminiCard>
 
-      {/* Two-Column Grid: CA Attendance & Cognitive AI Conditioning */}
+      {/* Two-Column Grid: Attendance & Study Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Continuous Assessment Attendance Metric */}
+        {/* Attendance Summary */}
         <GeminiCard className="p-5 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
           <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2.5">
@@ -488,18 +371,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <GeminiIcon name="check-circle" size={16} />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Class Attendance for Exams</h2>
-                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">75% Minimum Required</p>
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Class Attendance</h2>
+                <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Exam Eligibility</p>
               </div>
             </div>
             <Badge variant={advice.rate >= 75 ? 'emerald' : 'amber'} size="sm">
-              {advice.rate >= 75 ? 'Qualified for Exams' : 'Below 75% Target'}
+              {advice.rate >= 75 ? 'Qualified' : 'Below 75%'}
             </Badge>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] space-y-2">
             <div className="flex justify-between items-baseline">
-              <span className="text-xs text-neutral-600 dark:text-neutral-300">Class Attendance</span>
+              <span className="text-xs text-neutral-600 dark:text-neutral-300">Semester Average</span>
               <span className="text-xl font-bold font-mono text-[#0B57D0] dark:text-[#A8C7FA]">
                 {advice.rate}%
               </span>
@@ -518,17 +401,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
 
           <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-xs">
-            <span className="text-[11px] font-mono text-neutral-500">{savedVaultCount} Saved AI Notes</span>
+            <span className="text-[11px] font-mono text-neutral-500">{logs.length} lectures logged</span>
             <button
               onClick={onOpenSchedule}
               className="text-[#0B57D0] dark:text-[#A8C7FA] font-medium hover:underline cursor-pointer"
             >
-              Class Timetable &rarr;
+              Timetable &rarr;
             </button>
           </div>
         </GeminiCard>
 
-        {/* Cognitive Traits & AI Adaptation Matrix */}
+        {/* Study Style & Notes */}
         <GeminiCard className="p-5 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
           <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2.5">
@@ -536,41 +419,52 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <GeminiIcon name="brain" size={16} />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">How You Want AI to Teach You</h2>
+                <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Explanation Style</h2>
                 <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                  Style: {profile.learning_style.replace('_', ' ')}
+                  How AI Explains Concepts
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={() => setShowQuestionnaire(true)}
-              className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline cursor-pointer"
-            >
-              Change Style
-            </button>
+            {onOpenReader && (
+              <button
+                onClick={onOpenReader}
+                className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline cursor-pointer"
+              >
+                {savedVaultCount} Saved Notes
+              </button>
+            )}
           </div>
 
-          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-2.5 leading-relaxed">
-            Choose how you want Cohart AI to explain things to you:
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
+            Select your preferred teaching style for course notes and questions:
           </p>
 
-          {/* Cognitive Traits Selector Chips */}
-          <div className="flex flex-wrap gap-1.5">
-            {cognitiveTraitOptions.map((trait) => {
-              const isSelected = profile.cognitive_traits.includes(trait);
+          {/* Clean 3-Pill Style Selector */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {[
+              { id: 'visual_analogies', label: 'Analogies', desc: 'Everyday examples' },
+              { id: 'concise_bullet', label: 'Concise', desc: 'Direct bullet points' },
+              { id: 'deep_first_principles', label: 'Deep Dive', desc: 'First principles' },
+            ].map((style) => {
+              const isSelected = profile.learning_style === style.id;
               return (
                 <button
-                  key={trait}
-                  onClick={() => handleToggleTrait(trait)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans transition-all active:scale-95 cursor-pointer ${
+                  key={style.id}
+                  onClick={() => onUpdateProfile({ learning_style: style.id as LearningStyle })}
+                  className={`p-2.5 rounded-2xl text-left border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
-                      : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/30 dark:border-[#A8C7FA]/30'
+                      : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] hover:bg-black/[0.04]'
                   }`}
                 >
-                  {isSelected && <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
-                  <span>{trait}</span>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-semibold ${isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                      {style.label}
+                    </span>
+                    {isSelected && <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
+                  </div>
+                  <span className="text-[10px] text-neutral-500 block mt-0.5">{style.desc}</span>
                 </button>
               );
             })}
@@ -578,7 +472,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </GeminiCard>
       </div>
 
-      {/* Nigerian University & Campus Preferences Card */}
+      {/* University & Campus Preferences Card */}
       <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
         <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div className="flex items-center gap-2.5">
@@ -586,9 +480,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <GeminiIcon name="compass" size={16} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">University & Campus Preferences</h2>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">University & Campus</h2>
               <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                Anti-Cheat Physical Attendance Check • Nigerian Institutions
+                Tertiary Institution Preference
               </p>
             </div>
           </div>
@@ -596,7 +490,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             onClick={() => handleStartCampusChange()}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#0B57D0]/20 transition-all active:scale-95 cursor-pointer font-medium"
           >
-            <span>Change School</span>
+            <span>Change University</span>
           </button>
         </div>
 
@@ -607,34 +501,26 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 {profile.institution || 'Olabisi Onabanjo University (OOU)'}
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold">
-                Campus Verified
+                Active
               </span>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
               {profile.institution?.includes('OOU')
-                ? 'Ago-Iwoye Main PS • Live Interactive Map Navigation Active'
-                : 'Interactive campus map currently exclusive to OOU. Full Cohart study AI companion active.'}
+                ? 'Ago-Iwoye Main Campus • Live Interactive Campus Map Active'
+                : 'Cohart Academic Study Assistant Active'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleStartCampusChange()}
-              className="px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs text-neutral-800 dark:text-neutral-200 font-mono transition-colors cursor-pointer"
-            >
-              Switch Campus
-            </button>
-            <button
-              onClick={() => handleVerifyWithAi(profile.institution || 'OOU')}
-              className="px-3 py-1.5 rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] text-xs font-mono transition-colors cursor-pointer"
-            >
-              Verify via AI &rarr;
-            </button>
-          </div>
+          <button
+            onClick={() => handleStartCampusChange()}
+            className="px-3.5 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs text-neutral-800 dark:text-neutral-200 font-mono transition-colors cursor-pointer"
+          >
+            Switch School
+          </button>
         </div>
       </GeminiCard>
 
-      {/* Deepgram AI Voice Preference Card */}
+      {/* Reading Voice Card */}
       <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2.5">
@@ -642,55 +528,57 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <GeminiIcon name="volume" size={16} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">AI Voice & Audio Model</h2>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Reading Voice</h2>
               <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                Deepgram Aura-2 Conversational Models • Premium Reading Pacing
+                Voice Used to Read Course Notes & Explanations
               </p>
             </div>
           </div>
         </div>
 
-        <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-3">
-          Select the voice model Cohart AI uses to read lectures and explain topics to you:
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+        {/* Compact Voice Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
           {COHART_VOICES.map((v) => {
             const isSelected = v.id === selectedVoice;
+            const isPlaying = playingVoiceId === v.id;
             return (
-              <button
+              <div
                 key={v.id}
                 onClick={() => handleSelectVoice(v.id)}
-                className={`text-left p-3 rounded-2xl transition-all border cursor-pointer active:scale-98 ${
+                className={`p-3 rounded-2xl transition-all border cursor-pointer flex items-center justify-between gap-2 ${
                   isSelected
-                    ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/40 dark:border-[#A8C7FA]/40 shadow-xs'
-                    : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] hover:border-black/[0.12] dark:hover:border-white/[0.12]'
+                    ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/40 dark:border-[#A8C7FA]/40'
+                    : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] hover:border-black/[0.12]'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-semibold ${isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-800 dark:text-neutral-200'}`}>
-                    {v.label}
-                  </span>
-                  {isSelected && <GeminiIcon name="check" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-xs font-semibold truncate ${isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                      {v.label.split(' ')[1] || v.label}
+                    </span>
+                    <span className="text-[9px] font-mono text-neutral-400">
+                      {v.gender}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-neutral-500 truncate mt-0.5">
+                    {v.persona.split(',')[0]}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-black/[0.05] dark:bg-white/[0.08] text-neutral-500">
-                    {v.gender}
-                  </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-black/[0.05] dark:bg-white/[0.08] text-neutral-500">
-                    {v.generation.toUpperCase()}
-                  </span>
+
+                <div className="shrink-0 flex items-center gap-1">
+                  {isPlaying ? (
+                    <span className="h-2 w-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-ping" />
+                  ) : isSelected ? (
+                    <GeminiIcon name="check" size={14} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+                  ) : null}
                 </div>
-                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
-                  {v.persona}
-                </p>
-              </button>
+              </div>
             );
           })}
         </div>
       </GeminiCard>
 
-      {/* Referral Program & Paystack Wallet Card */}
+      {/* Referral & Wallet Card */}
       <GeminiCard className="p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.08]">
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2.5">
@@ -699,7 +587,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Invite Course Mates</h2>
-              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">Get ₦500 for every course mate who joins</p>
+              <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">₦500 reward for every course mate who registers</p>
             </div>
           </div>
         </div>
@@ -739,7 +627,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-2 font-sans">
-              You get ₦500 each time a friend signs up with your code.
+              Share your code with course mates to earn rewards.
             </p>
           </div>
         </div>
@@ -748,149 +636,122 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* App Appearance & Sign Out Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-white/70 dark:bg-[#12151E]/70 border border-black/[0.06] dark:border-white/[0.08] backdrop-blur-xl">
         <div className="flex items-center gap-2">
-          <GeminiIcon name="sun" size={16} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-          <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">Theme</span>
-          <div className="flex items-center gap-1 ml-2 bg-black/[0.03] dark:bg-white/[0.04] p-0.5 rounded-full">
-            {(['system', 'light', 'dark'] as Theme[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setTheme(mode)}
-                className={`px-3 py-1 rounded-full text-xs font-mono capitalize transition-all cursor-pointer ${
-                  theme === mode
-                    ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold shadow-xs'
-                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
-                }`}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] transition-all cursor-pointer"
+          >
+            <GeminiIcon name={theme === 'dark' ? 'sun' : 'moon'} size={14} />
+            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          </button>
         </div>
 
         {onSignOut && (
           <button
             onClick={onSignOut}
-            className="self-start sm:self-auto px-4 py-1.5 rounded-full border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-mono transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 text-xs font-mono text-rose-600 dark:text-rose-400 transition-all cursor-pointer"
           >
-            Sign Out
+            <span>Sign Out</span>
           </button>
         )}
       </div>
 
-      {/* Cognitive Questionnaire Modal */}
-      {showQuestionnaire && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <GeminiIcon name="brain" size={17} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                  Learning Style Quiz ({qStep + 1}/2)
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowQuestionnaire(false)}
-                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
-              >
-                <GeminiIcon name="close" size={16} />
-              </button>
-            </div>
-
-            <p className="text-xs font-semibold text-neutral-900 dark:text-white mb-3">
-              {questionnaireQuestions[qStep].q}
-            </p>
-
-            <div className="space-y-2">
-              {questionnaireQuestions[qStep].options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSelectQuestionnaireOption(i)}
-                  className="w-full text-left p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] text-xs text-neutral-800 dark:text-neutral-200 transition-all cursor-pointer"
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Paystack Withdrawal Modal */}
+      {/* Bank Withdrawal Modal */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
-          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Withdraw Money to Bank</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Withdraw to Bank</h3>
               <button
                 onClick={() => setShowWithdrawModal(false)}
-                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white text-xs cursor-pointer"
               >
                 <GeminiIcon name="close" size={16} />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="text-[10px] font-mono text-neutral-500 uppercase">Amount (₦)</label>
-                <input
-                  type="number"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  className="w-full mt-1 p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white font-mono"
-                />
+            {withdrawSuccess ? (
+              <div className="py-6 text-center space-y-2">
+                <div className="flex justify-center text-emerald-500">
+                  <GeminiIcon name="check-circle" size={36} />
+                </div>
+                <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">Withdrawal Submitted</h4>
+                <p className="text-xs text-neutral-500">Your payout is being processed to your account.</p>
               </div>
+            ) : (
+              <form onSubmit={handleWithdraw} className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-mono text-neutral-500 uppercase">Bank</label>
+                  <select
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white"
+                  >
+                    <option value="Opay">OPay Digital Services</option>
+                    <option value="Palmpay">PalmPay</option>
+                    <option value="Kuda">Kuda Bank</option>
+                    <option value="Moniepoint">Moniepoint MFB</option>
+                    <option value="GTBank">Guaranty Trust Bank (GTBank)</option>
+                    <option value="Access">Access Bank</option>
+                    <option value="FirstBank">First Bank of Nigeria</option>
+                    <option value="UBA">United Bank for Africa (UBA)</option>
+                    <option value="Zenith">Zenith Bank</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="text-[10px] font-mono text-neutral-500 uppercase">Bank Name</label>
-                <select
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white"
+                <div>
+                  <label className="text-[10px] font-mono text-neutral-500 uppercase">Account Number</label>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    placeholder="10-digit NUBAN"
+                    required
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
+                    className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-mono text-neutral-500 uppercase">Account Name</label>
+                  <input
+                    type="text"
+                    placeholder="Account Name"
+                    required
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
+                    className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-mono text-neutral-500 uppercase">Amount (₦)</label>
+                  <input
+                    type="number"
+                    min={500}
+                    max={profile.wallet_balance || 0}
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="w-full mt-1 p-2 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isWithdrawing || (profile.wallet_balance || 0) < 500}
+                  className="w-full mt-2 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 cursor-pointer shadow-xs"
                 >
-                  <option value="Access Bank">Access Bank (Ago-Iwoye PS)</option>
-                  <option value="Wema Bank">Wema Bank (OOU PS Branch)</option>
-                  <option value="GTBank">Guaranty Trust Bank</option>
-                  <option value="First Bank">First Bank of Nigeria</option>
-                  <option value="Opay">OPay Digital Services</option>
-                  <option value="Palmpay">PalmPay</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono text-neutral-500 uppercase">Account Number</label>
-                <input
-                  type="text"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full mt-1 p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white font-mono"
-                />
-              </div>
-
-              <button
-                onClick={handleExecuteWithdrawal}
-                disabled={isWithdrawing || withdrawSuccess}
-                className="mt-2 w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity flex items-center justify-center cursor-pointer shadow-xs"
-              >
-                {isWithdrawing ? (
-                  <span className="flex items-center gap-1.5 font-mono">Processing Transfer...</span>
-                ) : withdrawSuccess ? (
-                  <span className="flex items-center gap-1.5 text-emerald-300">
-                    <GeminiIcon name="check" size={13} />
-                    <span>Transferred via Paystack</span>
-                  </span>
-                ) : (
-                  'Confirm Withdrawal'
-                )}
-              </button>
-            </div>
+                  {isWithdrawing ? 'Processing...' : 'Confirm Withdrawal'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
 
-      {/* Campus Insider Anti-Cheat Verification Modal */}
+      {/* Campus Verification Modal */}
       {showCampusModal && currentInsiderQuestion && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-3">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-3">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161822] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -898,8 +759,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <GeminiIcon name="shield-check" size={16} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Campus Insider Verification</h3>
-                  <p className="text-[10px] font-mono text-neutral-500">Anti-cheat physical attendance check</p>
+                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Verify Campus</h3>
+                  <p className="text-[10px] font-mono text-neutral-500">Campus Question</p>
                 </div>
               </div>
               <button
@@ -922,10 +783,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
             {/* Question Card */}
             <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.07] mb-4">
-              <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-mono uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA]">
-                <GeminiIcon name="sparkle" size={12} />
-                <span>Physical Campus Trivia (Un-googleable)</span>
-              </div>
               <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed font-medium">
                 {currentInsiderQuestion.question}
               </p>
@@ -936,7 +793,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Type your insider answer here..."
+                  placeholder="Type your answer..."
                   value={campusUserAnswer}
                   onChange={(e) => setCampusUserAnswer(e.target.value)}
                   onKeyDown={(e) => {
@@ -956,7 +813,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     onClick={() => handleVerifyWithAi(selectedTargetUniv)}
                     className="py-2.5 px-3.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] transition-colors cursor-pointer"
                   >
-                    Verify via AI Chat &rarr;
+                    Ask AI &rarr;
                   </button>
                 </div>
               </div>
@@ -970,7 +827,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </div>
                 <input
                   type="text"
-                  placeholder="Clarify or update your answer..."
+                  placeholder="Clarify your answer..."
                   value={campusUserAnswer}
                   onChange={(e) => setCampusUserAnswer(e.target.value)}
                   onKeyDown={(e) => {
@@ -978,49 +835,34 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   }}
                   className="w-full p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#0B57D0]"
                 />
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleSubmitCampusAnswer}
-                    className="flex-1 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer"
-                  >
-                    Submit Clarification
-                  </button>
-                  <button
-                    onClick={() => handleVerifyWithAi(selectedTargetUniv)}
-                    className="py-2.5 px-3 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs font-mono text-neutral-700 dark:text-neutral-300 cursor-pointer"
-                  >
-                    Ask AI &rarr;
-                  </button>
-                </div>
+                <button
+                  onClick={handleSubmitCampusAnswer}
+                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  Submit Clarification
+                </button>
               </div>
             )}
 
-            {/* Step: The Bluff Challenge (Devil's Advocate) */}
+            {/* Step: The Bluff Challenge */}
             {campusVerificationStep === 'bluff' && (
               <div className="space-y-3">
-                <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 leading-relaxed font-medium">
-                  <p className="font-bold mb-1 text-[11px] uppercase tracking-wider font-mono">
-                    Conviction Check (Devil's Advocate):
-                  </p>
-                  <p>{campusBluffMessage}</p>
+                <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300 leading-relaxed font-medium">
+                  {campusBluffMessage}
                 </div>
-
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                  How do you respond? Real students stand their ground with conviction:
-                </p>
 
                 <div className="space-y-2">
                   <button
                     onClick={() => handleAnswerBluff(true)}
                     className="w-full text-left p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-200 font-medium transition-colors cursor-pointer"
                   >
-                    No, definitely not! You are wrong, my answer is 100% correct!
+                    No, that is incorrect. My answer is accurate.
                   </button>
                   <button
                     onClick={() => handleAnswerBluff(false)}
                     className="w-full text-left p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] border border-black/[0.06] text-xs text-neutral-600 dark:text-neutral-400 transition-colors cursor-pointer"
                   >
-                    Wait... maybe you are right, let me guess again.
+                    Wait, let me check again.
                   </button>
                 </div>
               </div>
@@ -1033,10 +875,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <GeminiIcon name="check-circle" size={32} />
                 </div>
                 <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-200">
-                  Campus Verified!
+                  Verified!
                 </h4>
                 <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                  You stood your ground and proved you are a genuine campus insider. Updating your school preference...
+                  Your university preference has been updated.
                 </p>
               </div>
             )}
@@ -1045,25 +887,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {campusVerificationStep === 'failed' && (
               <div className="space-y-3">
                 <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-700 dark:text-rose-300 leading-relaxed">
-                  {campusNudgeMessage || 'Verification failed. Try the simpler backup question or verify with Cohart AI in chat.'}
+                  {campusNudgeMessage || 'Verification failed. Try again or verify with Cohart AI in chat.'}
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setCampusVerificationStep('question');
-                      setCampusUserAnswer('');
-                    }}
-                    className="flex-1 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] cursor-pointer"
-                  >
-                    Try Again
-                  </button>
-                  <button
-                    onClick={() => handleVerifyWithAi(selectedTargetUniv)}
-                    className="flex-1 py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 cursor-pointer"
-                  >
-                    Verify in AI Chat &rarr;
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    setCampusVerificationStep('question');
+                    setCampusUserAnswer('');
+                  }}
+                  className="w-full py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] cursor-pointer"
+                >
+                  Try Again
+                </button>
               </div>
             )}
           </div>

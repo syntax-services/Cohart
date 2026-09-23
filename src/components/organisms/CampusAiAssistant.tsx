@@ -107,8 +107,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     id: 'msg_welcome',
     role: 'assistant',
     content: initialMode === 'grill_mode'
-      ? `Hello ${studentName}! We are now in Exam Practice Mode. I will ask you course exam questions one by one and tell you honestly if you are correct or if you missed anything.\n\nAre you ready for your first exam question? Type "Ready" or your answer to begin.`
-      : `Hello ${studentName}! I am Cohart AI, your study companion for ${institutionName}. I can help you read your course materials faster with smart pacing, set practice exam questions (objective CBT or theory) tailored to your lecturers' patterns, and help you configure your study profile.${isOou ? ' I can also guide you to lecture halls across Ago-Iwoye campus.' : ''}\n\nWhat course or topic are we prepping for today?`,
+      ? `Ready for exam practice, ${studentName}. Tell me which course code or topic you want to be tested on, and we will drill through questions one by one.`
+      : `Hey ${studentName}, what are we studying today? Ask a question, paste notes to summarize, or ask for practice exam questions.`,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
 
@@ -1102,33 +1102,35 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             {messages.length <= 2 && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
                 <button
-                  onClick={() => handleSend('Explain Cournot competition using a simple Nigerian market example like Dangote and BUA cement')}
+                  onClick={() => handleSend('Set 10 practice exam questions for my courses')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#0B57D0]/30 bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                >
+                  <GeminiIcon name="zap" size={11} />
+                  <span>Practice Questions</span>
+                </button>
+                <button
+                  onClick={() => handleSend('Summarize the key points of my current lecture topic')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                >
+                  <GeminiIcon name="reader" size={11} />
+                  <span>Summarize Topic</span>
+                </button>
+                <button
+                  onClick={() => handleSend('Explain this topic in simple terms with everyday analogies')}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="sparkle" size={11} />
-                  <span>Cournot Analogy</span>
+                  <span>Explain Simply</span>
                 </button>
-                <button
-                  onClick={() => handleSend('How do I get to LLT1 from the Main Gate?')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
-                >
-                  <GeminiIcon name="pin" size={11} />
-                  <span>Way to LLT1</span>
-                </button>
-                <button
-                  onClick={() => handleSend('Where is LLT3 located?')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
-                >
-                  <GeminiIcon name="map" size={11} />
-                  <span>Where is LLT3</span>
-                </button>
-                <button
-                  onClick={() => handleSend('Test me with a practice exam question on Cournot competition')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#0B57D0]/30 bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
-                >
-                  <GeminiIcon name="shield-check" size={11} />
-                  <span>Practice Exam Question</span>
-                </button>
+                {isOou && (
+                  <button
+                    onClick={() => handleSend('How do I get to my lecture venue from the campus gate?')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  >
+                    <GeminiIcon name="pin" size={11} />
+                    <span>Find Hall</span>
+                  </button>
+                )}
               </div>
             )}
 
