@@ -86,7 +86,7 @@ export const BionicNoteCard: React.FC = () => {
       {/* Footer info bar */}
       <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
         <div className="flex items-center gap-1.5 text-slate-400">
-          <GeminiIcon name="sparkle" size={14} className="text-[#387BFF]" />
+          <GeminiIcon name="zap" size={14} className="text-[#387BFF]" />
           <span>Fixation guided reading active</span>
         </div>
         <button

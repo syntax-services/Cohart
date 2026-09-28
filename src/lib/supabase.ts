@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Location, StudentProfile, AttendanceLog, SavedExplanation } from './types';
+import { Location, StudentProfile, AttendanceLog, SavedExplanation, Conversation } from './types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fnqnxdmdyevzavsbfelv.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucW54ZG1keWV2emF2c2JmZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MTI3NDUsImV4cCI6MjEwNTQ4ODc0NX0.BdJAhqwdSiPbGHCb5d3KbwNHalTlbO1jaqWTgXvVz6A';
@@ -991,3 +991,106 @@ export async function deleteSavedExplanation(id: string): Promise<boolean> {
     return false;
   }
 }
+
+// AI Conversation Cloud Operations (Supabase sync with offline cache fallback)
+export async function fetchAiConversations(userId?: string): Promise<Conversation[]> {
+  try {
+    let query = supabase
+      .from('ai_conversations')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (userId && isValidUUID(userId)) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query.limit(30);
+
+    if (!error && data && data.length > 0) {
+      const parsed: Conversation[] = data.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        createdAt: row.created_at,
+        messages: Array.isArray(row.messages) ? row.messages : [],
+      }));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cohart_ai_conversations', JSON.stringify(parsed));
+      }
+      return parsed;
+    }
+
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('cohart_ai_conversations');
+      if (cached) return JSON.parse(cached);
+    }
+    return [];
+  } catch {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('cohart_ai_conversations');
+      if (cached) return JSON.parse(cached);
+    }
+    return [];
+  }
+}
+
+export async function upsertAiConversation(conversation: Conversation, userId?: string): Promise<void> {
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = JSON.parse(localStorage.getItem('cohart_ai_conversations') || '[]');
+      const exists = cached.some((c: Conversation) => c.id === conversation.id);
+      const updated = exists
+        ? cached.map((c: Conversation) => (c.id === conversation.id ? conversation : c))
+        : [conversation, ...cached];
+      localStorage.setItem('cohart_ai_conversations', JSON.stringify(updated));
+    } catch {}
+  }
+
+  try {
+    const payload = {
+      id: conversation.id,
+      title: conversation.title,
+      messages: conversation.messages,
+      user_id: userId && isValidUUID(userId) ? userId : null,
+      updated_at: new Date().toISOString(),
+    };
+
+    await supabase.from('ai_conversations').upsert(payload);
+  } catch (e) {
+    console.warn('Failed to sync conversation to cloud:', e);
+  }
+}
+
+export async function deleteAiConversation(conversationId: string): Promise<boolean> {
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = JSON.parse(localStorage.getItem('cohart_ai_conversations') || '[]');
+      const filtered = cached.filter((c: Conversation) => c.id !== conversationId);
+      localStorage.setItem('cohart_ai_conversations', JSON.stringify(filtered));
+    } catch {}
+  }
+
+  try {
+    await supabase.from('ai_conversations').delete().eq('id', conversationId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearAllAiConversations(userId?: string): Promise<boolean> {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('cohart_ai_conversations');
+  }
+
+  try {
+    if (userId && isValidUUID(userId)) {
+      await supabase.from('ai_conversations').delete().eq('user_id', userId);
+    } else {
+      await supabase.from('ai_conversations').delete().is('user_id', null);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+

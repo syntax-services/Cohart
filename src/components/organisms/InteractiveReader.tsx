@@ -121,7 +121,21 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   const [activeTopicIndex, setActiveTopicIndex] = useState<0 | 1>(0);
   const currentChapter = activeTopicIndex === 0 ? TOPIC_1 : TOPIC_2;
 
-  const [isBionic, setIsBionic] = useState(false);
+  const [isBionic, setIsBionic] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cohart_bionic_mode');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+
+  const handleToggleBionic = () => {
+    const next = !isBionic;
+    setIsBionic(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cohart_bionic_mode', String(next));
+    }
+  };
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
   const [selectedText, setSelectedText] = useState<string>('');
@@ -551,7 +565,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <GeminiIcon name="sparkle" size={13} />
+                    <GeminiIcon name="chat" size={13} />
                     <span>AI Copilot</span>
                   </div>
                 </button>
@@ -586,7 +600,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
         {activeView === 'reader' && (
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsBionic(!isBionic)}
+              onClick={handleToggleBionic}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
                 isBionic
                   ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
@@ -742,7 +756,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   {/* AI Explanation Content */}
                   <div className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-3 border border-black/[0.05] dark:border-white/[0.05]">
                     <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#0B57D0] dark:text-[#A8C7FA] mb-1.5">
-                      <GeminiIcon name="sparkle" size={13} />
+                      <GeminiIcon name="chat" size={13} />
                       <span>AI Concept Breakdown</span>
                     </div>
                     <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-line font-sans">
@@ -885,7 +899,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
               {/* Bionic Toggle */}
               <button
-                onClick={() => setIsBionic(!isBionic)}
+                onClick={handleToggleBionic}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
                   isBionic
                     ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
@@ -984,7 +998,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     {checkpoint && (
                       <div className="my-5 p-4 rounded-2xl bg-[#0B57D0]/[0.03] dark:bg-[#A8C7FA]/[0.05] border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 text-xs">
                         <div className="flex items-center gap-2 mb-2 font-mono text-[11px] text-[#0B57D0] dark:text-[#A8C7FA]">
-                          <GeminiIcon name="sparkle" size={14} />
+                          <GeminiIcon name="chat" size={14} />
                           <span>Quick Practice Question</span>
                         </div>
                         <p className="font-medium text-neutral-900 dark:text-white mb-3">
@@ -1093,7 +1107,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                      <GeminiIcon name="sparkle" size={15} />
+                      <GeminiIcon name="chat" size={15} />
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Simple Explanation</h3>

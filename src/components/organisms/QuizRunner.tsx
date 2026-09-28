@@ -279,7 +279,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
               }}
               className="w-full sm:flex-1 py-3 px-4 rounded-full bg-[#A8C7FA] hover:bg-white text-neutral-950 font-bold text-xs font-mono transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#0B57D0]/20 flex items-center justify-center gap-2"
             >
-              <GeminiIcon name="sparkle" size={16} />
+              <GeminiIcon name="zap" size={16} />
               <span>Review Result with Cohart AI &rarr;</span>
             </button>
 
@@ -456,7 +456,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
             <div className="p-4 rounded-2xl bg-[#0B57D0]/10 border border-[#0B57D0]/30 space-y-2 animate-in fade-in duration-150">
               <div className="flex items-center justify-between text-xs text-[#A8C7FA] font-mono">
                 <span className="flex items-center gap-1 font-bold">
-                  <GeminiIcon name="sparkle" size={13} /> Cohart Mini AI Explanation
+                  <GeminiIcon name="zap" size={13} /> Cohart Mini AI Explanation
                 </span>
                 <span className="text-[10px] text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full font-bold">
                   Assisted Question

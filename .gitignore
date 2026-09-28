@@ -16,6 +16,9 @@
 # Misc
 .DS_Store
 *.pem
+/hellraiser_campaign/
+*.mp4
+*.m4a
 
 # Debug logs
 npm-debug.log*

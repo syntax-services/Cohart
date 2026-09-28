@@ -149,7 +149,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
               className="flex-1 py-2 px-3 rounded-xl bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-mono font-semibold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
             >
               <span>Open in Maps</span>
-              <GeminiIcon name="sparkle" size={12} />
+              <GeminiIcon name="pin" size={12} />
             </button>
           </div>
         </div>

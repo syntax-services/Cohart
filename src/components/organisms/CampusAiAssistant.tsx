@@ -3,7 +3,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { MarkdownText } from '@/components/atoms/MarkdownText';
-import { StudentProfile, Location, COHART_VOICES, DEFAULT_COHART_VOICE, CohartVoiceOption, QuizData } from '@/lib/types';
+import {
+  StudentProfile,
+  Location,
+  COHART_VOICES,
+  DEFAULT_COHART_VOICE,
+  QuizData,
+  InteractiveChoices,
+  Message,
+  Conversation,
+} from '@/lib/types';
+import { fetchAiConversations, upsertAiConversation, deleteAiConversation } from '@/lib/supabase';
 import { QuizRunner } from './QuizRunner';
 
 interface CampusAiAssistantProps {
@@ -16,33 +26,6 @@ interface CampusAiAssistantProps {
   initialMode?: 'general' | 'grill_mode';
   initialPrompt?: string;
   onStartQuiz?: (quiz: QuizData) => void;
-}
-
-interface InteractiveChoices {
-  title?: string;
-  multiSelect?: boolean;
-  options: string[];
-}
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-  suggestedAction?: {
-    label: string;
-    venueCode: string;
-  };
-  profileUpdatedBadge?: string;
-  interactiveChoices?: InteractiveChoices;
-  generatedQuiz?: QuizData;
-}
-
-interface Conversation {
-  id: string;
-  title: string;
-  createdAt: string;
-  messages: Message[];
 }
 
 const KNOWLEDGE_BASE: Record<string, { reply: string; venueCode?: string }> = {
@@ -113,7 +96,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
 
   // Intercept phone back button: if menu is open, pressing back button closes menu instead of exiting screen
   useEffect(() => {
@@ -135,14 +117,13 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [selectedChoices, setSelectedChoices] = useState<Record<string, string[]>>({});
 
-  // Deepgram Voice & Audio State
-  const [selectedVoice, setSelectedVoice] = useState<string>(() => {
+  // Deepgram Voice & Audio State (voice selected in Settings)
+  const [selectedVoice] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('cohart_selected_voice') || DEFAULT_COHART_VOICE;
     }
     return DEFAULT_COHART_VOICE;
   });
-  const [isVoicePickerOpen, setIsVoicePickerOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
@@ -154,36 +135,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Save selected voice to localStorage and play its unique pre-recorded sample audio locally
-  const handleSelectVoice = (voiceId: string) => {
-    setSelectedVoice(voiceId);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cohart_selected_voice', voiceId);
-    }
-    setIsVoicePickerOpen(false);
-
-    // Stop any currently playing audio
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current = null;
-    }
-    setSpeakingMsgId(null);
-
-    // Find the unique pre-recorded intro audio for this voice model
-    const voiceObj = COHART_VOICES.find((v) => v.id === voiceId);
-    if (voiceObj && voiceObj.audioUrl) {
-      try {
-        const previewAudio = new Audio(voiceObj.audioUrl);
-        currentAudioRef.current = previewAudio;
-        previewAudio.play().catch((err) => {
-          console.warn('Audio preview autoplay prevented:', err);
-        });
-      } catch (err) {
-        console.warn('Could not play voice preview:', err);
-      }
-    }
-  };
 
   // Text-To-Speech: Read aloud AI response using selected Deepgram Aura-2 model
   const handleSpeakMessage = async (msgId: string, text: string) => {
@@ -323,33 +274,35 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     }
   };
 
-  // Initialize conversation session on page load: only load chats that have actual user messages!
+  // Initialize conversation session on page load: load from Supabase cloud
   useEffect(() => {
-    const saved = localStorage.getItem('cohart_ai_conversations');
-    let loadedConversations: Conversation[] = [];
-    if (saved) {
+    let isMounted = true;
+    async function loadCloudConversations() {
       try {
-        const raw = JSON.parse(saved);
-        // Eliminate ghost conversations with zero user messages
-        loadedConversations = raw.filter((c: Conversation) =>
+        const cloudConversations = await fetchAiConversations(profile.id);
+        if (!isMounted) return;
+        const valid = cloudConversations.filter((c: Conversation) =>
           c.messages && c.messages.some((m) => m.role === 'user')
         );
-      } catch {
-        loadedConversations = [];
+        setConversations(valid.slice(0, 30));
+      } catch (e) {
+        console.warn('Failed to load cloud conversations:', e);
       }
     }
+    loadCloudConversations();
 
     const newSessionId = `conv_${Date.now()}`;
-    setConversations(loadedConversations.slice(0, 20));
     setActiveConvId(newSessionId);
     setMessages([defaultInitialMessage]);
-    // NOTE: We deliberately DO NOT save newSession to localStorage here.
-    // It will ONLY be saved once the user actually sends their first query!
 
     if (initialPrompt) {
       setTimeout(() => handleSend(initialPrompt), 400);
     }
-  }, [studentName, initialMode, profile.institution]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [studentName, initialMode, profile.institution, profile.id]);
 
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
@@ -376,7 +329,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    // Do NOT write to localStorage or add to history until the user sends a message!
     setActiveConvId(newSessionId);
     setMessages([newInitialMsg]);
     setIsSidebarOpen(false);
@@ -390,11 +342,11 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     setTimeout(() => inputRef.current?.focus(), 150);
   };
 
-  const handleDeleteConversation = (e: React.MouseEvent, id: string) => {
+  const handleDeleteConversation = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const filtered = conversations.filter((c) => c.id !== id);
     setConversations(filtered);
-    localStorage.setItem('cohart_ai_conversations', JSON.stringify(filtered));
+    await deleteAiConversation(id);
 
     if (activeConvId === id) {
       if (filtered.length > 0) {
@@ -421,8 +373,9 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     if (!userText) setInput('');
     setIsTyping(true);
 
-    // Save/update conversation in list only now that the user has sent a message
+    // Save/update conversation in list and sync to Supabase
     const convTitle = generateConversationTitle(query);
+    let targetConv: Conversation | null = null;
     setConversations((prev) => {
       const exists = prev.some((c) => c.id === activeConvId);
       let updated: Conversation[];
@@ -430,7 +383,9 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         updated = prev.map((c) => {
           if (c.id === activeConvId) {
             const currentTitle = c.title === 'New Conversation' ? convTitle : c.title;
-            return { ...c, title: currentTitle, messages: newMessages };
+            const item = { ...c, title: currentTitle, messages: newMessages };
+            targetConv = item;
+            return item;
           }
           return c;
         });
@@ -441,11 +396,16 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           createdAt: new Date().toISOString(),
           messages: newMessages,
         };
+        targetConv = newConv;
         updated = [newConv, ...prev];
       }
-      localStorage.setItem('cohart_ai_conversations', JSON.stringify(updated));
       return updated;
     });
+
+    if (targetConv) {
+      upsertAiConversation(targetConv, profile.id);
+    }
+
 
     try {
       let replyContent = '';
@@ -604,16 +564,21 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       const finalMessages = [...newMessages, assistantMsg];
       setMessages(finalMessages);
 
+      let finalConv: Conversation | null = null;
       setConversations((prev) => {
         const updated = prev.map((c) => {
           if (c.id === activeConvId) {
-            return { ...c, messages: finalMessages };
+            finalConv = { ...c, messages: finalMessages };
+            return finalConv;
           }
           return c;
         });
-        localStorage.setItem('cohart_ai_conversations', JSON.stringify(updated));
         return updated;
       });
+
+      if (finalConv) {
+        upsertAiConversation(finalConv, profile.id);
+      }
     } catch {
       const errAssistantMsg: Message = {
         id: `ai_${Date.now()}`,
@@ -649,8 +614,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           {/* Sidebar Top: Branding & Close */}
           <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                <GeminiIcon name="sparkle" size={17} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                <GeminiIcon name="chat" size={24} />
               </div>
               <div>
                 <h3 className="text-xs font-semibold tracking-tight text-neutral-900 dark:text-white">Cohart AI</h3>
@@ -750,125 +715,35 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             </button>
 
             <div className="flex items-center gap-2">
-              <span className={`h-2 w-2 rounded-full ${currentMode === 'grill_mode' ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
-              <h2 className="text-xs sm:text-sm font-semibold text-neutral-900 dark:text-white truncate max-w-[180px] sm:max-w-xs font-sans">
+              <span className={`h-2.5 w-2.5 rounded-full ${currentMode === 'grill_mode' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+              <h2 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white truncate max-w-[180px] sm:max-w-xs font-sans">
                 {activeConversation?.title || 'Cohart AI'}
               </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* View Switch Dropdown: AI Copilot <-> Reader <-> Vault */}
+          <div className="flex items-center gap-2">
+            {/* New Chat Action */}
+            <button
+              onClick={() => handleStartNewChat('general')}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-neutral-800 dark:text-neutral-200 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
+              title="Start New Conversation"
+            >
+              <span className="text-sm font-bold leading-none">+</span>
+              <span className="hidden sm:inline">New Chat</span>
+            </button>
+
+            {/* Clean Exit / Back Action */}
             {onExitFullscreen && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-white/90 dark:bg-[#181B24]/90 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-neutral-800 dark:text-neutral-200 text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-2xs"
-                  title="Switch View"
-                >
-                  <GeminiIcon name="sparkle" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                  <span className="font-semibold">AI Copilot</span>
-                  <GeminiIcon name="chevron-down" size={12} className="text-neutral-400" />
-                </button>
-
-                {isViewDropdownOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-[99]"
-                      onClick={() => setIsViewDropdownOpen(false)}
-                    />
-                    <div className="absolute right-0 top-full mt-1.5 w-44 rounded-2xl bg-white/98 dark:bg-[#181B24]/98 border border-black/[0.1] dark:border-white/[0.1] shadow-2xl backdrop-blur-2xl p-1 z-[100] animate-in fade-in zoom-in-95 duration-100">
-                      <div className="px-2.5 py-1.5 text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
-                        Switch View
-                      </div>
-                      <button
-                        onClick={() => setIsViewDropdownOpen(false)}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] cursor-pointer"
-                      >
-                        <GeminiIcon name="sparkle" size={13} />
-                        <span>AI Copilot</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsViewDropdownOpen(false);
-                          onExitFullscreen();
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
-                      >
-                        <GeminiIcon name="reader" size={13} />
-                        <span>Course Reader</span>
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Voice Model Selector Dropdown */}
-            <div className="relative">
               <button
-                onClick={() => setIsVoicePickerOpen(!isVoicePickerOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-white/90 dark:bg-[#181B24]/90 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-neutral-800 dark:text-neutral-200 text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-2xs"
-                title="Select Deepgram Voice Model"
+                onClick={onExitFullscreen}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] hover:bg-[#0B57D0]/20 text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                title="Return to Campus Hub"
               >
-                <GeminiIcon name="volume" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                <span className="font-mono text-[11px] hidden sm:inline">
-                  {COHART_VOICES.find((v) => v.id === selectedVoice)?.label.split(' ')[1] || 'Nova'}
-                </span>
-                <GeminiIcon name="chevron-down" size={11} className="text-neutral-400" />
+                <GeminiIcon name="arrow-left" size={15} />
+                <span>Back</span>
               </button>
-
-              {isVoicePickerOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-[99]"
-                    onClick={() => setIsVoicePickerOpen(false)}
-                  />
-                  <div className="absolute right-0 top-full mt-1.5 w-72 max-h-80 overflow-y-auto rounded-2xl bg-white/98 dark:bg-[#181B24]/98 border border-black/[0.1] dark:border-white/[0.1] shadow-2xl backdrop-blur-2xl p-1.5 z-[100] animate-in fade-in zoom-in-95 duration-100">
-                    <div className="px-2.5 py-1.5 border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
-                      <div className="text-[11px] font-bold text-neutral-900 dark:text-white">
-                        AI Reading Voice
-                      </div>
-                      <p className="text-[10px] font-mono text-neutral-500">
-                        Deepgram Aura-2 Models • Natural Academic Cadence
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      {COHART_VOICES.map((v) => {
-                        const isSelected = v.id === selectedVoice;
-                        return (
-                          <button
-                            key={v.id}
-                            onClick={() => handleSelectVoice(v.id)}
-                            className={`w-full text-left p-2 rounded-xl text-xs transition-colors flex items-start justify-between gap-2 cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-medium border border-[#0B57D0]/20'
-                                : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                            }`}
-                          >
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-medium">{v.label}</span>
-                                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-md bg-black/[0.05] dark:bg-white/[0.08] text-neutral-500">
-                                  {v.gender}
-                                </span>
-                              </div>
-                              <p className="text-[10px] text-neutral-500 line-clamp-1 mt-0.5">
-                                {v.persona}
-                              </p>
-                            </div>
-                            {isSelected && (
-                              <GeminiIcon name="check" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA] shrink-0 mt-0.5" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+            )}
           </div>
         </header>
 
@@ -885,35 +760,35 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[90%] sm:max-w-[85%] rounded-2xl p-4 text-xs sm:text-[13px] leading-relaxed transition-all shadow-xs ${
+                  className={`max-w-[90%] sm:max-w-[85%] rounded-[1.5rem] p-5 text-sm sm:text-base leading-relaxed transition-all shadow-sm ${
                     isUser
-                      ? 'bg-[#0B57D0] text-white rounded-br-xs'
-                      : 'bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 rounded-bl-xs backdrop-blur-md'
+                      ? 'bg-[#0B57D0] text-white rounded-br-md'
+                      : 'bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.04] dark:border-white/[0.04] text-neutral-900 dark:text-neutral-100 rounded-bl-md backdrop-blur-3xl'
                   }`}
                 >
-                  <div className={`flex items-center justify-between text-[10px] font-mono mb-1 ${isUser ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'}`}>
+                  <div className={`flex items-center justify-between text-xs font-semibold mb-2 ${isUser ? 'text-white/80' : 'text-neutral-500 dark:text-neutral-400'}`}>
                     <span>{isUser ? 'You' : 'Cohart AI'} • {m.timestamp}</span>
                     {!isUser && (
                       <button
                         onClick={() => handleSpeakMessage(m.id, m.content)}
-                        className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md transition-colors cursor-pointer ${
+                        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors cursor-pointer ${
                           speakingMsgId === m.id
-                            ? 'bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] font-bold'
+                            ? 'bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
                             : 'hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
                         }`}
                         title={speakingMsgId === m.id ? 'Stop listening' : 'Listen with Cohart AI Voice'}
                       >
                         {isSynthesizing === m.id ? (
-                          <GeminiIcon name="loader" size={11} />
+                          <GeminiIcon name="loader" size={14} />
                         ) : speakingMsgId === m.id ? (
                           <>
-                            <GeminiIcon name="volume-x" size={11} />
-                            <span className="text-[9px]">Stop</span>
+                            <GeminiIcon name="volume-x" size={14} />
+                            <span className="text-[10px] font-bold">Stop</span>
                           </>
                         ) : (
                           <>
-                            <GeminiIcon name="volume" size={11} />
-                            <span className="text-[9px]">Listen</span>
+                            <GeminiIcon name="volume" size={14} />
+                            <span className="text-[10px] font-bold">Listen</span>
                           </>
                         )}
                       </button>
@@ -1100,34 +975,34 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           <div className="max-w-3xl mx-auto space-y-2">
             {/* Quick Context Prompt Chips */}
             {messages.length <= 2 && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
                 <button
                   onClick={() => handleSend('Set 10 practice exam questions for my courses')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#0B57D0]/30 bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#0B57D0]/30 bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] text-xs font-bold shrink-0 transition-colors cursor-pointer"
                 >
-                  <GeminiIcon name="zap" size={11} />
+                  <GeminiIcon name="zap" size={14} />
                   <span>Practice Questions</span>
                 </button>
                 <button
                   onClick={() => handleSend('Summarize the key points of my current lecture topic')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs font-bold shrink-0 transition-colors cursor-pointer"
                 >
-                  <GeminiIcon name="reader" size={11} />
+                  <GeminiIcon name="reader" size={14} />
                   <span>Summarize Topic</span>
                 </button>
                 <button
                   onClick={() => handleSend('Explain this topic in simple terms with everyday analogies')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs font-bold shrink-0 transition-colors cursor-pointer"
                 >
-                  <GeminiIcon name="sparkle" size={11} />
+                  <GeminiIcon name="chat" size={14} />
                   <span>Explain Simply</span>
                 </button>
                 {isOou && (
                   <button
                     onClick={() => handleSend('How do I get to my lecture venue from the campus gate?')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-[11px] font-mono shrink-0 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs font-bold shrink-0 transition-colors cursor-pointer"
                   >
-                    <GeminiIcon name="pin" size={11} />
+                    <GeminiIcon name="pin" size={14} />
                     <span>Find Hall</span>
                   </button>
                 )}
@@ -1135,7 +1010,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             )}
 
             {/* Input Bar Form with Deepgram Nova-3 Voice Input */}
-            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] focus-within:border-[#0B57D0] dark:focus-within:border-[#A8C7FA] transition-colors">
+            <div className="flex items-center gap-2 p-2 rounded-[1.25rem] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] focus-within:border-[#0B57D0] dark:focus-within:border-[#A8C7FA] transition-colors">
               <input
                 ref={inputRef}
                 type="text"
@@ -1156,16 +1031,16 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                     ? 'Type your answer or tap mic...'
                     : 'Ask questions or tap mic...'
                 }
-                className="flex-1 min-w-0 bg-transparent px-3 py-2 text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none font-sans"
+                className="flex-1 min-w-0 bg-transparent px-4 py-3 text-sm sm:text-base font-medium text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none font-sans"
               />
 
               {/* Action Buttons Right: Mic & Send */}
-              <div className="flex items-center gap-1.5 shrink-0 pr-1">
+              <div className="flex items-center gap-2 shrink-0 pr-1">
                 <button
                   type="button"
                   onClick={isRecording ? handleStopRecording : handleStartRecording}
                   disabled={isTranscribing}
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-95 cursor-pointer shrink-0 ${
+                  className={`flex h-11 w-11 items-center justify-center rounded-[0.85rem] transition-all active:scale-95 cursor-pointer shrink-0 ${
                     isRecording
                       ? 'bg-rose-500 text-white animate-bounce shadow-md'
                       : isTranscribing
@@ -1175,21 +1050,21 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   title={isRecording ? 'Stop Recording' : 'Voice Input (Deepgram Nova-3)'}
                 >
                   {isTranscribing ? (
-                    <GeminiIcon name="loader" size={15} />
+                    <GeminiIcon name="loader" size={20} />
                   ) : isRecording ? (
-                    <GeminiIcon name="mic-off" size={16} />
+                    <GeminiIcon name="mic-off" size={20} />
                   ) : (
-                    <GeminiIcon name="mic" size={16} />
+                    <GeminiIcon name="mic" size={20} />
                   )}
                 </button>
 
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim()}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
+                  className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-sm shrink-0"
                   title="Send message"
                 >
-                  <GeminiIcon name="arrow-right" size={15} />
+                  <GeminiIcon name="arrow-right" size={20} />
                 </button>
               </div>
             </div>

@@ -393,3 +393,30 @@ export interface QuizAttemptResult {
   completedAt: string;
 }
 
+export interface InteractiveChoices {
+  title?: string;
+  multiSelect?: boolean;
+  options: string[];
+}
+
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  suggestedAction?: {
+    label: string;
+    venueCode: string;
+  };
+  profileUpdatedBadge?: string;
+  interactiveChoices?: InteractiveChoices;
+  generatedQuiz?: QuizData;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  createdAt: string;
+  messages: Message[];
+}
+

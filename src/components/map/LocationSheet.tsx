@@ -218,7 +218,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                     !onNavigate ? 'col-span-2' : ''
                   }`}
                 >
-                  <GeminiIcon name="sparkle" size={14} />
+                  <GeminiIcon name="zap" size={14} />
                   <span>Google Maps</span>
                 </button>
 

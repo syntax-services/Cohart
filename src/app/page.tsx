@@ -254,13 +254,13 @@ export default function AppHomePage() {
         )}
 
         {activeTab === 'ai' && (
-          <div className="h-full w-full pb-20">
+          <div className="h-full w-full">
             <CampusAiAssistant
               profile={profile}
               onSelectVenue={handleSelectVenue}
               onMilestoneAction={handleMarkMilestone}
               onUpdateProfile={saveProfile}
-              onExitFullscreen={() => changeTab('reader')}
+              onExitFullscreen={() => changeTab('hub')}
               initialPrompt={aiInitialPrompt || undefined}
               onStartQuiz={(q) => setSharedQuiz(q)}
             />
@@ -282,12 +282,14 @@ export default function AppHomePage() {
         )}
       </main>
 
-      {/* PWA Floating Bottom Navigation Bar */}
-      <BottomNav 
-        activeTab={activeTab} 
-        onChangeTab={handleTabChange} 
-        institution={profile?.institution}
-      />
+      {/* PWA Floating Bottom Navigation Bar - Hidden in AI Mode for Full Viewport Workspace */}
+      {!isAiActive && (
+        <BottomNav 
+          activeTab={activeTab} 
+          onChangeTab={handleTabChange} 
+          institution={profile?.institution}
+        />
+      )}
 
       {/* Shared Peer Quiz Runner */}
       {sharedQuiz && (
