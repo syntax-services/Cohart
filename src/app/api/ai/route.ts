@@ -117,8 +117,8 @@ export async function POST(req: NextRequest) {
       cognitiveDirectives += '\n- Visual & Mental Model Analogies: Always pair abstract theories with tangible physical visuals or mental scenes (e.g., picturing market stalls, flow of trucks on Lagos-Ibadan expressway, balance scales).';
     }
 
-    const institution = studentProfile?.institution || 'OOU';
-    const isOou = institution === 'OOU' || institution.includes('OOU') || institution.toLowerCase().includes('olabisi');
+    const institution = studentProfile?.institution || '';
+    const hasInstitution = Boolean(institution);
 
     // Adaptive Exam Drill & Socratic Drill Feature (Integrated natively into normal chat)
     const grillDirective = `
@@ -210,7 +210,7 @@ When the student asks to choose or change their school:
      [UPDATE_PROFILE:{"institution":"OOU"}] (or "UNILAG", "UI", "OAU", "FUTA", "LASU", etc.).`;
 
     let campusLocationDirective = '';
-    if (isOou) {
+    if (institution && (institution === 'OOU' || institution.includes('OOU') || institution.toLowerCase().includes('olabisi'))) {
       campusLocationDirective = `
 Campus Locations (OOU Ago-Iwoye Permanent Site):
 - LLT 3 (Law Lecture Theatre 3) is at Motion Ground on the southern side of campus, right next to New Motion shops and the ICAN Building.
@@ -220,19 +220,22 @@ Campus Locations (OOU Ago-Iwoye Permanent Site):
 - ICT Centre (where students do CBT exams) is near the Senate/Admin Block.
 - SMS Lecture Theatre (SLR 1) is on the ground floor eastern wing of the SMS Complex.
 - ETF Complex is north of the SMS block.`;
+    } else if (hasInstitution) {
+      campusLocationDirective = `
+Campus Context for ${institution}:
+- The student is studying at ${institution}. Adapt your study examples, local contexts, and academic advice to suit higher education in Nigeria.`;
     } else {
       campusLocationDirective = `
-Campus Navigation for ${institution}:
-- The interactive live campus map is currently active only for Olabisi Onabanjo University (OOU).
-- If the student asks for campus directions, maps, or lecture hall locations at ${institution}, politely explain in very simple English that campus maps are not available for their school yet, but as Cohart expands to ${institution}, they will get full interactive map navigation too!`;
+Institution Selection:
+- The student has not selected their university yet. Gently remind them they can pick their university from 250+ Federal, State, and Private universities across Nigeria in their profile or directly here in chat.`;
     }
 
     // Cohart Context & Persona Injection
-    const systemPrompt = `You are Cohart AI, a friendly, smart study companion built for university students in Nigeria${isOou ? ' (specifically Olabisi Onabanjo University, Ago-Iwoye)' : ` (${institution})`}.
+    const systemPrompt = `You are Cohart AI, a friendly, smart study companion built for university students across all Federal, State, and Private universities in Nigeria${hasInstitution ? ` (currently assisting a student at ${institution})` : ''}.
 
 Student Information:
 - Name: ${studentProfile?.full_name || 'Scholar'}
-- Institution: ${institution}
+- Institution: ${institution || 'Not yet selected'}
 - Department: ${studentProfile?.department || 'General Studies'} (${studentProfile?.level || 'Undergraduate'})
 - Learning Preference: ${studentProfile?.learning_style || 'visual_analogies'}
 

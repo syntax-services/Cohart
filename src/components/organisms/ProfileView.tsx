@@ -181,7 +181,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   };
 
   const handleStartCampusChange = (targetCode?: string) => {
-    const defaultCode = targetCode || (profile.institution?.includes('OOU') ? 'UNILAG' : 'OOU');
+    const defaultCode = targetCode || (profile.institution ? 'UNILAG' : 'UNILAG');
     setSelectedTargetUniv(defaultCode);
     const q = getRandomCampusQuestion(defaultCode);
     setCurrentInsiderQuestion(q);
@@ -306,7 +306,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </p>
 
               <p className="text-xs text-neutral-400 dark:text-neutral-500 font-sans mt-1">
-                {profile.institution || 'Olabisi Onabanjo University (OOU)'}
+                {profile.institution || 'No university selected'}
               </p>
             </div>
           </div>
@@ -418,18 +418,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         Department
                       </label>
                       <input
-                        list="oou-depts-list-account"
                         type="text"
-                        placeholder="Select or type department"
+                        placeholder="e.g. Economics, Computer Science, Law"
                         value={dept}
                         onChange={(e) => setDept(e.target.value)}
                         className="w-full px-4 py-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
                       />
-                      <datalist id="oou-depts-list-account">
-                        {ALL_OOU_DEPARTMENTS.map((d) => (
-                          <option key={d} value={d} />
-                        ))}
-                      </datalist>
                     </div>
 
                     <div>
@@ -528,14 +522,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-base font-bold text-neutral-900 dark:text-white">
-                      {profile.institution || 'Olabisi Onabanjo University (OOU)'}
+                      {profile.institution || 'Select Your Institution'}
                     </span>
-                    <Badge variant="emerald" size="sm">Active Campus</Badge>
+                    {profile.institution ? (
+                      <Badge variant="emerald" size="sm">Active Campus</Badge>
+                    ) : (
+                      <Badge variant="amber" size="sm">Not Set</Badge>
+                    )}
                   </div>
                   <p className="text-xs text-neutral-500 mt-1">
-                    {profile.institution?.includes('OOU')
-                      ? 'Ago-Iwoye Main Campus • Interactive Live Campus Map Active'
-                      : 'Academic Study & Exam Drills Active'}
+                    {profile.institution
+                      ? 'Academic Study, Course Schedules & Personalized AI Active'
+                      : 'Choose your tertiary institution from 250+ Nigerian universities'}
                   </p>
                 </div>
 
@@ -543,7 +541,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   onClick={() => handleStartCampusChange()}
                   className="px-4 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-bold text-neutral-800 dark:text-neutral-200 transition-colors cursor-pointer shrink-0"
                 >
-                  Verify New School
+                  {profile.institution ? 'Switch University' : 'Select University'}
                 </button>
               </div>
             </GeminiCard>
@@ -866,9 +864,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="space-y-1.5">
               <label className="text-xs font-mono text-neutral-500 uppercase">Target University</label>
               <UniversityCombobox
-                universities={NIGERIAN_UNIVERSITIES}
-                selectedCode={selectedTargetUniv}
-                onSelect={(code) => handleSelectTargetUniv(code)}
+                value={selectedTargetUniv}
+                onChange={(code: string) => handleSelectTargetUniv(code)}
+                placeholder="Search by university name, state, or acronym..."
               />
             </div>
 

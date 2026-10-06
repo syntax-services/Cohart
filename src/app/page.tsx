@@ -125,21 +125,6 @@ export default function AppHomePage() {
       setIsAiFullscreen(false);
     }
 
-    if (targetTab === 'map') {
-      const isStudentOou =
-        !profile?.institution ||
-        profile.institution === 'OOU' ||
-        profile.institution.includes('OOU') ||
-        profile.institution.toLowerCase().includes('olabisi');
-
-      if (!isStudentOou) {
-        changeTab('ai');
-        return;
-      }
-      changeTab('map');
-      return;
-    }
-
     if (!isAuthenticated) {
       setPendingTab(targetTab);
       setIsAuthModalOpen(true);

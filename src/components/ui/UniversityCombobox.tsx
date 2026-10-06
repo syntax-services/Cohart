@@ -18,13 +18,13 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
   value,
   onChange,
   label,
-  placeholder = 'Search Nigerian public university...',
+  placeholder = 'Search Nigerian university (Federal, State, Private)...',
   className = '',
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<'All' | 'Federal' | 'State'>('All');
+  const [categoryFilter, setCategoryFilter] = useState<'All' | 'Federal' | 'State' | 'Private'>('All');
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -37,7 +37,9 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
       SUPPORTED_INSTITUTIONS.find(
         (inst) => inst.id.toLowerCase() === (value || '').toLowerCase()
       ) ||
-      SUPPORTED_INSTITUTIONS.find((inst) => inst.id === 'OOU') ||
+      SUPPORTED_INSTITUTIONS.find(
+        (inst) => inst.name.toLowerCase() === (value || '').toLowerCase()
+      ) ||
       SUPPORTED_INSTITUTIONS[0]
     );
   }, [value]);
@@ -68,6 +70,10 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
   );
   const stateCount = useMemo(
     () => SUPPORTED_INSTITUTIONS.filter((i) => i.category === 'State').length,
+    []
+  );
+  const privateCount = useMemo(
+    () => SUPPORTED_INSTITUTIONS.filter((i) => i.category === 'Private').length,
     []
   );
 
@@ -263,11 +269,11 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
               </div>
 
               {/* Category Filter Pills */}
-              <div className="flex items-center gap-1.5 mt-2">
+              <div className="flex items-center gap-1 mt-2 overflow-x-auto pb-1 scrollbar-none">
                 <button
                   type="button"
                   onClick={() => setCategoryFilter('All')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors ${
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'All'
                       ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950'
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
@@ -278,7 +284,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                 <button
                   type="button"
                   onClick={() => setCategoryFilter('Federal')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors ${
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'Federal'
                       ? 'bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-neutral-950'
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
@@ -289,13 +295,24 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                 <button
                   type="button"
                   onClick={() => setCategoryFilter('State')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors ${
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'State'
                       ? 'bg-emerald-600 text-white dark:bg-emerald-400 dark:text-neutral-950'
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
                   }`}
                 >
                   State ({stateCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCategoryFilter('Private')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
+                    categoryFilter === 'Private'
+                      ? 'bg-purple-600 text-white dark:bg-purple-400 dark:text-neutral-950'
+                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
+                  }`}
+                >
+                  Private ({privateCount})
                 </button>
               </div>
             </div>
@@ -308,7 +325,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
               {filteredInstitutions.length === 0 ? (
                 <div className="py-6 px-4 text-center">
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    No public universities match &quot;{searchQuery}&quot;
+                    No universities match &quot;{searchQuery}&quot;
                   </p>
                   <button
                     type="button"
@@ -349,7 +366,9 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                           className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border ${
                             inst.category === 'Federal'
                               ? 'bg-[#0B57D0]/10 border-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
-                              : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                              : inst.category === 'State'
+                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                              : 'bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-400'
                           }`}
                         >
                           {inst.shortName}
@@ -364,6 +383,12 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                             <span>{inst.locationState}</span>
                             <span>•</span>
                             <span>{inst.category}</span>
+                            {inst.city && (
+                              <>
+                                <span>•</span>
+                                <span>{inst.city}</span>
+                              </>
+                            )}
                             {inst.hasMap && (
                               <>
                                 <span>•</span>
@@ -390,7 +415,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
 
             {/* Micro Footer Notice */}
             <div className="px-3 py-1.5 bg-neutral-50/50 dark:bg-white/[0.02] border-t border-black/[0.04] dark:border-white/[0.04] text-[10px] font-mono text-neutral-400 text-center">
-              Accredited Federal & State Public Universities
+              All 250+ NUC-Accredited Federal, State & Private Higher Institutions
             </div>
           </motion.div>
         )}

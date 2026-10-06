@@ -5,7 +5,7 @@ export interface NigerianUniversity {
   name: string;
   shortName: string;
   state: string;
-  category?: 'Federal' | 'State';
+  category?: 'Federal' | 'State' | 'Private';
   mainCampus: string;
   badgeColor: string;
 }
@@ -202,9 +202,30 @@ export const CAMPUS_INSIDER_QUESTIONS: Record<string, CampusInsiderQuestion[]> =
 
 export function getRandomCampusQuestion(institutionCode: string): CampusInsiderQuestion {
   const code = institutionCode.toUpperCase();
-  const list = CAMPUS_INSIDER_QUESTIONS[code] || CAMPUS_INSIDER_QUESTIONS.OOU;
-  const index = Math.floor(Math.random() * list.length);
-  return list[index];
+  const list = CAMPUS_INSIDER_QUESTIONS[code];
+  if (list && list.length > 0) {
+    const index = Math.floor(Math.random() * list.length);
+    return list[index];
+  }
+
+  const uni = NIGERIAN_UNIVERSITIES.find((u) => u.code.toUpperCase() === code);
+  const name = uni?.name || institutionCode;
+  const state = uni?.state || 'Nigeria';
+
+  return {
+    id: `univ_generic_${code}`,
+    institutionCode: code,
+    question: `What state or campus city is ${name} situated in, and what is the primary color of the university crest or identity?`,
+    expectedKeywords: [state.toLowerCase(), 'crest', 'campus', 'gate', 'faculty', 'hall'],
+    nearMissKeywords: [state.toLowerCase(), 'nigeria'],
+    nearMissNudge: `You are close! Mention the state (${state}) or key landmark for ${name}.`,
+    bluffChallenge: `Wait, isn't ${name} located in another region entirely? Are you sure?`,
+    bluffConfirmationWords: ['no', 'yes', 'sure', 'correct', 'definitely', state.toLowerCase(), 'never', 'wrong'],
+    fallbackQuestion: {
+      question: `What is the commonly known short name or acronym for ${name}?`,
+      expectedKeywords: [code.toLowerCase(), uni?.shortName?.toLowerCase() || ''],
+    },
+  };
 }
 
 export interface VerificationEvaluation {

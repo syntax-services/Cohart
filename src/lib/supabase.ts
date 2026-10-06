@@ -11,7 +11,7 @@ export const DEFAULT_STUDENT_PROFILE: StudentProfile = {
   email: '',
   full_name: '',
   matric_number: '',
-  institution: 'Olabisi Onabanjo University (OOU)',
+  institution: '',
   faculty: '',
   department: '',
   level: '',

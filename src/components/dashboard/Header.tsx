@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder="Search OOU lecture halls, courses (ECO 201), faculties..."
+              placeholder="Search courses, lecture venues, topics..."
               className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#387BFF]/50 focus:ring-1 focus:ring-[#387BFF]/30 transition-all font-sans"
             />
           </div>
@@ -92,11 +92,11 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
           {/* Student Avatar Tag */}
           <div className="flex items-center gap-2 pl-2 border-l border-white/[0.08]">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#1A73E8] to-[#387BFF] font-mono text-xs font-bold text-white shadow-[0_0_12px_rgba(56,123,255,0.3)]">
-              EC
+              ST
             </div>
             <div className="hidden lg:flex flex-col text-left">
-              <span className="text-xs font-medium text-white leading-tight">OOU Economics</span>
-              <span className="text-[10px] font-mono text-slate-500">200 Level</span>
+              <span className="text-xs font-medium text-white leading-tight">Student Scholar</span>
+              <span className="text-[10px] font-mono text-slate-500">Undergraduate</span>
             </div>
           </div>
         </div>
