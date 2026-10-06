@@ -9,6 +9,7 @@ import { ScheduleView } from '@/components/organisms/ScheduleView';
 import { ProfileView } from '@/components/organisms/ProfileView';
 import { CampusMapWrapper } from '@/components/map/CampusMapWrapper';
 import { CampusAiAssistant } from '@/components/organisms/CampusAiAssistant';
+import { CampusSocialHub } from '@/components/organisms/CampusSocialHub';
 import { Location, QuizData } from '@/lib/types';
 import { fetchLocations } from '@/lib/supabase';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
@@ -240,12 +241,12 @@ export default function AppHomePage() {
 
         {activeTab === 'ai' && (
           <div className="h-full w-full">
-            <CampusAiAssistant
+            <CampusSocialHub
               profile={profile}
+              locations={locations}
               onSelectVenue={handleSelectVenue}
               onMilestoneAction={handleMarkMilestone}
               onUpdateProfile={saveProfile}
-              onExitFullscreen={() => changeTab('hub')}
               initialPrompt={aiInitialPrompt || undefined}
               onStartQuiz={(q) => setSharedQuiz(q)}
             />

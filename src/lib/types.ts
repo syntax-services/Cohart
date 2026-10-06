@@ -589,3 +589,41 @@ export interface Conversation {
   messages: Message[];
 }
 
+export interface PeerStudent {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  institutionCode: string;
+  institutionName: string;
+  department: string;
+  level: string;
+  isOnline: boolean;
+  verified: boolean;
+  stringAccountId?: string;
+  bio?: string;
+}
+
+export interface PeerDirectMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  timestamp: string;
+  type?: 'text' | 'quiz_share' | 'voice_note' | 'note_attachment';
+  voiceUrl?: string;
+  voiceDurationSeconds?: number;
+  sharedQuizData?: QuizData;
+  isRead?: boolean;
+}
+
+export interface CampusStudySquad {
+  id: string;
+  name: string;
+  topic: string;
+  courseCode: string;
+  institutionCode: string;
+  memberCount: number;
+  lastActive: string;
+  isPublic: boolean;
+  tags: string[];
+}
