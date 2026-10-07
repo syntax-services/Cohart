@@ -50,15 +50,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMsg(null);
     setInfoMsg(null);
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanIdentifier = email.trim().toLowerCase();
     const cleanPassword = password.trim();
 
     if (mode === 'signup' && !fullName.trim()) {
       setErrorMsg('Please enter your full name.');
       return;
     }
-    if (!cleanEmail || !cleanPassword) {
-      setErrorMsg('Please provide your email and password.');
+    if (!cleanIdentifier || !cleanPassword) {
+      setErrorMsg('Please provide your username and password.');
       return;
     }
     if (cleanPassword.length < 6) {
@@ -69,81 +69,72 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     try {
       if (mode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password: cleanPassword,
-          options: {
-            data: {
-              full_name: fullName.trim(),
-              institution: institution,
-            },
-          },
+        // Strip @ symbols if student typed a username or extract clean handle
+        const usernameHandle = cleanIdentifier.includes('@')
+          ? cleanIdentifier.split('@')[0]
+          : cleanIdentifier;
+
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'signup',
+            username: usernameHandle,
+            password: cleanPassword,
+            fullName: fullName.trim(),
+            institution: institution,
+            realEmail: cleanIdentifier.includes('@') ? cleanIdentifier : undefined,
+          }),
         });
 
-        if (error) {
-          setErrorMsg(error.message);
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          setErrorMsg(data.error || 'Failed to create student account.');
           return;
         }
 
-        // STRICT EMAIL VERIFICATION CHECK:
-        // If email confirmation is required, user is not verified yet.
-        const isVerified = Boolean(data.user?.email_confirmed_at || data.user?.confirmed_at);
-        if (!isVerified) {
-          // Never log in an unverified user!
-          await supabase.auth.signOut();
-          setMode('verify_email');
-          setResendCooldown(60);
-          setInfoMsg(`Verification email sent to ${cleanEmail}.`);
+        // Now sign in immediately with the internal email format
+        const { data: signinData, error: signinError } = await supabase.auth.signInWithPassword({
+          email: data.internalEmail,
+          password: cleanPassword,
+        });
+
+        if (signinError) {
+          setErrorMsg('Account created, but sign-in failed: ' + signinError.message);
           return;
         }
 
-        // If email is pre-confirmed (rare dev environment setup)
-        const studentName = fullName.trim() || cleanEmail.split('@')[0];
-        onSuccess(studentName, cleanEmail, data.user?.id, institution);
+        const studentName = fullName.trim() || data.username;
+        onSuccess(studentName, data.internalEmail, signinData.user?.id, institution);
         onClose();
       } else if (mode === 'signin') {
+        // If user typed a username (without @), map to internal domain
+        const loginEmail = cleanIdentifier.includes('@')
+          ? cleanIdentifier
+          : `${cleanIdentifier.replace(/[^a-z0-9._-]/g, '')}@student.cohart.ng`;
+
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
+          email: loginEmail,
           password: cleanPassword,
         });
 
         if (error) {
           const lowerMsg = error.message.toLowerCase();
-          if (lowerMsg.includes('email not confirmed')) {
-            // User entered correct credentials but hasn't verified email!
-            setMode('verify_email');
-            setErrorMsg('Your email is not verified yet. Please click the link sent to your inbox.');
-            return;
-          }
           if (lowerMsg.includes('invalid login credentials')) {
-            setErrorMsg('Invalid email or password. Please check your credentials.');
+            setErrorMsg('Invalid username or password. Please check your credentials.');
           } else {
             setErrorMsg(error.message);
           }
           return;
         }
 
-        // Validate confirmed status
-        const isVerified = Boolean(
-          data.user?.email_confirmed_at ||
-          data.user?.confirmed_at ||
-          data.user?.app_metadata?.provider !== 'email'
-        );
-
-        if (!isVerified) {
-          // Force sign out unverified account
-          await supabase.auth.signOut();
-          setMode('verify_email');
-          setErrorMsg('You must verify your email address before accessing Cohart.');
-          return;
-        }
-
         const studentName =
           data.user?.user_metadata?.full_name ||
-          cleanEmail.split('@')[0] ||
+          data.user?.user_metadata?.username ||
+          cleanIdentifier.split('@')[0] ||
           'Student';
 
-        onSuccess(studentName, cleanEmail, data.user?.id);
+        onSuccess(studentName, loginEmail, data.user?.id);
         onClose();
       }
     } catch {
@@ -343,8 +334,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </h2>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                 {mode === 'signin'
-                  ? 'Sign in to access your personalized reader, schedule & campus guidance.'
-                  : 'Requires email verification before first sign-in.'}
+                  ? 'Enter your username or student email to continue.'
+                  : 'Get started instantly with just a username and password.'}
               </p>
             </div>
 
@@ -380,22 +371,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       label="University / Institution"
                       value={institution}
                       onChange={(code) => setInstitution(code)}
-                      placeholder="Search Nigerian public university..."
+                      placeholder="Search Nigerian higher institution..."
                     />
                   </div>
                 </>
               )}
 
               <div>
-                <label className="text-[11px] font-mono text-neutral-500 uppercase">Student Email</label>
+                <label className="text-[11px] font-mono text-neutral-500 uppercase">
+                  {mode === 'signup' ? 'Username' : 'Username or Email'}
+                </label>
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="student@oouagoiwoye.edu.ng"
+                  placeholder={mode === 'signup' ? 'e.g. adewale_j' : 'Username or email'}
                   required
+                  autoCapitalize="none"
+                  autoCorrect="off"
                   className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
                 />
+                {mode === 'signup' && (
+                  <p className="text-[10px] text-neutral-400 mt-1">
+                    No email or phone required. You can optionally link an email later.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -419,7 +419,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {loading ? (
                   <div className="h-3.5 w-3.5 rounded-full border-2 border-white dark:border-neutral-950 border-t-transparent animate-spin" />
                 ) : (
-                  <span>{mode === 'signin' ? 'Sign In' : 'Sign Up with Email'}</span>
+                  <span>{mode === 'signin' ? 'Sign In' : 'Create Account'}</span>
                 )}
               </button>
             </form>
@@ -437,6 +437,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {mode === 'signin'
                   ? "Don't have an account? Sign up"
                   : 'Already have an account? Sign in'}
+
               </button>
             </div>
           </>

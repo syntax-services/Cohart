@@ -1,23 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { GeminiCard } from '@/components/ui/GeminiCard';
-import { Badge } from '@/components/ui/Badge';
+import React, { useState } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
-import { StudentProfile, LearningStyle, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
+import { Badge } from '@/components/ui/Badge';
+import { StudentProfile, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
 import { UniversityCombobox } from '@/components/ui/UniversityCombobox';
 import { useTheme } from '@/components/ThemeProvider';
-import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
-import { fetchSavedExplanations, clearAllAiConversations } from '@/lib/supabase';
-import { ALL_OOU_DEPARTMENTS } from '@/lib/oouCourses';
+import { clearAllAiConversations } from '@/lib/supabase';
 import {
   NIGERIAN_UNIVERSITIES,
   getRandomCampusQuestion,
   evaluateCampusAnswer,
   CampusInsiderQuestion,
 } from '@/lib/campusVerification';
-
-export type SettingsGroup = 'account' | 'voice' | 'study' | 'wallet' | 'privacy';
 
 interface ProfileViewProps {
   profile: StudentProfile;
@@ -36,22 +31,29 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenAiChat,
   onSignOut,
 }) => {
-  const { theme, setTheme } = useTheme();
-  const [activeGroup, setActiveGroup] = useState<SettingsGroup>('account');
-  const [isEditingBasic, setIsEditingBasic] = useState(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const { theme, resolvedTheme, setTheme, toggleTheme, fontSize, setFontSize } = useTheme();
 
-  // Campus Verification State
-  const [showCampusModal, setShowCampusModal] = useState(false);
-  const [selectedTargetUniv, setSelectedTargetUniv] = useState<string>('OOU');
+  // Dialog & Drawer States
+  const [activeModal, setActiveModal] = useState<
+    'edit_profile' | 'university' | 'appearance' | 'string_sync' | 'help' | null
+  >(null);
+
+  // Profile Edit State
+  const [editName, setEditName] = useState(profile.full_name || '');
+  const [editMatric, setEditMatric] = useState(profile.matric_number || '');
+  const [editDepartment, setEditDepartment] = useState(profile.department || '');
+  const [editLevel, setEditLevel] = useState(profile.level || '100L');
+  const [editEmail, setEditEmail] = useState(profile.email || '');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // University Selection & Campus Verification State
+  const [selectedUniv, setSelectedUniv] = useState<string>(profile.institution || 'OOU');
   const [currentInsiderQuestion, setCurrentInsiderQuestion] = useState<CampusInsiderQuestion | null>(null);
   const [campusUserAnswer, setCampusUserAnswer] = useState('');
-  const [campusVerificationStep, setCampusVerificationStep] = useState<
-    'question' | 'near_miss' | 'bluff' | 'verified' | 'failed'
-  >('question');
-  const [campusNudgeMessage, setCampusNudgeMessage] = useState('');
-  const [campusBluffMessage, setCampusBluffMessage] = useState('');
-  const [copiedCode, setCopiedCode] = useState(false);
+  const [campusStep, setCampusStep] = useState<'question' | 'near_miss' | 'bluff' | 'verified' | 'failed'>('question');
+  const [campusNudge, setCampusNudge] = useState('');
+  const [campusBluff, setCampusBluff] = useState('');
 
   // Voice Preview State
   const [selectedVoice, setSelectedVoice] = useState<string>(() => {
@@ -60,214 +62,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
     return DEFAULT_COHART_VOICE;
   });
-  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
-  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Bionic Reading Mode State (Default: ON)
-  const [isBionicEnabled, setIsBionicEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cohart_bionic_mode');
-      return saved !== null ? saved === 'true' : true;
-    }
-    return true;
-  });
+  // Help & Feedback State
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
-  // Cloud AI Conversation clearing state
-  const [isClearingChats, setIsClearingChats] = useState(false);
-  const [clearChatSuccess, setClearChatSuccess] = useState(false);
-
-  // Form states for basic info
-  const [name, setName] = useState(profile.full_name || '');
-  const [matric, setMatric] = useState(profile.matric_number || '');
-  const [dept, setDept] = useState(profile.department || '');
-  const [level, setLevel] = useState(profile.level || '100L');
-
-  // Attendance & Notes
-  const { logs, getAttendanceAdvice } = useAttendanceTracker(profile.id);
-  const advice = getAttendanceAdvice();
-  const [savedVaultCount, setSavedVaultCount] = useState<number>(0);
-
-  // Bank Withdrawal form states
-  const [bankName, setBankName] = useState('Opay');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [accountName, setAccountName] = useState('');
-  const [withdrawAmount, setWithdrawAmount] = useState('1000');
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
-  const [withdrawSuccess, setWithdrawSuccess] = useState(false);
-
-  useEffect(() => {
-    setName(profile.full_name || '');
-    setMatric(profile.matric_number || '');
-    setDept(profile.department || '');
-    setLevel(profile.level || '100L');
-  }, [profile]);
-
-  useEffect(() => {
-    let mounted = true;
-    async function loadVault() {
-      try {
-        const data = await fetchSavedExplanations();
-        if (mounted) setSavedVaultCount(data.length);
-      } catch {
-        // Fallback gracefully
-      }
-    }
-    loadVault();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleSaveBasic = async () => {
-    await onUpdateProfile({
-      full_name: name.trim(),
-      matric_number: matric.trim(),
-      department: dept.trim(),
-      level: level.trim(),
-    });
-    setIsEditingBasic(false);
-  };
-
-  const handleToggleBionic = () => {
-    const next = !isBionicEnabled;
-    setIsBionicEnabled(next);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cohart_bionic_mode', String(next));
-    }
-  };
-
-  const handleClearCloudChats = async () => {
-    if (!confirm('Clear all AI conversation history from your account? This action cannot be undone.')) return;
-    setIsClearingChats(true);
-    try {
-      await clearAllAiConversations(profile.id);
-      setClearChatSuccess(true);
-      setTimeout(() => setClearChatSuccess(false), 2500);
-    } catch {
-      alert('Unable to clear conversations. Please check your connection.');
-    } finally {
-      setIsClearingChats(false);
-    }
-  };
-
-  const handleSelectVoice = (vId: string) => {
-    setSelectedVoice(vId);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cohart_selected_voice', vId);
-    }
-
-    if (voiceAudioRef.current) {
-      voiceAudioRef.current.pause();
-      voiceAudioRef.current = null;
-    }
-
-    const voiceObj = COHART_VOICES.find((v) => v.id === vId);
-    if (voiceObj && voiceObj.audioUrl) {
-      try {
-        const audio = new Audio(voiceObj.audioUrl);
-        voiceAudioRef.current = audio;
-        setPlayingVoiceId(vId);
-        audio.onended = () => setPlayingVoiceId(null);
-        audio.onerror = () => setPlayingVoiceId(null);
-        audio.play().catch((err) => {
-          console.warn('Preview play prevented:', err);
-          setPlayingVoiceId(null);
-        });
-      } catch (err) {
-        console.warn('Error playing preview:', err);
-        setPlayingVoiceId(null);
-      }
-    }
-  };
-
-  const handleStartCampusChange = (targetCode?: string) => {
-    const defaultCode = targetCode || (profile.institution ? 'UNILAG' : 'UNILAG');
-    setSelectedTargetUniv(defaultCode);
-    const q = getRandomCampusQuestion(defaultCode);
-    setCurrentInsiderQuestion(q);
-    setCampusUserAnswer('');
-    setCampusVerificationStep('question');
-    setCampusNudgeMessage('');
-    setCampusBluffMessage('');
-    setShowCampusModal(true);
-  };
-
-  const handleSelectTargetUniv = (code: string) => {
-    setSelectedTargetUniv(code);
-    const q = getRandomCampusQuestion(code);
-    setCurrentInsiderQuestion(q);
-    setCampusUserAnswer('');
-    setCampusVerificationStep('question');
-    setCampusNudgeMessage('');
-    setCampusBluffMessage('');
-  };
-
-  const handleSubmitCampusAnswer = () => {
-    if (!currentInsiderQuestion || !campusUserAnswer.trim()) return;
-
-    const evalResult = evaluateCampusAnswer(currentInsiderQuestion, campusUserAnswer, false);
-    if (evalResult.status === 'correct') {
-      setCampusBluffMessage(evalResult.bluffPrompt || currentInsiderQuestion.bluffChallenge);
-      setCampusVerificationStep('bluff');
-    } else if (evalResult.status === 'near_miss') {
-      setCampusNudgeMessage(evalResult.nudgePrompt || currentInsiderQuestion.nearMissNudge);
-      setCampusVerificationStep('near_miss');
-    } else {
-      setCampusNudgeMessage(evalResult.feedbackText);
-      setCampusVerificationStep('failed');
-    }
-  };
-
-  const handleAnswerBluff = async (rejectsBluff: boolean) => {
-    if (!currentInsiderQuestion) return;
-
-    if (rejectsBluff) {
-      setCampusVerificationStep('verified');
-      const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === selectedTargetUniv);
-      const univName = univ ? `${univ.name} (${univ.shortName})` : selectedTargetUniv;
-      await onUpdateProfile({ institution: univName });
-      setTimeout(() => {
-        setShowCampusModal(false);
-      }, 1600);
-      return;
-    }
-
-    setCampusVerificationStep('failed');
-    setCampusNudgeMessage('Verification failed. Try the simpler backup question or verify with Cohart AI in chat.');
-  };
-
-  const handleVerifyWithAi = (targetCode: string) => {
-    setShowCampusModal(false);
-    const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === targetCode);
-    const targetName = univ ? `${univ.name} (${univ.shortName})` : targetCode;
-    onOpenAiChat?.(`I want to set my institution to ${targetName}. Please test me with the campus question so I can verify my school.`);
-  };
-
-  const handleCopyReferral = () => {
-    if (typeof window !== 'undefined' && profile.referral_code) {
-      navigator.clipboard.writeText(profile.referral_code);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    }
-  };
-
-  const handleWithdraw = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsWithdrawing(true);
-    setTimeout(() => {
-      setIsWithdrawing(false);
-      setWithdrawSuccess(true);
-      setTimeout(() => {
-        setWithdrawSuccess(false);
-        setShowWithdrawModal(false);
-      }, 2000);
-    }, 1200);
-  };
-
-  const isProfileIncomplete =
-    !profile.full_name?.trim() ||
-    !profile.department?.trim() ||
-    !profile.matric_number?.trim();
+  // String Connect State
+  const [stringConnecting, setStringConnecting] = useState(false);
+  const [stringConnected, setStringConnected] = useState(false);
 
   const initials = profile.full_name?.trim()
     ? profile.full_name
@@ -277,718 +79,491 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         .join('')
         .slice(0, 2)
         .toUpperCase()
-    : 'CP';
+    : (profile.matric_number?.slice(0, 2).toUpperCase() || 'CH');
+
+  // Handle saving profile changes
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    try {
+      await onUpdateProfile({
+        full_name: editName.trim(),
+        matric_number: editMatric.trim(),
+        department: editDepartment.trim(),
+        level: editLevel.trim(),
+        email: editEmail.trim(),
+      });
+      setSaveSuccess(true);
+      setTimeout(() => {
+        setSaveSuccess(false);
+        setActiveModal(null);
+      }, 1000);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  // Handle university question submission
+  const handleOpenUnivModal = () => {
+    const q = getRandomCampusQuestion(selectedUniv || 'UNILAG');
+    setCurrentInsiderQuestion(q);
+    setCampusUserAnswer('');
+    setCampusStep('question');
+    setCampusNudge('');
+    setCampusBluff('');
+    setActiveModal('university');
+  };
+
+  const handleSelectTargetUniv = (code: string) => {
+    setSelectedUniv(code);
+    const q = getRandomCampusQuestion(code);
+    setCurrentInsiderQuestion(q);
+    setCampusUserAnswer('');
+    setCampusStep('question');
+    setCampusNudge('');
+    setCampusBluff('');
+  };
+
+  const handleSubmitCampusAnswer = () => {
+    if (!currentInsiderQuestion || !campusUserAnswer.trim()) return;
+
+    const evalResult = evaluateCampusAnswer(currentInsiderQuestion, campusUserAnswer, false);
+    if (evalResult.status === 'correct') {
+      setCampusBluff(evalResult.bluffPrompt || currentInsiderQuestion.bluffChallenge);
+      setCampusStep('bluff');
+    } else if (evalResult.status === 'near_miss') {
+      setCampusNudge(evalResult.nudgePrompt || currentInsiderQuestion.nearMissNudge);
+      setCampusStep('near_miss');
+    } else {
+      setCampusNudge(evalResult.feedbackText);
+      setCampusStep('failed');
+    }
+  };
+
+  const handleAnswerBluff = async (rejectsBluff: boolean) => {
+    if (!currentInsiderQuestion) return;
+
+    if (rejectsBluff) {
+      setCampusStep('verified');
+      const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === selectedUniv);
+      const univName = univ ? `${univ.name} (${univ.shortName})` : selectedUniv;
+      await onUpdateProfile({ institution: univName });
+      setTimeout(() => {
+        setActiveModal(null);
+      }, 1400);
+      return;
+    }
+
+    setCampusStep('failed');
+    setCampusNudge('Verification challenge failed. Try again with the alternate question or verify with Cohart AI.');
+  };
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-32 max-w-4xl mx-auto">
-      {/* 1. Student Profile Header Card (Inspired by String & Compound) */}
-      <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border border-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA] font-mono text-xl font-bold shrink-0 shadow-sm">
+    <div className="max-w-md mx-auto space-y-5 pb-16 pt-2 animate-in fade-in duration-300">
+      {/* 1. Sleek String Profile Header Block */}
+      <div className="flex flex-col items-center text-center space-y-3.5">
+        <div
+          className="relative group cursor-pointer"
+          onClick={() => {
+            setEditName(profile.full_name || '');
+            setEditMatric(profile.matric_number || '');
+            setEditDepartment(profile.department || '');
+            setEditLevel(profile.level || '100L');
+            setEditEmail(profile.email || '');
+            setActiveModal('edit_profile');
+          }}
+        >
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0B57D0] to-[#A8C7FA] opacity-30 group-hover:opacity-60 transition duration-500 blur-[2px]" />
+          <div className="relative h-28 w-28 rounded-full border-4 border-white dark:border-[#1E1F20] bg-neutral-100 dark:bg-[#1E1F20] flex items-center justify-center overflow-hidden shadow-xl">
+            <span className="font-mono text-2xl font-bold tracking-tight text-[#0B57D0] dark:text-[#A8C7FA]">
               {initials}
+            </span>
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white">
+              <span className="text-[10px] font-bold uppercase tracking-wider">Edit Profile</span>
             </div>
-
-            <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white font-sans tracking-tight">
-                  {profile.full_name?.trim() || 'Student Profile'}
-                </h1>
-                <Badge variant={isProfileIncomplete ? 'amber' : 'emerald'} size="md">
-                  {isProfileIncomplete ? 'Setup Needed' : 'Active'}
-                </Badge>
-              </div>
-
-              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mt-2">
-                {profile.department
-                  ? `${profile.matric_number || 'Matric Pending'} • ${profile.department} • ${profile.level || '100L'}`
-                  : 'Tap Account to set your Department & Level'}
-              </p>
-
-              <p className="text-xs text-neutral-400 dark:text-neutral-500 font-sans mt-1">
-                {profile.institution || 'No university selected'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setActiveGroup('account');
-                setIsEditingBasic(true);
-              }}
-              className="flex items-center gap-2 px-5 py-3 rounded-full bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.08] text-sm font-bold text-neutral-800 dark:text-neutral-200 hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-all active:scale-95 cursor-pointer shadow-sm"
-            >
-              <span>Edit Details</span>
-            </button>
           </div>
         </div>
-      </GeminiCard>
 
-      {/* 2. Segmented Navigation Bar (String & Compound Design Aesthetic) */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] overflow-x-auto no-scrollbar">
-        {[
-          { id: 'account', label: 'Account & Uni', icon: 'shield-check' },
-          { id: 'voice', label: 'Voice & Audio', icon: 'volume' },
-          { id: 'study', label: 'Study & Bionic', icon: 'reader' },
-          { id: 'wallet', label: 'Wallet & Referrals', icon: 'wallet' },
-          { id: 'privacy', label: 'Privacy & Data', icon: 'settings' },
-        ].map((tab) => {
-          const isActive = activeGroup === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveGroup(tab.id as SettingsGroup)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 ${
-                isActive
-                  ? 'bg-white dark:bg-[#1E1F20] text-neutral-900 dark:text-white shadow-sm border border-black/[0.06] dark:border-white/[0.08]'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-              }`}
-            >
-              <GeminiIcon
-                name={tab.icon as any}
-                size={18}
-                className={isActive ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-400'}
-              />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center justify-center gap-1.5">
+            {profile.full_name || profile.matric_number || 'Scholar'}
+            {profile.institution && (
+              <Badge variant="emerald" size="sm" className="rounded-full px-2 py-0.5">
+                Verified
+              </Badge>
+            )}
+          </h2>
+          <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wide">
+            {profile.department
+              ? `${profile.department} • ${profile.level || '100L'}`
+              : 'Undergraduate Scholar'}
+          </p>
+          <div className="inline-flex items-center gap-1 bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border border-[#0B57D0]/15 dark:border-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] text-[11px] font-semibold px-2.5 py-0.5 rounded-full mt-1">
+            <GeminiIcon name="compass" size={12} />
+            <span className="truncate max-w-[240px]">
+              {profile.institution || 'Select University'}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* 3. Grouped Settings Views */}
-      <div className="space-y-6">
-        {/* GROUP A: Account & University */}
-        {activeGroup === 'account' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Personal & Academic Details */}
-            <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                    <GeminiIcon name="shield-check" size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-                      Academic Credentials
-                    </h2>
-                    <p className="text-xs text-neutral-500">Matriculation and Department</p>
-                  </div>
-                </div>
+      {/* 2. String 2x2 Bento Menu Grid */}
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] overflow-hidden shadow-lg shadow-black/[0.02]">
+        <div className="grid grid-cols-2 divide-x divide-black/[0.05] dark:divide-white/[0.06] border-b border-black/[0.05] dark:divide-white/[0.06]">
+          {/* Reader & Notes */}
+          <button
+            onClick={onOpenReader}
+            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
+          >
+            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
+              <GeminiIcon name="reader" size={20} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            </div>
+            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
+              Reader & Notes
+            </span>
+          </button>
 
-                <button
-                  onClick={() => setIsEditingBasic(!isEditingBasic)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#0B57D0] dark:text-[#A8C7FA] bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 hover:bg-[#0B57D0]/20 transition-colors cursor-pointer"
-                >
-                  {isEditingBasic ? 'Cancel' : 'Edit Info'}
-                </button>
-              </div>
+          {/* Exam Schedule */}
+          <button
+            onClick={onOpenSchedule}
+            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
+          >
+            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
+              <GeminiIcon name="calendar" size={20} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            </div>
+            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
+              Exam Schedule
+            </span>
+          </button>
+        </div>
 
-              {isEditingBasic ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-mono text-neutral-500 uppercase font-bold block mb-1">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Folashade Adeyemi"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                      />
-                    </div>
+        <div className="grid grid-cols-2 divide-x divide-black/[0.05] dark:divide-white/[0.06]">
+          {/* AI Study Assistant */}
+          <button
+            onClick={() => onOpenAiChat?.()}
+            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
+          >
+            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
+              <GeminiIcon name="sparkle" size={20} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            </div>
+            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
+              Cohart AI Chat
+            </span>
+          </button>
 
-                    <div>
-                      <label className="text-xs font-mono text-neutral-500 uppercase font-bold block mb-1">
-                        Matric Number
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 21/09/52012"
-                        value={matric}
-                        onChange={(e) => setMatric(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono text-neutral-500 uppercase font-bold block mb-1">
-                        Department
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Economics, Computer Science, Law"
-                        value={dept}
-                        onChange={(e) => setDept(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-mono text-neutral-500 uppercase font-bold block mb-1">
-                        Level
-                      </label>
-                      <select
-                        value={level}
-                        onChange={(e) => setLevel(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-black/[0.02] dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-                      >
-                        <option value="100L">100 Level</option>
-                        <option value="200L">200 Level</option>
-                        <option value="300L">300 Level</option>
-                        <option value="400L">400 Level</option>
-                        <option value="500L">500 Level</option>
-                        <option value="600L">600 Level</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingBasic(false)}
-                      className="px-5 py-2.5 rounded-full text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSaveBasic}
-                      className="px-6 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-all active:scale-95 cursor-pointer shadow-sm"
-                    >
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04]">
-                    <span className="text-xs font-mono text-neutral-400 uppercase font-bold block">Full Name</span>
-                    <span className="text-sm font-bold text-neutral-900 dark:text-white mt-1 block">
-                      {profile.full_name || 'Not set'}
-                    </span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04]">
-                    <span className="text-xs font-mono text-neutral-400 uppercase font-bold block">Matric Number</span>
-                    <span className="text-sm font-bold text-neutral-900 dark:text-white mt-1 block">
-                      {profile.matric_number || 'Pending'}
-                    </span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04]">
-                    <span className="text-xs font-mono text-neutral-400 uppercase font-bold block">Department</span>
-                    <span className="text-sm font-bold text-neutral-900 dark:text-white mt-1 block truncate">
-                      {profile.department || 'Not set'}
-                    </span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04]">
-                    <span className="text-xs font-mono text-neutral-400 uppercase font-bold block">Academic Level</span>
-                    <span className="text-sm font-bold text-[#0B57D0] dark:text-[#A8C7FA] mt-1 block">
-                      {profile.level || '100L'}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </GeminiCard>
-
-            {/* University Preference & Anti-Cheat Switcher */}
-            <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                    <GeminiIcon name="compass" size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-                      University Preference
-                    </h2>
-                    <p className="text-xs text-neutral-500">Tertiary Institution & Campus Navigation</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleStartCampusChange()}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#0B57D0] dark:text-[#A8C7FA] bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 hover:bg-[#0B57D0]/20 transition-colors cursor-pointer"
-                >
-                  Change University
-                </button>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base font-bold text-neutral-900 dark:text-white">
-                      {profile.institution || 'Select Your Institution'}
-                    </span>
-                    {profile.institution ? (
-                      <Badge variant="emerald" size="sm">Active Campus</Badge>
-                    ) : (
-                      <Badge variant="amber" size="sm">Not Set</Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    {profile.institution
-                      ? 'Academic Study, Course Schedules & Personalized AI Active'
-                      : 'Choose your tertiary institution from 250+ Nigerian universities'}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleStartCampusChange()}
-                  className="px-4 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-bold text-neutral-800 dark:text-neutral-200 transition-colors cursor-pointer shrink-0"
-                >
-                  {profile.institution ? 'Switch University' : 'Select University'}
-                </button>
-              </div>
-            </GeminiCard>
+          {/* Wallet / Earnings */}
+          <div className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all">
+            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center">
+              <GeminiIcon name="wallet" size={20} className="text-emerald-500" />
+            </div>
+            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
+              ₦{(profile.wallet_balance || 0).toLocaleString()}
+            </span>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* GROUP B: Voice & Audio */}
-        {activeGroup === 'voice' && (
-          <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm space-y-6 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="volume" size={20} />
-                </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-                    Reading Voice & Audio Model
-                  </h2>
-                  <p className="text-xs text-neutral-500">Deepgram Aura-2 Academic Voice Models</p>
-                </div>
-              </div>
+      {/* 3. Sleek Single-Line Action Rows (String CustomerProfile Pattern) */}
+      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] divide-y divide-black/[0.05] dark:divide-white/[0.06] shadow-lg shadow-black/[0.02] overflow-hidden">
+        {/* Account Details & Level */}
+        <button
+          onClick={() => {
+            setEditName(profile.full_name || '');
+            setEditMatric(profile.matric_number || '');
+            setEditDepartment(profile.department || '');
+            setEditLevel(profile.level || '100L');
+            setEditEmail(profile.email || '');
+            setActiveModal('edit_profile');
+          }}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+              <GeminiIcon name="user" size={16} />
             </div>
-
-            <p className="text-xs text-neutral-600 dark:text-neutral-300">
-              Select your favorite voice model. Each voice plays a unique pre-recorded academic sample when clicked:
-            </p>
-
-            {/* Grid of Voices */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-              {COHART_VOICES.map((v) => {
-                const isSelected = v.id === selectedVoice;
-                const isPlaying = playingVoiceId === v.id;
-                return (
-                  <div
-                    key={v.id}
-                    onClick={() => handleSelectVoice(v.id)}
-                    className={`p-4 rounded-2xl transition-all border cursor-pointer flex flex-col justify-between gap-3 ${
-                      isSelected
-                        ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/40 dark:border-[#A8C7FA]/40 shadow-sm'
-                        : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] hover:border-black/[0.12] dark:hover:border-white/[0.12]'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm font-bold ${isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-900 dark:text-white'}`}>
-                          {v.label}
-                        </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-neutral-400">
-                          {v.gender}
-                        </span>
-                      </div>
-                      <p className="text-xs text-neutral-500 mt-1 line-clamp-2">
-                        {v.persona}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-black/[0.04] dark:border-white/[0.04]">
-                      <span className="text-[10px] font-mono text-neutral-400">
-                        {isPlaying ? 'Playing sample...' : isSelected ? 'Active Voice' : 'Tap to test'}
-                      </span>
-                      {isPlaying ? (
-                        <span className="h-2.5 w-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] animate-ping" />
-                      ) : isSelected ? (
-                        <GeminiIcon name="check" size={16} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </GeminiCard>
-        )}
-
-        {/* GROUP C: Study & Bionic */}
-        {activeGroup === 'study' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Bionic Reading Card */}
-            <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                    <GeminiIcon name="reader" size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-                      Bionic Reading Mode
-                    </h2>
-                    <p className="text-xs text-neutral-500">Fixation-guided rapid reading engine</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleToggleBionic}
-                  className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm ${
-                    isBionicEnabled
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-400'
-                  }`}
-                >
-                  {isBionicEnabled ? 'Enabled (Default)' : 'Disabled'}
-                </button>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04]">
-                <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed font-sans">
-                  <strong>How it works:</strong> Bionic reading guides your eyes through course text using artificial fixation points. The first few letters of words are highlighted, allowing your brain to complete words faster and absorb lecture notes in half the time.
-                </p>
-              </div>
-            </GeminiCard>
-
-            {/* Explanation Style Card */}
-            <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                    <GeminiIcon name="brain" size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-                      AI Explanation Style
-                    </h2>
-                    <p className="text-xs text-neutral-500">Socratic, Visual Analogies, or Concise</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { id: 'visual_analogies', label: 'Everyday Analogies', desc: 'Nigerian market dynamics & relatable examples' },
-                  { id: 'concise_bullet', label: 'Concise Bullet', desc: 'Direct, high-yield bulleted points' },
-                  { id: 'deep_first_principles', label: 'First Principles', desc: 'Fundamental academic axioms and logic' },
-                ].map((style) => {
-                  const isSelected = profile.learning_style === style.id;
-                  return (
-                    <button
-                      key={style.id}
-                      onClick={() => onUpdateProfile({ learning_style: style.id as LearningStyle })}
-                      className={`p-4 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-                        isSelected
-                          ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 border-[#0B57D0]/30 dark:border-[#A8C7FA]/30 shadow-xs'
-                          : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.06] dark:border-white/[0.06] hover:bg-black/[0.04]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm font-bold ${isSelected ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-800 dark:text-neutral-200'}`}>
-                          {style.label}
-                        </span>
-                        {isSelected && <GeminiIcon name="check" size={16} className="text-[#0B57D0] dark:text-[#A8C7FA]" />}
-                      </div>
-                      <span className="text-xs text-neutral-500 block mt-1">{style.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </GeminiCard>
+            <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+              Account & Academic Info
+            </span>
           </div>
-        )}
+          <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+        </button>
 
-        {/* GROUP D: Wallet & Referrals */}
-        {activeGroup === 'wallet' && (
-          <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm space-y-6 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="wallet" size={20} />
-                </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-                    Referral Earnings & Wallet
-                  </h2>
-                  <p className="text-xs text-neutral-500">₦500 reward for every course mate who registers</p>
-                </div>
-              </div>
+        {/* Change University */}
+        <button
+          onClick={handleOpenUnivModal}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+              <GeminiIcon name="compass" size={16} />
             </div>
+            <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+              University & Campus Switch
+            </span>
+          </div>
+          <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+        </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Balance Widget */}
-              <div className="p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] flex flex-col justify-between">
-                <div>
-                  <span className="text-xs font-mono text-neutral-500 uppercase font-bold">Available Balance</span>
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-3xl font-bold text-neutral-900 dark:text-white font-mono">
-                      ₦{(profile.wallet_balance || 0).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.06]">
-                  <button
-                    onClick={() => setShowWithdrawModal(true)}
-                    className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-all cursor-pointer shadow-xs"
-                  >
-                    Withdraw to Bank &rarr;
-                  </button>
-                </div>
-              </div>
-
-              {/* Referral Code Box */}
-              <div className="p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] flex flex-col justify-between">
-                <div>
-                  <span className="text-xs font-mono text-neutral-500 uppercase font-bold">Your Referral Code</span>
-                  <div className="flex items-center justify-between mt-2 p-3 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.06]">
-                    <span className="text-base font-mono font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
-                      {profile.referral_code}
-                    </span>
-                    <button
-                      onClick={handleCopyReferral}
-                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-neutral-700 dark:text-neutral-300 hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] cursor-pointer"
-                    >
-                      <GeminiIcon name={copiedCode ? 'check' : 'copy'} size={15} />
-                      <span>{copiedCode ? 'Copied' : 'Copy'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3 font-sans">
-                  Share your referral link with faculty group chats. Rewards credit instantly upon registration.
-                </p>
-              </div>
+        {/* Appearance & Font Scaling */}
+        <button
+          onClick={() => setActiveModal('appearance')}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+              <GeminiIcon name="settings" size={16} />
             </div>
-          </GeminiCard>
-        )}
+            <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+              Appearance & Text Size
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-neutral-400 capitalize">{fontSize}</span>
+            <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </button>
 
-        {/* GROUP E: Privacy & Security */}
-        {activeGroup === 'privacy' && (
-          <GeminiCard className="p-6 sm:p-8 rounded-[2rem] bg-white/80 dark:bg-[#12151E]/80 backdrop-blur-3xl border border-black/[0.04] dark:border-white/[0.04] shadow-sm space-y-6 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="settings" size={20} />
-                </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
-                    Privacy, Cloud Data & Session
-                  </h2>
-                  <p className="text-xs text-neutral-500">Manage your cloud AI history and account session</p>
-                </div>
-              </div>
+        {/* String Shared Account Link */}
+        <button
+          onClick={() => setActiveModal('string_sync')}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <GeminiIcon name="shield-check" size={16} />
             </div>
+            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+              String Connected Account
+            </span>
+          </div>
+          <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+        </button>
 
-            <div className="space-y-4">
-              {/* Clear Cloud AI Chats */}
-              <div className="p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                    Clear Cloud AI Conversation History
-                  </h3>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Delete past sessions and chat logs stored under your account in the cloud.
-                  </p>
-                </div>
-
-                <button
-                  onClick={handleClearCloudChats}
-                  disabled={isClearingChats}
-                  className="px-5 py-2.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-500/20 transition-all cursor-pointer shrink-0 disabled:opacity-50"
-                >
-                  {clearChatSuccess ? 'History Cleared' : isClearingChats ? 'Clearing...' : 'Clear Cloud Chats'}
-                </button>
-              </div>
-
-              {/* Theme Selector */}
-              <div className="p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04] flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                    Appearance Mode
-                  </h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">
-                    Currently in {theme === 'dark' ? 'Ultra-Dark Bento' : 'Light'} theme
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="px-4 py-2 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-xs font-bold text-neutral-800 dark:text-neutral-200 transition-colors cursor-pointer"
-                >
-                  Toggle Theme
-                </button>
-              </div>
-
-              {/* Sign Out Action */}
-              {onSignOut && (
-                <div className="pt-2">
-                  <button
-                    onClick={onSignOut}
-                    className="w-full py-3.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] hover:bg-rose-500/10 hover:text-rose-500 text-neutral-600 dark:text-neutral-400 text-xs font-bold border border-black/[0.06] dark:border-white/[0.06] transition-colors cursor-pointer text-center"
-                  >
-                    Sign Out of Cohart
-                  </button>
-                </div>
-              )}
+        {/* Help & Support */}
+        <button
+          onClick={() => setActiveModal('help')}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+              <GeminiIcon name="book-open" size={16} />
             </div>
-          </GeminiCard>
+            <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+              Help, Feedback & FAQs
+            </span>
+          </div>
+          <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+        </button>
+
+        {/* Sign Out */}
+        {onSignOut && (
+          <button
+            onClick={onSignOut}
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-rose-500/[0.04] transition-all text-left group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <GeminiIcon name="close" size={16} />
+              </div>
+              <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                Sign Out
+              </span>
+            </div>
+            <GeminiIcon name="chevron-right" size={16} className="text-rose-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
         )}
       </div>
 
-      {/* Campus Switch Verification Modal */}
-      {showCampusModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white dark:bg-[#12151E] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+      {/* 4. MODALS & DRAWERS */}
+
+      {/* MODAL A: Edit Academic Info */}
+      {activeModal === 'edit_profile' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="shield-check" size={16} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Verify Campus</h3>
-                  <p className="text-xs font-mono text-neutral-500">Anti-Cheat Question</p>
-                </div>
-              </div>
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Account Details</h3>
               <button
-                onClick={() => setShowCampusModal(false)}
-                className="p-1 rounded-xl text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
               >
                 <GeminiIcon name="close" size={16} />
               </button>
             </div>
 
-            {/* University Combobox */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-mono text-neutral-500 uppercase">Target University</label>
-              <UniversityCombobox
-                value={selectedTargetUniv}
-                onChange={(code: string) => handleSelectTargetUniv(code)}
-                placeholder="Search by university name, state, or acronym..."
-              />
+            {saveSuccess ? (
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                Academic profile updated!
+              </div>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="space-y-3">
+                <div>
+                  <label className="text-[11px] font-mono text-neutral-500 uppercase">Full Name</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="e.g. Adewale Johnson"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-mono text-neutral-500 uppercase">Department</label>
+                  <input
+                    type="text"
+                    value={editDepartment}
+                    onChange={(e) => setEditDepartment(e.target.value)}
+                    placeholder="e.g. Computer Science"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] font-mono text-neutral-500 uppercase">Level</label>
+                    <select
+                      value={editLevel}
+                      onChange={(e) => setEditLevel(e.target.value)}
+                      className="w-full mt-1 p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
+                    >
+                      <option value="100L">100L</option>
+                      <option value="200L">200L</option>
+                      <option value="300L">300L</option>
+                      <option value="400L">400L</option>
+                      <option value="500L">500L</option>
+                      <option value="Postgraduate">Postgraduate</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-mono text-neutral-500 uppercase">Matric / ID</label>
+                    <input
+                      type="text"
+                      value={editMatric}
+                      onChange={(e) => setEditMatric(e.target.value)}
+                      placeholder="e.g. CSC/2021/042"
+                      className="w-full mt-1 p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-mono text-neutral-500 uppercase">Email (For Billing & Subscriptions)</label>
+                  <input
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    placeholder="student@example.com"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
+                  />
+                  <p className="text-[10px] text-neutral-400 mt-1">
+                    Required when upgrading to Pro or purchasing notes.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity active:scale-[0.98]"
+                >
+                  {savingProfile ? 'Saving...' : 'Save Changes'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL B: University Selection */}
+      {activeModal === 'university' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Switch University</h3>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+              >
+                <GeminiIcon name="close" size={16} />
+              </button>
             </div>
 
-            {/* Question Display */}
-            {currentInsiderQuestion && (
-              <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] space-y-2">
-                <span className="text-xs font-mono text-[#0B57D0] dark:text-[#A8C7FA] font-bold block">
-                  Campus Trivia Question
-                </span>
-                <p className="text-xs text-neutral-900 dark:text-white leading-relaxed font-medium">
-                  {currentInsiderQuestion.question}
-                </p>
-              </div>
-            )}
+            <UniversityCombobox
+              label="Selected Nigerian University"
+              value={selectedUniv}
+              onChange={(code) => handleSelectTargetUniv(code)}
+              placeholder="Search public or private institution..."
+            />
 
-            {/* Step: Answering Question */}
-            {campusVerificationStep === 'question' && (
-              <div className="space-y-3">
+            {/* Verification Step: Question */}
+            {campusStep === 'question' && currentInsiderQuestion && (
+              <div className="space-y-3 pt-2">
+                <div className="p-3.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06]">
+                  <span className="text-[10px] font-mono uppercase text-[#0B57D0] dark:text-[#A8C7FA] font-bold block mb-1">
+                    Campus Insider Check
+                  </span>
+                  <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed font-medium">
+                    {currentInsiderQuestion.question}
+                  </p>
+                </div>
+
                 <input
                   type="text"
+                  value={campusUserAnswer}
+                  onChange={(e) => setCampusUserAnswer(e.target.value)}
                   placeholder="Type your answer..."
-                  value={campusUserAnswer}
-                  onChange={(e) => setCampusUserAnswer(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSubmitCampusAnswer();
-                  }}
-                  className="w-full p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#0B57D0]"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmitCampusAnswer()}
+                  className="w-full p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
                 />
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleSubmitCampusAnswer}
-                    disabled={!campusUserAnswer.trim()}
-                    className="flex-1 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity disabled:opacity-40 cursor-pointer shadow-xs"
-                  >
-                    Verify Answer
-                  </button>
-                  <button
-                    onClick={() => handleVerifyWithAi(selectedTargetUniv)}
-                    className="py-2.5 px-3.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] transition-colors cursor-pointer"
-                  >
-                    Ask AI &rarr;
-                  </button>
-                </div>
-              </div>
-            )}
 
-            {/* Step: Near Miss Nudge */}
-            {campusVerificationStep === 'near_miss' && (
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                  {campusNudgeMessage}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Clarify your answer..."
-                  value={campusUserAnswer}
-                  onChange={(e) => setCampusUserAnswer(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSubmitCampusAnswer();
-                  }}
-                  className="w-full p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#0B57D0]"
-                />
                 <button
                   onClick={handleSubmitCampusAnswer}
-                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold text-xs hover:opacity-90 transition-opacity cursor-pointer"
+                  disabled={!campusUserAnswer.trim()}
+                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 disabled:opacity-40"
                 >
-                  Submit Clarification
+                  Verify Campus
                 </button>
               </div>
             )}
 
-            {/* Step: The Bluff Challenge */}
-            {campusVerificationStep === 'bluff' && (
-              <div className="space-y-3">
-                <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300 leading-relaxed font-medium">
-                  {campusBluffMessage}
+            {/* Verification Step: Bluff Challenge */}
+            {campusStep === 'bluff' && (
+              <div className="space-y-3 pt-2">
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-200">
+                  <p className="font-semibold mb-1">One last check:</p>
+                  <p>{campusBluff || 'Is this landmark located inside the main campus gate?'}</p>
                 </div>
-
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => handleAnswerBluff(true)}
-                    className="w-full text-left p-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-200 font-medium transition-colors cursor-pointer"
+                    className="py-2.5 rounded-xl bg-[#0B57D0] text-white text-xs font-semibold"
                   >
-                    No, that is incorrect. My answer is accurate.
+                    Yes, absolutely
                   </button>
                   <button
                     onClick={() => handleAnswerBluff(false)}
-                    className="w-full text-left p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] border border-black/[0.06] text-xs text-neutral-600 dark:text-neutral-400 transition-colors cursor-pointer"
+                    className="py-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-xs font-semibold"
                   >
-                    Wait, let me check again.
+                    No, that is incorrect
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Step: Verified */}
-            {campusVerificationStep === 'verified' && (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
-                <div className="flex justify-center text-emerald-600 dark:text-emerald-400">
-                  <GeminiIcon name="check-circle" size={32} />
-                </div>
-                <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-200">
-                  Verified!
-                </h4>
-                <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                  Your university preference has been updated.
-                </p>
+            {campusStep === 'verified' && (
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                Campus verified and updated!
               </div>
             )}
 
-            {/* Step: Failed */}
-            {campusVerificationStep === 'failed' && (
-              <div className="space-y-3">
-                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-700 dark:text-rose-300 leading-relaxed">
-                  {campusNudgeMessage || 'Verification failed. Try again or verify with Cohart AI in chat.'}
+            {campusStep === 'failed' && (
+              <div className="space-y-3 pt-2">
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400">
+                  {campusNudge || 'Verification unsuccessful. Please try again.'}
                 </div>
                 <button
-                  onClick={() => {
-                    setCampusVerificationStep('question');
-                    setCampusUserAnswer('');
-                  }}
-                  className="w-full py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-xs text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08] cursor-pointer"
+                  onClick={() => setCampusStep('question')}
+                  className="w-full py-2 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-xs font-semibold"
                 >
                   Try Again
                 </button>
@@ -998,101 +573,184 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       )}
 
-      {/* Withdrawal Modal */}
-      {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-[#12151E] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+      {/* MODAL C: Appearance & Font Scaling */}
+      {activeModal === 'appearance' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="wallet" size={16} />
-                </div>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Withdraw Funds</h3>
-              </div>
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Appearance & Typography</h3>
               <button
-                onClick={() => setShowWithdrawModal(false)}
-                className="p-1 rounded-xl text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
               >
                 <GeminiIcon name="close" size={16} />
               </button>
             </div>
 
-            {withdrawSuccess ? (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-1">
-                <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                  Withdrawal Initiated!
-                </p>
-                <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
-                  Funds will be credited to {bankName} shortly.
-                </p>
+            {/* Theme Toggle */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-mono text-neutral-500 uppercase">Theme Mode</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'dark', label: 'Dark' },
+                  { id: 'light', label: 'Light' },
+                  { id: 'system', label: 'Auto' },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTheme(t.id as any)}
+                    className={`py-2 rounded-xl text-xs font-semibold border transition-all ${
+                      theme === t.id
+                        ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border-[#0B57D0] dark:border-[#A8C7FA] text-[#0B57D0] dark:text-[#A8C7FA]'
+                        : 'border-black/[0.08] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Font Size Scaling */}
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-mono text-neutral-500 uppercase">Text Size Scale</label>
+                <span className="text-xs font-mono text-neutral-400 capitalize">{fontSize}</span>
+              </div>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                Calibrated for study speed, reader clarity & sleek mobile viewing.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'compact', label: 'Compact', size: '14px' },
+                  { id: 'normal', label: 'Standard', size: '15.5px' },
+                  { id: 'comfortable', label: 'Large', size: '17px' },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setFontSize(s.id as any)}
+                    className={`py-2.5 rounded-xl flex flex-col items-center gap-0.5 border transition-all ${
+                      fontSize === s.id
+                        ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border-[#0B57D0] dark:border-[#A8C7FA] text-[#0B57D0] dark:text-[#A8C7FA]'
+                        : 'border-black/[0.08] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:border-black/[0.15]'
+                    }`}
+                  >
+                    <span className="text-xs font-semibold">{s.label}</span>
+                    <span className="text-[10px] opacity-70 font-mono">{s.size}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setActiveModal(null)}
+              className="w-full mt-2 py-2 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-semibold"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL D: String Shared Account */}
+      {activeModal === 'string_sync' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">String Ecosystem Sync</h3>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+              >
+                <GeminiIcon name="close" size={16} />
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              Log into String marketplace and campus commerce using your Cohart academic credentials. One sign-on powers both platforms.
+            </p>
+
+            <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
+              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                Single Unified Identity
+              </span>
+              <p className="text-[10px] text-neutral-500">
+                Connected student handle: <span className="font-mono text-neutral-800 dark:text-neutral-200">{profile.matric_number || profile.full_name || 'Active Scholar'}</span>
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setStringConnecting(true);
+                setTimeout(() => {
+                  setStringConnecting(false);
+                  setStringConnected(true);
+                  setTimeout(() => setActiveModal(null), 1200);
+                }, 1000);
+              }}
+              disabled={stringConnecting || stringConnected}
+              className="w-full py-2.5 rounded-full bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-all"
+            >
+              {stringConnecting ? 'Syncing...' : stringConnected ? 'Connected with String!' : 'Link String Identity'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL E: Help & Feedback */}
+      {activeModal === 'help' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Help & Feedback</h3>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+              >
+                <GeminiIcon name="close" size={16} />
+              </button>
+            </div>
+
+            {feedbackSent ? (
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                Thank you! Your feedback has been received.
               </div>
             ) : (
-              <form onSubmit={handleWithdraw} className="space-y-3">
-                <div>
-                  <label className="text-xs font-mono text-neutral-500 uppercase">Bank</label>
-                  <select
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
-                  >
-                    <option value="Opay">Opay</option>
-                    <option value="Palmpay">Palmpay</option>
-                    <option value="Kuda Bank">Kuda Bank</option>
-                    <option value="Access Bank">Access Bank</option>
-                    <option value="GTBank">GTBank</option>
-                    <option value="First Bank">First Bank</option>
-                    <option value="UBA">UBA</option>
-                    <option value="Zenith Bank">Zenith Bank</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-mono text-neutral-500 uppercase">Account Number</label>
-                  <input
-                    type="text"
-                    maxLength={10}
-                    placeholder="10-digit NUBAN"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
-                    className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-mono text-neutral-500 uppercase">Account Name</label>
-                  <input
-                    type="text"
-                    placeholder="Account Name"
-                    value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
-                    className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-mono text-neutral-500 uppercase">Amount (₦)</label>
-                  <input
-                    type="number"
-                    min={500}
-                    placeholder="Min ₦500"
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="w-full mt-1 p-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-
+              <div className="space-y-3">
+                <p className="text-xs text-neutral-500">
+                  Have a suggestion or encounter a bug with course outlines or timetable? Let the team know:
+                </p>
+                <textarea
+                  rows={3}
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="Tell us what you'd like improved..."
+                  className="w-full p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none resize-none"
+                />
                 <button
-                  type="submit"
-                  disabled={isWithdrawing || !accountNumber || accountNumber.length < 10}
-                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity disabled:opacity-40 cursor-pointer shadow-xs"
+                  onClick={() => {
+                    if (!feedbackText.trim()) return;
+                    setFeedbackSent(true);
+                    setTimeout(() => {
+                      setFeedbackSent(false);
+                      setActiveModal(null);
+                    }, 1500);
+                  }}
+                  disabled={!feedbackText.trim()}
+                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold disabled:opacity-40"
                 >
-                  {isWithdrawing ? 'Processing...' : 'Confirm Withdrawal'}
+                  Submit Feedback
                 </button>
-              </form>
+              </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Footer Branding */}
+      <p className="text-[10px] text-center text-neutral-400 dark:text-neutral-500 uppercase tracking-widest pt-2">
+        Cohart Academic Platform • v2.6
+      </p>
     </div>
   );
 };

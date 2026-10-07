@@ -766,48 +766,61 @@ export async function fetchLocations(): Promise<Location[]> {
   }
 }
 
-// Student profile operations
+// Student profile operations: Backend (Supabase) is the single source of truth.
 export async function fetchProfile(userId: string): Promise<StudentProfile> {
   try {
-    const cached = typeof window !== 'undefined' ? localStorage.getItem(`cohart_profile_${userId}`) : null;
-    if (cached) {
-      return JSON.parse(cached);
-    }
-
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
 
-    if (error || !data) {
-      return DEFAULT_STUDENT_PROFILE;
+    if (!error && data) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`cohart_profile_${userId}`, JSON.stringify(data));
+      }
+      return data as StudentProfile;
     }
 
-    return data as StudentProfile;
+    // Offline / network failure fallback only
+    const cached = typeof window !== 'undefined' ? localStorage.getItem(`cohart_profile_${userId}`) : null;
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    return DEFAULT_STUDENT_PROFILE;
   } catch {
+    const cached = typeof window !== 'undefined' ? localStorage.getItem(`cohart_profile_${userId}`) : null;
+    if (cached) {
+      return JSON.parse(cached);
+    }
     return DEFAULT_STUDENT_PROFILE;
   }
 }
 
 export async function updateProfile(profile: Partial<StudentProfile> & { id: string }): Promise<StudentProfile> {
   try {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(profile));
-    }
-
     const { data, error } = await supabase
       .from('profiles')
       .upsert(profile)
       .select()
       .single();
 
-    if (error || !data) {
-      return profile as StudentProfile;
+    if (!error && data) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(data));
+      }
+      return data as StudentProfile;
     }
 
-    return data as StudentProfile;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(profile));
+    }
+    return profile as StudentProfile;
   } catch {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(profile));
+    }
     return profile as StudentProfile;
   }
 }

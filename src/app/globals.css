@@ -25,6 +25,18 @@
     color-scheme: dark;
   }
 
+  html[data-font-size="compact"] {
+    font-size: 14px;
+  }
+
+  html[data-font-size="normal"], html:not([data-font-size]) {
+    font-size: 15.5px;
+  }
+
+  html[data-font-size="comfortable"] {
+    font-size: 17px;
+  }
+
   body {
     background-color: var(--bg-main);
     color: var(--text-primary);

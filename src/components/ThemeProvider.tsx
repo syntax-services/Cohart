@@ -4,12 +4,15 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type Theme = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
+export type FontSizeScale = 'compact' | 'normal' | 'comfortable';
 
 interface ThemeContextType {
   theme: Theme;
   resolvedTheme: ResolvedTheme;
+  fontSize: FontSizeScale;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  setFontSize: (size: FontSizeScale) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -17,9 +20,10 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>('system');
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark');
+  const [fontSize, setFontSizeState] = useState<FontSizeScale>('normal');
   const [mounted, setMounted] = useState(false);
 
-  // Initialize theme from localStorage or default to 'system'
+  // Initialize theme and font scale from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('cohart_theme') as Theme | null;
     if (saved && (saved === 'light' || saved === 'dark' || saved === 'system')) {
@@ -27,6 +31,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else {
       setThemeState('system');
     }
+
+    const savedFont = localStorage.getItem('cohart_font_size') as FontSizeScale | null;
+    if (savedFont && (savedFont === 'compact' || savedFont === 'normal' || savedFont === 'comfortable')) {
+      setFontSizeState(savedFont);
+      document.documentElement.setAttribute('data-font-size', savedFont);
+    } else {
+      setFontSizeState('normal');
+      document.documentElement.setAttribute('data-font-size', 'normal');
+    }
+
     setMounted(true);
   }, []);
 
@@ -74,6 +88,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('cohart_theme', newTheme);
   };
 
+  const setFontSize = (newSize: FontSizeScale) => {
+    setFontSizeState(newSize);
+    localStorage.setItem('cohart_font_size', newSize);
+    document.documentElement.setAttribute('data-font-size', newSize);
+  };
+
   const toggleTheme = () => {
     if (resolvedTheme === 'dark') {
       setTheme('light');
@@ -83,7 +103,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, fontSize, setTheme, toggleTheme, setFontSize }}>
       {children}
     </ThemeContext.Provider>
   );

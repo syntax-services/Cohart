@@ -20,31 +20,15 @@ export function useStudentProfile() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          // Strictly require verified email
-          const isVerified = Boolean(
-            session.user.email_confirmed_at ||
-            session.user.confirmed_at ||
-            session.user.app_metadata?.provider !== 'email'
-          );
-
-          if (isVerified) {
-            if (isMounted) setUserId(session.user.id);
-            const userProfile = await fetchProfile(session.user.id);
-            if (isMounted) {
-              setProfile({
-                ...userProfile,
-                email: session.user.email || userProfile.email,
-                full_name: session.user.user_metadata?.full_name || userProfile.full_name,
-                institution: session.user.user_metadata?.institution || userProfile.institution || '',
-              });
-            }
-          } else {
-            // Unverified user - reject and sign out
-            await supabase.auth.signOut();
-            if (isMounted) {
-              setUserId(null);
-              setProfile(DEFAULT_STUDENT_PROFILE);
-            }
+          if (isMounted) setUserId(session.user.id);
+          const userProfile = await fetchProfile(session.user.id);
+          if (isMounted) {
+            setProfile({
+              ...userProfile,
+              email: session.user.email?.endsWith('@student.cohart.ng') ? (userProfile.email || '') : (session.user.email || userProfile.email),
+              full_name: session.user.user_metadata?.full_name || userProfile.full_name,
+              institution: session.user.user_metadata?.institution || userProfile.institution || '',
+            });
           }
         }
       } catch (e) {
@@ -56,29 +40,18 @@ export function useStudentProfile() {
 
     initAuth();
 
-    // Listen to Supabase auth state changes (login, logout, email confirmation)
+    // Listen to Supabase auth state changes (login, logout, switch)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         if (session?.user) {
-          const isVerified = Boolean(
-            session.user.email_confirmed_at ||
-            session.user.confirmed_at ||
-            session.user.app_metadata?.provider !== 'email'
-          );
-
-          if (isVerified) {
-            setUserId(session.user.id);
-            const userProfile = await fetchProfile(session.user.id);
-            setProfile({
-              ...userProfile,
-              email: session.user.email || userProfile.email,
-              full_name: session.user.user_metadata?.full_name || userProfile.full_name,
-              institution: session.user.user_metadata?.institution || userProfile.institution || '',
-            });
-          } else {
-            setUserId(null);
-            setProfile(DEFAULT_STUDENT_PROFILE);
-          }
+          setUserId(session.user.id);
+          const userProfile = await fetchProfile(session.user.id);
+          setProfile({
+            ...userProfile,
+            email: session.user.email?.endsWith('@student.cohart.ng') ? (userProfile.email || '') : (session.user.email || userProfile.email),
+            full_name: session.user.user_metadata?.full_name || userProfile.full_name,
+            institution: session.user.user_metadata?.institution || userProfile.institution || '',
+          });
         } else if (event === 'SIGNED_OUT') {
           setUserId(null);
           setProfile(DEFAULT_STUDENT_PROFILE);
