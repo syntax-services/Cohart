@@ -83,8 +83,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
           {/* Header Row */}
           <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] dark:border-white/[0.06]">
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#0B57D0] dark:text-[#A8C7FA]">
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#0B57D0] dark:text-[#1A73E8]">
                 Walking Route
               </span>
             </div>
@@ -107,7 +106,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
                 ({formattedDistance})
               </span>
             </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-medium">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-medium">
               On Foot
             </span>
           </div>
@@ -130,7 +129,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
 
             {destination.orientation_tips && (
               <p className="mt-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.04] text-[11px] text-neutral-600 dark:text-neutral-300 leading-snug">
-                <span className="font-medium text-[#0B57D0] dark:text-[#A8C7FA]">Directions: </span>
+                <span className="font-medium text-[#0B57D0] dark:text-[#1A73E8]">Directions: </span>
                 {destination.orientation_tips}
               </p>
             )}
@@ -146,7 +145,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
             </button>
             <button
               onClick={openGoogleMaps}
-              className="flex-1 py-2 px-3 rounded-xl bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-mono font-semibold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
+              className="flex-1 py-2 px-3 rounded-xl bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-mono font-semibold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
             >
               <span>Open in Maps</span>
               <GeminiIcon name="pin" size={12} />

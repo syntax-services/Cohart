@@ -1170,3 +1170,30 @@ export async function sendUserDirectMessage(senderId: string, receiverId: string
   }
 }
 
+
+export async function uploadAvatar(userId: string, file: File): Promise<string | null> {
+  try {
+    const fileExt = file.name.split('.').pop() || 'png';
+    const filePath = userId + '/avatar_' + Date.now() + '.' + fileExt;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      console.error('Avatar upload error:', uploadError);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', userId);
+
+    return publicUrl;
+  } catch (err) {
+    console.error('Failed to upload avatar:', err);
+    return null;
+  }
+}

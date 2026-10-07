@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/Badge';
 import { StudentProfile, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
 import { UniversityCombobox } from '@/components/ui/UniversityCombobox';
 import { useTheme } from '@/components/ThemeProvider';
-import { clearAllAiConversations } from '@/lib/supabase';
+import { clearAllAiConversations, uploadAvatar } from '@/lib/supabase';
+import { PaymentModal } from '@/components/payment/PaymentModal';
 import {
   NIGERIAN_UNIVERSITIES,
   getRandomCampusQuestion,
@@ -35,8 +36,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   // Dialog & Drawer States
   const [activeModal, setActiveModal] = useState<
-    'edit_profile' | 'university' | 'appearance' | 'string_sync' | 'help' | null
+    'edit_profile' | 'university' | 'appearance' | 'help' | null
   >(null);
+
+  // Avatar Upload State
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const avatarInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Payment Modal State
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [paymentPlan, setPaymentPlan] = useState<'monthly' | 'semester' | 'wallet'>('monthly');
 
   // Profile Edit State
   const [editName, setEditName] = useState(profile.full_name || '');
@@ -66,10 +76,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   // Help & Feedback State
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
-
-  // String Connect State
-  const [stringConnecting, setStringConnecting] = useState(false);
-  const [stringConnected, setStringConnected] = useState(false);
 
   const initials = profile.full_name?.trim()
     ? profile.full_name
@@ -158,35 +164,120 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     setCampusNudge('Verification challenge failed. Try again with the alternate question or verify with Cohart AI.');
   };
 
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please select a valid image file (JPG, PNG, WebP).');
+      setTimeout(() => setAvatarError(null), 3000);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError('Image size should be less than 5MB.');
+      setTimeout(() => setAvatarError(null), 3000);
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setAvatarError(null);
+    try {
+      const publicUrl = await uploadAvatar(profile.id, file);
+      if (publicUrl) {
+        await onUpdateProfile({ avatar_url: publicUrl });
+      } else {
+        setAvatarError('Could not upload avatar. Please try again.');
+        setTimeout(() => setAvatarError(null), 3500);
+      }
+    } catch {
+      setAvatarError('Network error uploading avatar.');
+      setTimeout(() => setAvatarError(null), 3500);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto space-y-5 pb-16 pt-2 animate-in fade-in duration-300">
       {/* 1. Sleek String Profile Header Block */}
       <div className="flex flex-col items-center text-center space-y-3.5">
-        <div
-          className="relative group cursor-pointer"
-          onClick={() => {
-            setEditName(profile.full_name || '');
-            setEditMatric(profile.matric_number || '');
-            setEditDepartment(profile.department || '');
-            setEditLevel(profile.level || '100L');
-            setEditEmail(profile.email || '');
-            setActiveModal('edit_profile');
-          }}
-        >
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0B57D0] to-[#A8C7FA] opacity-30 group-hover:opacity-60 transition duration-500 blur-[2px]" />
-          <div className="relative h-28 w-28 rounded-full border-4 border-white dark:border-[#1E1F20] bg-neutral-100 dark:bg-[#1E1F20] flex items-center justify-center overflow-hidden shadow-xl">
-            <span className="font-mono text-2xl font-bold tracking-tight text-[#0B57D0] dark:text-[#A8C7FA]">
-              {initials}
-            </span>
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white">
-              <span className="text-[10px] font-bold uppercase tracking-wider">Edit Profile</span>
+        <div className="relative group">
+          <input
+            type="file"
+            ref={avatarInputRef}
+            onChange={handleAvatarFileChange}
+            accept="image/*"
+            className="hidden"
+          />
+
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0B57D0] to-[#1A73E8] opacity-30 group-hover:opacity-60 transition duration-500 blur-[2px]" />
+          
+          <div
+            onClick={() => avatarInputRef.current?.click()}
+            className="relative h-28 w-28 rounded-full border-4 border-white dark:border-[#1E1F20] bg-neutral-100 dark:bg-[#1E1F20] flex items-center justify-center overflow-hidden shadow-xl cursor-pointer"
+            title="Click to change profile picture"
+          >
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.full_name || 'Profile'}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="font-mono text-2xl font-bold tracking-tight text-[#0B57D0] dark:text-[#1A73E8]">
+                {initials}
+              </span>
+            )}
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white p-1">
+              {isUploadingAvatar ? (
+                <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              ) : (
+                <>
+                  <GeminiIcon name="user" size={18} />
+                  <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5">Upload</span>
+                </>
+              )}
             </div>
           </div>
+
+          {/* Quick Edit Pencil pill */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditName(profile.full_name || '');
+              setEditMatric(profile.matric_number || '');
+              setEditDepartment(profile.department || '');
+              setEditLevel(profile.level || '100L');
+              setEditEmail(profile.email || '');
+              setActiveModal('edit_profile');
+            }}
+            className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] text-neutral-700 dark:text-neutral-300 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title="Edit profile info"
+          >
+            <GeminiIcon name="user" size={13} />
+          </button>
         </div>
+
+        {avatarError && (
+          <p className="text-[11px] font-medium text-rose-500 animate-in fade-in">
+            {avatarError}
+          </p>
+        )}
 
         <div className="space-y-1">
           <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center justify-center gap-1.5">
             {profile.full_name || profile.matric_number || 'Scholar'}
+            {profile.subscription_tier && profile.subscription_tier !== 'free' && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[10px] font-mono font-bold uppercase tracking-wider">
+                Pro
+              </span>
+            )}
             {profile.institution && (
               <Badge variant="emerald" size="sm" className="rounded-full px-2 py-0.5">
                 Verified
@@ -198,7 +289,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               ? `${profile.department} • ${profile.level || '100L'}`
               : 'Undergraduate Scholar'}
           </p>
-          <div className="inline-flex items-center gap-1 bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border border-[#0B57D0]/15 dark:border-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] text-[11px] font-semibold px-2.5 py-0.5 rounded-full mt-1">
+          <div className="inline-flex items-center gap-1 bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/15 dark:border-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] text-[11px] font-semibold px-2.5 py-0.5 rounded-full mt-1">
             <GeminiIcon name="compass" size={12} />
             <span className="truncate max-w-[240px]">
               {profile.institution || 'Select University'}
@@ -216,7 +307,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
           >
             <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
-              <GeminiIcon name="reader" size={20} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+              <GeminiIcon name="reader" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             </div>
             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
               Reader & Notes
@@ -229,7 +320,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
           >
             <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
-              <GeminiIcon name="calendar" size={20} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+              <GeminiIcon name="calendar" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             </div>
             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
               Exam Schedule
@@ -244,7 +335,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
           >
             <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
-              <GeminiIcon name="sparkle" size={20} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+              <GeminiIcon name="sparkle" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             </div>
             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
               Cohart AI Chat
@@ -278,7 +369,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="user" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -294,7 +385,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="compass" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -310,7 +401,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="settings" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -323,20 +414,64 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         </button>
 
-        {/* String Shared Account Link */}
+        {/* Subscription & Pro Billing */}
         <button
-          onClick={() => setActiveModal('string_sync')}
+          onClick={() => {
+            setPaymentPlan('monthly');
+            setIsPaymentOpen(true);
+          }}
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <GeminiIcon name="shield-check" size={16} />
+            <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <GeminiIcon name="zap" size={16} />
             </div>
-            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-              String Connected Account
-            </span>
+            <div>
+              <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 block">
+                Subscription & Pro Access
+              </span>
+              <span className="text-[10px] text-neutral-400">
+                {profile.subscription_tier && profile.subscription_tier !== 'free'
+                  ? 'Cohart Pro Active'
+                  : 'Upgrade to Unlimited AI & Offline Pass'}
+              </span>
+            </div>
           </div>
-          <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono text-amber-600 dark:text-amber-400 font-bold">
+              {profile.subscription_tier && profile.subscription_tier !== 'free' ? 'PRO' : 'UPGRADE'}
+            </span>
+            <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </button>
+
+        {/* Wallet Top-up */}
+        <button
+          onClick={() => {
+            setPaymentPlan('wallet');
+            setIsPaymentOpen(true);
+          }}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <GeminiIcon name="wallet" size={16} />
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 block">
+                Campus Wallet
+              </span>
+              <span className="text-[10px] text-neutral-400">
+                Balance: ₦{(profile.wallet_balance || 0).toLocaleString()}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+              + Top-up
+            </span>
+            <GeminiIcon name="chevron-right" size={16} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+          </div>
         </button>
 
         {/* Help & Support */}
@@ -345,7 +480,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="book-open" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -464,7 +599,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity active:scale-[0.98]"
+                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 transition-opacity active:scale-[0.98]"
                 >
                   {savingProfile ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -499,7 +634,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {campusStep === 'question' && currentInsiderQuestion && (
               <div className="space-y-3 pt-2">
                 <div className="p-3.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06]">
-                  <span className="text-[10px] font-mono uppercase text-[#0B57D0] dark:text-[#A8C7FA] font-bold block mb-1">
+                  <span className="text-[10px] font-mono uppercase text-[#0B57D0] dark:text-[#1A73E8] font-bold block mb-1">
                     Campus Insider Check
                   </span>
                   <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed font-medium">
@@ -519,7 +654,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <button
                   onClick={handleSubmitCampusAnswer}
                   disabled={!campusUserAnswer.trim()}
-                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 disabled:opacity-40"
+                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 disabled:opacity-40"
                 >
                   Verify Campus
                 </button>
@@ -652,50 +787,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       )}
 
-      {/* MODAL D: String Shared Account */}
-      {activeModal === 'string_sync' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">String Ecosystem Sync</h3>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
-              >
-                <GeminiIcon name="close" size={16} />
-              </button>
-            </div>
-
-            <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
-              Log into String marketplace and campus commerce using your Cohart academic credentials. One sign-on powers both platforms.
-            </p>
-
-            <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
-              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
-                Single Unified Identity
-              </span>
-              <p className="text-[10px] text-neutral-500">
-                Connected student handle: <span className="font-mono text-neutral-800 dark:text-neutral-200">{profile.matric_number || profile.full_name || 'Active Scholar'}</span>
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setStringConnecting(true);
-                setTimeout(() => {
-                  setStringConnecting(false);
-                  setStringConnected(true);
-                  setTimeout(() => setActiveModal(null), 1200);
-                }, 1000);
-              }}
-              disabled={stringConnecting || stringConnected}
-              className="w-full py-2.5 rounded-full bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-all"
-            >
-              {stringConnecting ? 'Syncing...' : stringConnected ? 'Connected with String!' : 'Link String Identity'}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Payment and Billing Modal */}
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        profile={profile}
+        defaultPlan={paymentPlan}
+        onPaymentSuccess={async (updated) => {
+          await onUpdateProfile(updated);
+        }}
+      />
 
       {/* MODAL E: Help & Feedback */}
       {activeModal === 'help' && (
@@ -737,7 +838,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     }, 1500);
                   }}
                   disabled={!feedbackText.trim()}
-                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold disabled:opacity-40"
+                  className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold disabled:opacity-40"
                 >
                   Submit Feedback
                 </button>

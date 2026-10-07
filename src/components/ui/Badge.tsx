@@ -16,7 +16,7 @@ export const Badge: React.FC<BadgeProps> = ({
   size = 'md',
 }) => {
   const variantStyles = {
-    blue: 'bg-[#0B57D0]/10 text-[#0B57D0] border-[#0B57D0]/20 dark:bg-[#A8C7FA]/10 dark:text-[#A8C7FA] dark:border-[#A8C7FA]/20',
+    blue: 'bg-[#0B57D0]/10 text-[#0B57D0] border-[#0B57D0]/20 dark:bg-[#1A73E8]/10 dark:text-[#1A73E8] dark:border-[#1A73E8]/20',
     slate: 'bg-neutral-100 text-neutral-700 border-neutral-200 dark:bg-white/[0.06] dark:text-neutral-300 dark:border-white/[0.08]',
     emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20',
     amber: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',

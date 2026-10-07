@@ -46,7 +46,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
         tokens.push(
           <code
             key={`${keyPrefix}-c-${idx++}`}
-            className="px-1.5 py-0.5 rounded-md bg-black/[0.06] dark:bg-white/[0.1] font-mono text-[11px] text-[#0B57D0] dark:text-[#A8C7FA] font-medium"
+            className="px-1.5 py-0.5 rounded-md bg-black/[0.06] dark:bg-white/[0.1] font-mono text-[11px] text-[#0B57D0] dark:text-[#1A73E8] font-medium"
           >
             {codeMatch[1]}
           </code>
@@ -170,7 +170,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
             isCampus
               ? 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.12] border-emerald-500/20 text-emerald-800 dark:text-emerald-300'
               : isCourse
-              ? 'bg-[#0B57D0]/[0.08] dark:bg-[#A8C7FA]/[0.12] border-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
+              ? 'bg-[#0B57D0]/[0.08] dark:bg-[#1A73E8]/[0.12] border-[#0B57D0]/20 text-[#0B57D0] dark:text-[#1A73E8]'
               : 'bg-neutral-500/[0.08] dark:bg-neutral-400/[0.12] border-neutral-400/20 text-neutral-700 dark:text-neutral-300'
           }`}
         >
@@ -196,7 +196,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
       const text = trimmed.slice(2);
       renderedElements.push(
         <div key={`bullet-${lineIdx}`} className="flex items-start gap-2 my-1 pl-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] mt-1.5 shrink-0" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] mt-1.5 shrink-0" />
           <div className="text-xs sm:text-[13px] leading-relaxed">
             {parseInline(text, `b-${lineIdx}`)}
           </div>
@@ -210,7 +210,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
     if (numMatch) {
       renderedElements.push(
         <div key={`num-${lineIdx}`} className="flex items-start gap-2 my-1 pl-1">
-          <span className="font-mono text-[11px] text-[#0B57D0] dark:text-[#A8C7FA] font-semibold shrink-0">
+          <span className="font-mono text-[11px] text-[#0B57D0] dark:text-[#1A73E8] font-semibold shrink-0">
             {numMatch[1]}.
           </span>
           <div className="text-xs sm:text-[13px] leading-relaxed">
@@ -226,7 +226,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
       renderedElements.push(
         <blockquote
           key={`quote-${lineIdx}`}
-          className="border-l-2 border-[#0B57D0] dark:border-[#A8C7FA] pl-3 py-1 my-2 text-xs italic text-neutral-600 dark:text-neutral-400 bg-black/[0.02] dark:bg-white/[0.02] rounded-r-lg"
+          className="border-l-2 border-[#0B57D0] dark:border-[#1A73E8] pl-3 py-1 my-2 text-xs italic text-neutral-600 dark:text-neutral-400 bg-black/[0.02] dark:bg-white/[0.02] rounded-r-lg"
         >
           {parseInline(trimmed.slice(2), `q-${lineIdx}`)}
         </blockquote>

@@ -8,8 +8,6 @@ import { formatBionicText } from '@/lib/bionic';
 import { StudentProfile, ReaderChapter, SavedExplanation, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
 import { saveExplanation, fetchSavedExplanations, deleteSavedExplanation } from '@/lib/supabase';
 
-import { CampusAiAssistant } from './CampusAiAssistant';
-
 const TOPIC_1: ReaderChapter = {
   id: 'chap_eco_201_oligopoly',
   courseCode: 'ECO 201',
@@ -91,6 +89,7 @@ interface InteractiveReaderProps {
   onAiModeChange?: (isAi: boolean) => void;
   onMilestoneAction?: (actionId: string) => void;
   onUpdateProfile?: (updated: Partial<StudentProfile>) => void;
+  onOpenAiChat?: (initialPrompt?: string) => void;
 }
 
 export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
@@ -99,23 +98,21 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   onAiModeChange,
   onMilestoneAction,
   onUpdateProfile,
+  onOpenAiChat,
 }) => {
-  const [activeView, setActiveView] = useState<'reader' | 'ai' | 'vault'>(() => {
+  const [activeView, setActiveView] = useState<'reader' | 'vault'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('cohart_reader_view');
-      if (saved === 'ai' || saved === 'vault') return saved;
+      if (saved === 'vault') return 'vault';
     }
     return 'reader';
   });
-
-  const [activeAiMode, setActiveAiMode] = useState<'general' | 'grill_mode'>('general');
-  const [activeAiPrompt, setActiveAiPrompt] = useState<string | undefined>(undefined);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('cohart_reader_view', activeView);
     }
-    onAiModeChange?.(activeView === 'ai');
+    onAiModeChange?.(false);
   }, [activeView, onAiModeChange]);
 
   const [activeTopicIndex, setActiveTopicIndex] = useState<0 | 1>(0);
@@ -266,17 +263,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     ? profile.full_name.trim().split(' ')[0]
     : 'Scholar';
 
-  // Context chat
-  const [chatMessages, setChatMessages] = useState<
-    { role: 'user' | 'assistant'; text: string }[]
-  >([
-    {
-      role: 'assistant',
-      text: `Hello ${studentFirstName}! Highlight any sentence in the notes above and I will break it down for you in simple English with a practical Nigerian example.`,
-    },
-  ]);
-  const [inputQuestion, setInputQuestion] = useState('');
-
   // Handle native text selection
   const handleMouseUp = () => {
     if (typeof window !== 'undefined') {
@@ -384,80 +370,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     setTimeout(() => setCopiedNoteId(null), 2000);
   };
 
-  const handleSendChat = async () => {
-    if (!inputQuestion.trim()) return;
-
-    const q = inputQuestion;
-    setInputQuestion('');
-    setChatMessages((prev) => [...prev, { role: 'user', text: q }]);
-
-    try {
-      let replyText = '';
-
-      // Primary: Call /api/ai
-      try {
-        const res = await fetch('/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            context: 'reader_explanation',
-            highlightedText: selectedText || currentChapter.title,
-            prompt: q,
-            studentProfile: profile,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          replyText = data.reply;
-        }
-      } catch {
-        // Fallback to Supabase Edge Function
-      }
-
-      // Secondary fallback: Direct Supabase AI Edge Function
-      if (!replyText) {
-        try {
-          const edgeRes = await fetch(
-            'https://fnqnxdmdyevzavsbfelv.supabase.co/functions/v1/ai',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucW54ZG1keWV2emF2c2JmZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MTI3NDUsImV4cCI6MjEwNTQ4ODc0NX0.BdJAhqwdSiPbGHCb5d3KbwNHalTlbO1jaqWTgXvVz6A',
-              },
-              body: JSON.stringify({
-                context: 'reader_explanation',
-                highlightedText: selectedText || currentChapter.title,
-                prompt: q,
-                studentProfile: profile,
-              }),
-            }
-          );
-          if (edgeRes.ok) {
-            const data = await edgeRes.json();
-            replyText = data.reply;
-          }
-        } catch {
-          // Both failed
-        }
-      }
-
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: replyText || 'Temporarily unable to process response. Please retry.',
-        },
-      ]);
-    } catch {
-      setChatMessages((prev) => [
-        ...prev,
-        { role: 'assistant', text: 'Network connection issue. Please retry.' },
-      ]);
-    }
-  };
-
   const fontSizeClasses = {
     sm: 'text-xs leading-relaxed',
     md: 'text-sm leading-relaxed',
@@ -486,27 +398,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     });
   }, [savedExplanations, vaultCourseFilter, vaultSearch]);
 
-  if (activeView === 'ai') {
-    return (
-      <div className="h-full w-full">
-        <CampusAiAssistant
-          profile={profile}
-          onSelectVenue={onLocateVenue}
-          onMilestoneAction={onMilestoneAction}
-          onUpdateProfile={onUpdateProfile}
-          initialMode={activeAiMode}
-          initialPrompt={activeAiPrompt}
-          onExitFullscreen={() => {
-            setActiveView('reader');
-            setActiveAiMode('general');
-            setActiveAiPrompt(undefined);
-            onAiModeChange?.(false);
-          }}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4 sm:space-y-5">
       {/* Compact In-App Style Mode Switcher with Dropdown */}
@@ -521,10 +412,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             <GeminiIcon
               name={activeView === 'vault' ? 'bookmark' : 'reader'}
               size={14}
-              className="text-[#0B57D0] dark:text-[#A8C7FA]"
+              className="text-[#0B57D0] dark:text-[#1A73E8]"
             />
             <span className="font-semibold capitalize">
-              {activeView === 'vault' ? 'Vault' : 'Course Reader'}
+              {activeView === 'vault' ? 'Saved Vault' : 'Course Reader'}
             </span>
             <GeminiIcon name="chevron-down" size={12} className="text-neutral-400" />
           </button>
@@ -546,7 +437,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                     activeView === 'reader'
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-semibold'
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-semibold'
                       : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                   }`}
                 >
@@ -559,25 +450,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                 <button
                   onClick={() => {
-                    setActiveView('ai');
-                    setIsModeDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <GeminiIcon name="chat" size={13} />
-                    <span>AI Copilot</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
                     setActiveView('vault');
                     setIsModeDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                     activeView === 'vault'
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-semibold'
+                      ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-semibold'
                       : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                   }`}
                 >
@@ -603,7 +481,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               onClick={handleToggleBionic}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
                 isBionic
-                  ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                  ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-medium'
                   : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
               }`}
             >
@@ -614,7 +492,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               <button
                 onClick={() => setFontSize('sm')}
                 className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                  fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                  fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                 }`}
               >
                 A-
@@ -622,7 +500,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               <button
                 onClick={() => setFontSize('md')}
                 className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                  fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                  fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                 }`}
               >
                 A
@@ -630,7 +508,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               <button
                 onClick={() => setFontSize('lg')}
                 className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                  fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                  fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                 }`}
               >
                 A+
@@ -674,7 +552,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     onClick={() => setVaultCourseFilter(c)}
                     className={`px-3 py-1 rounded-full font-mono text-xs transition-all cursor-pointer shrink-0 ${
                       vaultCourseFilter === c
-                        ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                        ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
                         : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                     }`}
                   >
@@ -690,7 +568,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   value={vaultSearch}
                   onChange={(e) => setVaultSearch(e.target.value)}
                   placeholder="Filter saved notes..."
-                  className="w-full rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] pl-8 pr-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] pl-8 pr-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
                 />
                 <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
                   <GeminiIcon name="search" size={13} />
@@ -702,7 +580,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           {/* Vault Cards Stream */}
           {filteredVault.length === 0 ? (
             <GeminiCard className="p-8 text-center space-y-3">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                 <GeminiIcon name="bookmark" size={22} />
               </div>
               <h3 className="text-base font-semibold text-neutral-900 dark:text-white font-sans">
@@ -717,7 +595,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 <div className="pt-2">
                   <button
                     onClick={() => setActiveView('reader')}
-                    className="px-4 py-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer"
                   >
                     Open Course Reader &rarr;
                   </button>
@@ -731,7 +609,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   {/* Note Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                         {item.course_code}
                       </span>
                       {item.context_topic && (
@@ -747,7 +625,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   </div>
 
                   {/* Quoted Selection */}
-                  <div className="pl-3 py-1 border-l-2 border-[#0B57D0] dark:border-[#A8C7FA] bg-black/[0.015] dark:bg-white/[0.02] rounded-r-lg">
+                  <div className="pl-3 py-1 border-l-2 border-[#0B57D0] dark:border-[#1A73E8] bg-black/[0.015] dark:bg-white/[0.02] rounded-r-lg">
                     <p className="text-xs italic text-neutral-600 dark:text-neutral-300 font-serif leading-relaxed">
                       &ldquo;{item.selected_text}&rdquo;
                     </p>
@@ -755,7 +633,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                   {/* AI Explanation Content */}
                   <div className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-3 border border-black/[0.05] dark:border-white/[0.05]">
-                    <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#0B57D0] dark:text-[#A8C7FA] mb-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#0B57D0] dark:text-[#1A73E8] mb-1.5">
                       <GeminiIcon name="chat" size={13} />
                       <span>AI Concept Breakdown</span>
                     </div>
@@ -799,7 +677,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               onClick={() => setActiveTopicIndex(0)}
               className={`px-3.5 py-1.5 rounded-full font-mono transition-all shrink-0 ${
                 activeTopicIndex === 0
-                  ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                  ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
                   : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
               }`}
             >
@@ -809,7 +687,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               onClick={() => setActiveTopicIndex(1)}
               className={`px-3.5 py-1.5 rounded-full font-mono transition-all shrink-0 ${
                 activeTopicIndex === 1
-                  ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold'
+                  ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
                   : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
               }`}
             >
@@ -881,13 +759,13 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                             onClick={() => handleSelectVoice(v.id)}
                             className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
                               selectedVoice === v.id
-                                ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-[#0B57D0] dark:text-[#A8C7FA] font-medium'
+                                ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] font-medium'
                                 : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                             }`}
                           >
                             <span className="truncate">{v.label}</span>
                             {selectedVoice === v.id && (
-                              <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#A8C7FA] shrink-0" />
+                              <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#1A73E8] shrink-0" />
                             )}
                           </button>
                         ))}
@@ -902,7 +780,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 onClick={handleToggleBionic}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
                   isBionic
-                    ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-medium'
+                    ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-medium'
                     : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
                 }`}
               >
@@ -914,7 +792,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 <button
                   onClick={() => setFontSize('sm')}
                   className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                    fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                    fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                   }`}
                 >
                   A-
@@ -922,7 +800,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 <button
                   onClick={() => setFontSize('md')}
                   className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                    fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                    fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                   }`}
                 >
                   A
@@ -930,7 +808,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 <button
                   onClick={() => setFontSize('lg')}
                   className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                    fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] shadow-xs font-medium' : 'text-neutral-500'
+                    fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                   }`}
                 >
                   A+
@@ -950,7 +828,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={() => handleExplainSelection()}
-                  className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
+                  className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-medium hover:opacity-90 transition-opacity"
                 >
                   Explain
                 </button>
@@ -996,8 +874,8 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                     {/* Checkpoint recall quiz */}
                     {checkpoint && (
-                      <div className="my-5 p-4 rounded-2xl bg-[#0B57D0]/[0.03] dark:bg-[#A8C7FA]/[0.05] border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 text-xs">
-                        <div className="flex items-center gap-2 mb-2 font-mono text-[11px] text-[#0B57D0] dark:text-[#A8C7FA]">
+                      <div className="my-5 p-4 rounded-2xl bg-[#0B57D0]/[0.03] dark:bg-[#1A73E8]/[0.05] border border-[#0B57D0]/20 dark:border-[#1A73E8]/20 text-xs">
+                        <div className="flex items-center gap-2 mb-2 font-mono text-[11px] text-[#0B57D0] dark:text-[#1A73E8]">
                           <GeminiIcon name="chat" size={14} />
                           <span>Quick Practice Question</span>
                         </div>
@@ -1064,7 +942,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#0B57D0]/[0.08] via-purple-500/[0.04] to-emerald-500/[0.08] border border-[#0B57D0]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                          <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0B57D0]/15 text-[#0B57D0] dark:text-[#A8C7FA] font-bold">
+                          <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0B57D0]/15 text-[#0B57D0] dark:text-[#1A73E8] font-bold">
                             Chapter Completed
                           </span>
                           <span className="text-xs font-mono font-semibold text-neutral-900 dark:text-white">
@@ -1083,15 +961,16 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                       <button
                         onClick={() => {
-                          setActiveAiMode('grill_mode');
-                          setActiveAiPrompt(`I completed the chapter "${currentChapter.title}" with a score of ${correctCheckpoints.length}/${totalCheckpoints}. Test me with OOU exam questions on this topic!`);
-                          setActiveView('ai');
+                          const prompt = `I completed the chapter "${currentChapter.title}" with a score of ${correctCheckpoints.length}/${totalCheckpoints}. Test me with exam practice questions on this topic!`;
                           onMilestoneAction?.('reader_quiz');
+                          if (onOpenAiChat) {
+                            onOpenAiChat(prompt);
+                          }
                         }}
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-semibold shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
                       >
                         <GeminiIcon name="zap" size={14} />
-                        <span>Practice Exam Questions with AI</span>
+                        <span>Practice Exam Questions in Messages</span>
                       </button>
                     </div>
                   </div>
@@ -1106,7 +985,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                       <GeminiIcon name="chat" size={15} />
                     </div>
                     <div>
@@ -1131,7 +1010,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 <div className="min-h-[90px] text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed font-sans mb-4">
                   {isExplaining ? (
                     <div className="flex items-center gap-2 text-neutral-500 py-6 justify-center">
-                      <div className="h-4 w-4 rounded-full border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent animate-spin" />
+                      <div className="h-4 w-4 rounded-full border-2 border-[#0B57D0] dark:border-[#1A73E8] border-t-transparent animate-spin" />
                       <span className="font-mono text-xs">Breaking this down in simple words...</span>
                     </div>
                   ) : (
@@ -1155,7 +1034,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                   <button
                     onClick={() => setShowAiSheet(false)}
-                    className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-medium hover:opacity-90 transition-opacity"
+                    className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-medium hover:opacity-90 transition-opacity"
                   >
                     Got It
                   </button>
@@ -1164,60 +1043,30 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </div>
           )}
 
-          {/* Socratic Dialogue Section */}
-          <GeminiCard>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
-                  <GeminiIcon name="chat" size={15} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Ask About This Chapter</h3>
-                  <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">{currentChapter.courseCode} Q&A</p>
-                </div>
+          {/* Sleek Chapter Discussion in Messages */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
+                <GeminiIcon name="chat" size={18} />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">Discuss {currentChapter.courseCode} with Cohart AI</h4>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Ask doubts, solve past questions, or brainstorm in Messages</p>
               </div>
             </div>
 
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 mb-3">
-              {chatMessages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`p-3 rounded-2xl text-xs font-sans leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/15 text-neutral-900 dark:text-white ml-6'
-                      : 'bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] text-neutral-700 dark:text-neutral-300 mr-6'
-                  }`}
-                >
-                  <div className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 mb-0.5">
-                    {msg.role === 'user' ? 'You' : 'Cohart'}
-                  </div>
-                  {msg.text}
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={inputQuestion}
-                onChange={(e) => setInputQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendChat();
-                  }
-                }}
-                placeholder="Ask any question about this topic in simple English..."
-                className="flex-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] px-3.5 py-2 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
-              />
-              <button
-                onClick={handleSendChat}
-                className="p-2 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 hover:opacity-90 transition-opacity"
-              >
-                <GeminiIcon name="arrow-right" size={15} />
-              </button>
-            </div>
-          </GeminiCard>
+            <button
+              onClick={() => {
+                if (onOpenAiChat) {
+                  onOpenAiChat(`I have questions regarding "${currentChapter.title}" in ${currentChapter.courseCode}. Can you explain it further?`);
+                }
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
+            >
+              <span>Open in Messages</span>
+              <GeminiIcon name="arrow-right" size={13} />
+            </button>
+          </div>
         </>
       )}
     </div>

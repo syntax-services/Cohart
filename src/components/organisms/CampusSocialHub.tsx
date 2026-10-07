@@ -174,7 +174,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
               <GeminiIcon name="arrow-left" size={18} />
             </button>
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 flex items-center justify-center text-[#0B57D0] dark:text-[#A8C7FA]">
+              <div className="h-7 w-7 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8]">
                 <GeminiIcon name="sparkle" size={15} />
               </div>
               <h2 className="text-sm font-bold text-neutral-900 dark:text-white">
@@ -273,7 +273,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                   <div
                     className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                       isMe
-                        ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 rounded-br-xs shadow-xs'
+                        ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white rounded-br-xs shadow-xs'
                         : 'bg-white dark:bg-[#1E1F20] text-neutral-900 dark:text-neutral-100 rounded-bl-xs border border-black/[0.06] dark:border-white/[0.08] shadow-xs'
                     }`}
                   >
@@ -303,12 +303,12 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
             placeholder="Type a message..."
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+            className="flex-1 px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
           />
           <button
             type="submit"
             disabled={!messageInput.trim() || sending}
-            className="h-9 px-4 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 active:scale-95 disabled:opacity-40 transition-all cursor-pointer"
+            className="h-9 px-4 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 active:scale-95 disabled:opacity-40 transition-all cursor-pointer"
           >
             Send
           </button>
@@ -353,7 +353,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
           placeholder="Search by username, name, or school..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-9 pr-3.5 py-2 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-all shadow-xs"
+          className="w-full pl-9 pr-3.5 py-2 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8] transition-all shadow-xs"
         />
       </div>
 
@@ -366,10 +366,9 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="relative shrink-0">
-              <div className="h-10 w-10 rounded-2xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 flex items-center justify-center text-[#0B57D0] dark:text-[#A8C7FA]">
+              <div className="h-10 w-10 rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 dark:border-[#1A73E8]/20 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8]">
                 <GeminiIcon name="sparkle" size={20} />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#1E1F20]" />
             </div>
 
             <div className="min-w-0">
@@ -377,7 +376,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                 <span className="text-xs font-bold text-neutral-900 dark:text-white">
                   Cohart AI
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] font-bold">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-bold">
                   Pinned
                 </span>
               </div>

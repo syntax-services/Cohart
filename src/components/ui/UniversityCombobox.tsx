@@ -178,7 +178,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
         aria-expanded={isOpen}
         className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all duration-150 flex items-center justify-between gap-2.5 ${
           isOpen
-            ? 'bg-neutral-100 dark:bg-[#1E1F20] border-[#0B57D0] dark:border-[#A8C7FA] ring-2 ring-[#0B57D0]/20'
+            ? 'bg-neutral-100 dark:bg-[#1E1F20] border-[#0B57D0] dark:border-[#1A73E8] ring-2 ring-[#0B57D0]/20'
             : 'bg-neutral-50 dark:bg-[#1E1F20] hover:bg-neutral-100/80 dark:hover:bg-[#252729] border-black/[0.08] dark:border-white/[0.08]'
         } border ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
@@ -187,7 +187,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
           <span
             className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 border ${
               selectedInstitution.category === 'Federal'
-                ? 'bg-[#0B57D0]/10 border-[#0B57D0]/25 text-[#0B57D0] dark:text-[#A8C7FA]'
+                ? 'bg-[#0B57D0]/10 border-[#0B57D0]/25 text-[#0B57D0] dark:text-[#1A73E8]'
                 : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-700 dark:text-emerald-400'
             }`}
           >
@@ -206,7 +206,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
               {selectedInstitution.hasMap && (
                 <>
                   <span>•</span>
-                  <span className="text-[#0B57D0] dark:text-[#A8C7FA] font-semibold">
+                  <span className="text-[#0B57D0] dark:text-[#1A73E8] font-semibold">
                     Live Map
                   </span>
                 </>
@@ -252,7 +252,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                   }}
                   onKeyDown={handleKeyDown}
                   placeholder={placeholder}
-                  className="w-full pl-8 pr-8 py-2 text-xs bg-neutral-100 dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06] rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full pl-8 pr-8 py-2 text-xs bg-neutral-100 dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06] rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
                 />
                 {searchQuery && (
                   <button
@@ -286,7 +286,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                   onClick={() => setCategoryFilter('Federal')}
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'Federal'
-                      ? 'bg-[#0B57D0] text-white dark:bg-[#A8C7FA] dark:text-neutral-950'
+                      ? 'bg-[#0B57D0] text-white dark:bg-[#1A73E8] dark:text-neutral-950'
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
                   }`}
                 >
@@ -334,7 +334,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                       setCategoryFilter('All');
                       searchInputRef.current?.focus();
                     }}
-                    className="mt-2 text-[11px] font-mono text-[#0B57D0] dark:text-[#A8C7FA] hover:underline"
+                    className="mt-2 text-[11px] font-mono text-[#0B57D0] dark:text-[#1A73E8] hover:underline"
                   >
                     Clear search filter
                   </button>
@@ -354,7 +354,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                       onMouseEnter={() => setHighlightedIndex(index)}
                       className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between gap-2.5 transition-all ${
                         isSelected
-                          ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20'
+                          ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 dark:border-[#1A73E8]/20'
                           : isHighlighted
                           ? 'bg-neutral-100 dark:bg-white/[0.06] border border-transparent'
                           : 'hover:bg-neutral-50 dark:hover:bg-white/[0.03] border border-transparent'
@@ -365,7 +365,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                         <span
                           className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border ${
                             inst.category === 'Federal'
-                              ? 'bg-[#0B57D0]/10 border-[#0B57D0]/20 text-[#0B57D0] dark:text-[#A8C7FA]'
+                              ? 'bg-[#0B57D0]/10 border-[#0B57D0]/20 text-[#0B57D0] dark:text-[#1A73E8]'
                               : inst.category === 'State'
                               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                               : 'bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-400'
@@ -392,7 +392,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                             {inst.hasMap && (
                               <>
                                 <span>•</span>
-                                <span className="text-[#0B57D0] dark:text-[#A8C7FA] font-semibold">
+                                <span className="text-[#0B57D0] dark:text-[#1A73E8] font-semibold">
                                   Live Map
                                 </span>
                               </>
@@ -403,7 +403,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
 
                       {/* Selected Checkmark */}
                       {isSelected && (
-                        <div className="shrink-0 text-[#0B57D0] dark:text-[#A8C7FA]">
+                        <div className="shrink-0 text-[#0B57D0] dark:text-[#1A73E8]">
                           <GeminiIcon name="check" size={14} />
                         </div>
                       )}

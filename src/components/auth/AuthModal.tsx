@@ -238,7 +238,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* MODE: VERIFY EMAIL SCREEN (Google / Linear / Stripe Grade) */}
         {mode === 'verify_email' ? (
           <div className="text-center py-2">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] mb-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] mb-4">
               <GeminiIcon name="shield-check" size={24} />
             </div>
 
@@ -250,7 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </p>
 
             <div className="my-2.5 inline-block max-w-full px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08]">
-              <span className="font-mono text-xs font-semibold text-[#0B57D0] dark:text-[#A8C7FA] truncate block">
+              <span className="font-mono text-xs font-semibold text-[#0B57D0] dark:text-[#1A73E8] truncate block">
                 {email || 'your email'}
               </span>
             </div>
@@ -275,7 +275,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 onClick={handleCheckVerification}
                 disabled={loading}
-                className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity active:scale-[0.98] flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 transition-opacity active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <div className="h-3.5 w-3.5 rounded-full border-2 border-white dark:border-neutral-950 border-t-transparent animate-spin" />
@@ -316,7 +316,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   setErrorMsg(null);
                   setInfoMsg(null);
                 }}
-                className="text-[#0B57D0] dark:text-[#A8C7FA] font-medium"
+                className="text-[#0B57D0] dark:text-[#1A73E8] font-medium"
               >
                 Back to Sign In
               </button>
@@ -326,7 +326,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           /* MODE: SIGN IN / SIGN UP */
           <>
             <div className="mb-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] mb-3">
                 <GeminiIcon name="user" size={18} />
               </div>
               <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
@@ -362,7 +362,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. Adewale Johnson"
                       required
-                      className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                      className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
                     />
                   </div>
 
@@ -389,7 +389,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   required
                   autoCapitalize="none"
                   autoCorrect="off"
-                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
                 />
                 {mode === 'signup' && (
                   <p className="text-[10px] text-neutral-400 mt-1">
@@ -407,14 +407,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="••••••••"
                   required
                   minLength={6}
-                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA]"
+                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 text-xs font-semibold hover:opacity-90 transition-opacity active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
+                className="w-full mt-2 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 transition-opacity active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
               >
                 {loading ? (
                   <div className="h-3.5 w-3.5 rounded-full border-2 border-white dark:border-neutral-950 border-t-transparent animate-spin" />
@@ -432,7 +432,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   setErrorMsg(null);
                   setInfoMsg(null);
                 }}
-                className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-[#0B57D0] dark:hover:text-[#A8C7FA] font-sans"
+                className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-[#0B57D0] dark:hover:text-[#1A73E8] font-sans"
               >
                 {mode === 'signin'
                   ? "Don't have an account? Sign up"

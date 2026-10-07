@@ -166,7 +166,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
               </div>
 
               <div className="sm:text-right shrink-0">
-                <div className="text-2xl font-mono font-bold text-[#0B57D0] dark:text-[#A8C7FA]">
+                <div className="text-2xl font-mono font-bold text-[#0B57D0] dark:text-[#1A73E8]">
                   {logs.length}
                 </div>
                 <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
@@ -183,7 +183,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                     advice.rate >= 75
                       ? 'bg-emerald-500'
                       : advice.rate >= 50
-                      ? 'bg-[#0B57D0] dark:bg-[#A8C7FA]'
+                      ? 'bg-[#0B57D0] dark:bg-[#1A73E8]'
                       : 'bg-amber-500'
                   }`}
                   style={{ width: `${Math.min(100, Math.max(5, advice.rate))}%` }}
@@ -216,7 +216,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                       onClick={() => setSelectedDay(d)}
                       className={`relative px-3 py-1 rounded-xl text-xs font-mono transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 font-semibold shadow-xs'
+                          ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold shadow-xs'
                           : 'bg-black/[0.04] dark:bg-white/[0.05] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                       }`}
                     >
@@ -224,7 +224,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                       {isCurrentRealDay && (
                         <span
                           className={`absolute -top-1 -right-1 h-2 w-2 rounded-full border border-white dark:border-neutral-950 ${
-                            isSelected ? 'bg-emerald-400' : 'bg-emerald-500 animate-pulse'
+                            isSelected ? 'bg-[#1A73E8]' : 'bg-[#0B57D0] dark:bg-[#1A73E8] animate-pulse'
                           }`}
                           title="Today"
                         />
@@ -292,12 +292,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                       <div>
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                               {item.courseCode}
                             </span>
                             {item.isLiveNow && isClassDay && !isPast && (
-                              <span className="flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-600 dark:text-emerald-400">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span className="flex items-center gap-1 text-[10px] font-mono font-medium text-[#0B57D0] dark:text-[#1A73E8]">
                                 Scheduled Now
                               </span>
                             )}
@@ -353,7 +352,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 cursor-default'
                               : isLocked
                               ? 'bg-black/[0.04] dark:bg-white/[0.04] text-neutral-400 dark:text-neutral-500 cursor-not-allowed border border-black/[0.05] dark:border-white/[0.05]'
-                              : 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 hover:opacity-90 active:scale-95'
+                              : 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white hover:opacity-90 active:scale-95'
                           }`}
                         >
                           {isMarking ? (
@@ -388,7 +387,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
             <GeminiCard>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                     <GeminiIcon name="clock" size={15} />
                   </div>
                   <div>
@@ -438,7 +437,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
         <>
           {/* Realistic Timetable Pending Status Hero Card */}
           <GeminiCard className="p-6 sm:p-8 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA] mb-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] mb-4">
               <GeminiIcon name="calendar" size={24} />
             </div>
 
@@ -456,7 +455,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all active:scale-95 cursor-pointer ${
                   notifySubscribed
                     ? 'bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
-                    : 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 hover:opacity-90'
+                    : 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white hover:opacity-90'
                 }`}
               >
                 <GeminiIcon name={notifySubscribed ? 'check' : 'bell'} size={14} />
@@ -478,7 +477,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
             {/* Academic Calendar Milestones */}
             <GeminiCard>
               <div className="flex items-center gap-2 mb-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                   <GeminiIcon name="clock" size={15} />
                 </div>
                 <div>
@@ -501,7 +500,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                 <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05]">
                   <div className="flex justify-between font-mono text-[11px] mb-1">
                     <span className="text-neutral-900 dark:text-neutral-100 font-medium">Departmental Verification & Signing</span>
-                    <span className="text-[#0B57D0] dark:text-[#A8C7FA]">Starts Resumption Week</span>
+                    <span className="text-[#0B57D0] dark:text-[#1A73E8]">Starts Resumption Week</span>
                   </div>
                   <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                     Sign course forms at Departmental Office with Course Advisor and HOD.
@@ -523,7 +522,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
             {/* Expected Lecture Venues for Your Faculty */}
             <GeminiCard>
               <div className="flex items-center gap-2 mb-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 text-[#0B57D0] dark:text-[#A8C7FA]">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                   <GeminiIcon name="compass" size={15} />
                 </div>
                 <div>
@@ -538,7 +537,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                   className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between hover:border-[#0B57D0]/30 transition-all cursor-pointer group"
                 >
                   <div>
-                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
                       Law Lecture Theatre 1 (LLT 1)
                     </p>
                     <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
@@ -553,7 +552,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                   className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between hover:border-[#0B57D0]/30 transition-all cursor-pointer group"
                 >
                   <div>
-                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
                       Law Lecture Theatre 2 (LLT 2)
                     </p>
                     <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
@@ -568,7 +567,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                   className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between hover:border-[#0B57D0]/30 transition-all cursor-pointer group"
                 >
                   <div>
-                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
                       Law Lecture Theatre 3 (LLT 3)
                     </p>
                     <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
@@ -583,7 +582,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({ profile, onLocateVen
                   className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between hover:border-[#0B57D0]/30 transition-all cursor-pointer group"
                 >
                   <div>
-                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#A8C7FA] transition-colors">
+                    <p className="font-medium text-neutral-900 dark:text-white group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
                       SMS Lecture Theatre 1 (SMS LT)
                     </p>
                     <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">

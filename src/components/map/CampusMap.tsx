@@ -243,8 +243,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       className: 'custom-user-marker',
       html: `
         <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style="width: 24px; height: 24px; transform: rotate(${-rotationAngle}deg);">
-          <div class="absolute inset-0 rounded-full bg-[#0B57D0]/25 dark:bg-[#A8C7FA]/30 animate-ping"></div>
-          <div class="relative h-4 w-4 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA] border-2 border-white shadow-lg flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full bg-[#0B57D0]/25 dark:bg-[#1A73E8]/30 animate-ping"></div>
+          <div class="relative h-4 w-4 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] border-2 border-white shadow-lg flex items-center justify-center">
             <div class="h-1.5 w-1.5 rounded-full bg-white dark:bg-neutral-950"></div>
           </div>
         </div>
@@ -276,11 +276,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <!-- Precision Teardrop / Circular Pin -->
           <div class="relative flex items-center justify-center w-[30px] h-[30px] rounded-full shadow-lg transition-transform duration-150 ${
             isSelected
-              ? 'bg-[#0B57D0] dark:bg-[#A8C7FA] text-white dark:text-neutral-950 scale-110 ring-2 ring-white'
+              ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white scale-110 ring-2 ring-white'
               : isEco
               ? isSatellite
-                ? 'bg-[#0B57D0] text-white border border-[#A8C7FA]'
-                : 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#A8C7FA] border border-[#0B57D0]'
+                ? 'bg-[#0B57D0] text-white border border-[#1A73E8]'
+                : 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]'
               : isSatellite
               ? 'bg-neutral-900/90 text-white border border-white/70'
               : 'bg-white dark:bg-[#1E1F20] text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700'
@@ -293,11 +293,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <!-- Pin Stem pointing directly to coordinate -->
           <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] -mt-[1px] ${
             isSelected
-              ? 'border-t-[#0B57D0] dark:border-t-[#A8C7FA]'
+              ? 'border-t-[#0B57D0] dark:border-t-[#1A73E8]'
               : isEco
               ? isSatellite
                 ? 'border-t-[#0B57D0]'
-                : 'border-t-[#0B57D0] dark:border-t-[#A8C7FA]'
+                : 'border-t-[#0B57D0] dark:border-t-[#1A73E8]'
               : isSatellite
               ? 'border-t-neutral-900'
               : 'border-t-white dark:border-t-[#1E1F20]'
@@ -336,16 +336,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 pointer-events-none">
         {/* Left: Sleek Filter Icon Selector for Building Types */}
         <div
-          className="relative pointer-events-auto flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-sm backdrop-blur-md text-neutral-800 dark:text-neutral-200 hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-all"
+          className="relative pointer-events-auto flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-sm backdrop-blur-md text-neutral-800 dark:text-neutral-200 hover:border-[#0B57D0] dark:hover:border-[#1A73E8] transition-all"
           title={activeCategory === 'all' ? 'Filter by building type' : `Filter: ${activeCategory}`}
         >
           <GeminiIcon
             name="filter"
             size={13}
-            className={activeCategory !== 'all' ? 'text-[#0B57D0] dark:text-[#A8C7FA]' : 'text-neutral-700 dark:text-neutral-300'}
+            className={activeCategory !== 'all' ? 'text-[#0B57D0] dark:text-[#1A73E8]' : 'text-neutral-700 dark:text-neutral-300'}
           />
           {activeCategory !== 'all' && (
-            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#A8C7FA]" />
+            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8]" />
           )}
           <select
             value={activeCategory}
@@ -383,7 +383,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
           {/* Compact Map Layer Dropdown (Satellite / Street) */}
           <div className="flex items-center gap-1 bg-white/95 dark:bg-[#1E1F20]/95 px-2.5 py-1.5 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             <select
               value={mapLayer}
               onChange={(e) => setMapLayer(e.target.value as 'satellite' | 'street')}
@@ -400,12 +399,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             onClick={handleLocateMe}
             disabled={isLocating}
             title="Locate me on campus"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#A8C7FA] transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#1A73E8] transition-all shadow-sm active:scale-95"
           >
             {isLocating ? (
-              <div className="h-3 w-3 rounded-full border-2 border-[#0B57D0] dark:border-[#A8C7FA] border-t-transparent animate-spin" />
+              <div className="h-3 w-3 rounded-full border-2 border-[#0B57D0] dark:border-[#1A73E8] border-t-transparent animate-spin" />
             ) : (
-              <GeminiIcon name="compass" size={13} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+              <GeminiIcon name="compass" size={13} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             )}
             <span className="hidden sm:inline font-sans">Locate</span>
           </button>

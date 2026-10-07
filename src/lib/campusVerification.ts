@@ -294,3 +294,14 @@ export function evaluateCampusAnswer(
     isVerified: false,
   };
 }
+
+export function isOouStudent(institution?: string | null): boolean {
+  if (!institution) return false;
+  const lower = institution.toLowerCase().trim();
+  return (
+    lower === 'oou' ||
+    lower.includes('oou') ||
+    lower.includes('onabanjo') ||
+    lower.includes('ago-iwoye')
+  );
+}

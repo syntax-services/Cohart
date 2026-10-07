@@ -49,6 +49,9 @@ export interface StudentProfile {
   referral_code: string;
   wallet_balance: number;
   is_verified_coordinator: boolean;
+  subscription_tier?: 'free' | 'pro_monthly' | 'pro_semester';
+  subscription_expires_at?: string;
+  avatar_url?: string;
   created_at?: string;
   updated_at?: string;
 }

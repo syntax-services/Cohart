@@ -59,7 +59,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             <span className="text-base font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
               cohart
             </span>
-            <span className="px-1.5 py-0.5 text-[9px] font-mono tracking-wider text-[#0B57D0] dark:text-[#A8C7FA] bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 rounded border border-[#0B57D0]/20 dark:border-[#A8C7FA]/20 font-semibold">
+            <span className="px-1.5 py-0.5 text-[9px] font-mono tracking-wider text-[#0B57D0] dark:text-[#1A73E8] bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 rounded border border-[#0B57D0]/20 dark:border-[#1A73E8]/20 font-semibold">
               OOU
             </span>
           </div>

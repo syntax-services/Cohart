@@ -21,9 +21,9 @@ const config: Config = {
             text: "#E3E3E3",
             muted: "#C4C7C5",
             subtle: "#8E918F",
-            blue: "#A8C7FA",
-            blueHover: "#8AB4F8",
-            blueContainer: "rgba(168, 199, 250, 0.12)",
+            blue: "#1A73E8",
+            blueHover: "#1557B0",
+            blueContainer: "rgba(26, 115, 232, 0.16)",
           },
           // Light theme (Google Gemini official #F0F4F9 / #FFFFFF)
           light: {

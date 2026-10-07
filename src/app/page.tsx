@@ -15,6 +15,7 @@ import { fetchLocations } from '@/lib/supabase';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { QuizRunner } from '@/components/organisms/QuizRunner';
+import { isOouStudent } from '@/lib/campusVerification';
 
 export default function AppHomePage() {
   const [activeTab, setActiveTab] = useState<NavTab>('hub');
@@ -32,6 +33,15 @@ export default function AppHomePage() {
   const { profile, userId, saveProfile, signOut } = useStudentProfile();
   const isAuthenticated = Boolean(userId);
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4500);
+  };
+
   // Rehydrate page/tab from URL or cache on mount (MPA-like navigation resilience)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -40,10 +50,19 @@ export default function AppHomePage() {
       const cachedTab = localStorage.getItem('cohart_active_tab') as NavTab | null;
       const validTabs: NavTab[] = ['hub', 'reader', 'schedule', 'map', 'ai', 'profile'];
 
+      let initialTab: NavTab = 'hub';
       if (urlTab && validTabs.includes(urlTab)) {
-        setActiveTab(urlTab);
+        initialTab = urlTab;
       } else if (cachedTab && validTabs.includes(cachedTab)) {
-        setActiveTab(cachedTab);
+        initialTab = cachedTab;
+      }
+
+      // Check map eligibility
+      if (initialTab === 'map' && profile && !isOouStudent(profile.institution)) {
+        setActiveTab('profile');
+        showToast('Map not yet available for your institution. We are expanding rapidly—check news & socials to see when your school launches!');
+      } else {
+        setActiveTab(initialTab);
       }
 
       const savedMilestones = localStorage.getItem('cohart_verified_milestones');
@@ -67,7 +86,7 @@ export default function AppHomePage() {
         }
       }
     }
-  }, []);
+  }, [profile?.institution]);
 
   // Listen to browser/phone back button (popstate) to smoothly revert to previous screen
   useEffect(() => {
@@ -78,8 +97,14 @@ export default function AppHomePage() {
         return;
       }
       if (e.state && e.state.tab) {
-        setActiveTab(e.state.tab);
-        localStorage.setItem('cohart_active_tab', e.state.tab);
+        const nextTab = e.state.tab;
+        if (nextTab === 'map' && !isOouStudent(profile?.institution)) {
+          setActiveTab('profile');
+          showToast('Map not yet available for your institution. We are expanding rapidly—check news & socials to see when your school launches!');
+        } else {
+          setActiveTab(nextTab);
+          localStorage.setItem('cohart_active_tab', nextTab);
+        }
       } else {
         // Default back to hub
         setActiveTab('hub');
@@ -91,7 +116,7 @@ export default function AppHomePage() {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [isAiFullscreen]);
+  }, [isAiFullscreen, profile?.institution]);
 
   useEffect(() => {
     async function loadLocations() {
@@ -102,6 +127,17 @@ export default function AppHomePage() {
   }, []);
 
   const changeTab = (targetTab: NavTab) => {
+    if (targetTab === 'map' && !isOouStudent(profile?.institution)) {
+      setPreviousTab(activeTab);
+      setActiveTab('profile');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cohart_active_tab', 'profile');
+        window.history.pushState({ tab: 'profile' }, '', '?tab=profile');
+      }
+      showToast('Map not yet available for your institution. We are expanding rapidly—check news & socials to see when your school launches!');
+      return;
+    }
+
     setPreviousTab((prev) => (prev !== targetTab && activeTab !== targetTab ? activeTab : prev));
     setActiveTab(targetTab);
     if (typeof window !== 'undefined') {
@@ -153,6 +189,12 @@ export default function AppHomePage() {
   };
 
   const handleSelectVenue = (locationCode: string) => {
+    if (!isOouStudent(profile?.institution)) {
+      changeTab('profile');
+      showToast('Map not yet available for your institution. We are expanding rapidly—check news & socials to see when your school launches!');
+      return;
+    }
+
     if (isAiFullscreen) {
       setIsAiFullscreen(false);
     }
@@ -202,12 +244,9 @@ export default function AppHomePage() {
             onOpenReader={() => handleTabChange('reader')}
             onOpenSchedule={() => handleTabChange('schedule')}
             onOpenProfile={() => handleTabChange('profile')}
-            onOpenAi={(prompt, mode) => {
-              handleTabChange('reader');
-              setIsAiFullscreen(true);
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('cohart_reader_view', 'ai');
-              }
+            onOpenAi={(prompt) => {
+              if (prompt) setAiInitialPrompt(prompt);
+              changeTab('ai');
             }}
             verifiedMilestones={verifiedMilestones}
             onMarkMilestone={handleMarkMilestone}
@@ -221,6 +260,10 @@ export default function AppHomePage() {
             onAiModeChange={setIsAiFullscreen}
             onMilestoneAction={handleMarkMilestone}
             onUpdateProfile={saveProfile}
+            onOpenAiChat={(prompt) => {
+              if (prompt) setAiInitialPrompt(prompt);
+              changeTab('ai');
+            }}
           />
         )}
 
@@ -304,6 +347,22 @@ export default function AppHomePage() {
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
       />
+
+      {/* Punchy Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] max-w-md w-[92%] sm:w-auto px-4 py-3 rounded-2xl bg-neutral-900/95 dark:bg-[#1E1F20]/95 border border-white/10 text-white shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-4 duration-200">
+          <div className="flex items-center gap-2.5">
+            <div className="h-2 w-2 rounded-full bg-[#1A73E8] animate-ping shrink-0" />
+            <p className="font-medium leading-snug">{toastMessage}</p>
+          </div>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="p-1 text-neutral-400 hover:text-white rounded-md shrink-0 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }
