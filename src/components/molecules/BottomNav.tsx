@@ -46,7 +46,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
         { id: 'hub' as NavTab, label: 'Hub', icon: 'home' as IconName },
         { id: 'reader' as NavTab, label: 'Reader', icon: 'reader' as IconName },
         { id: 'map' as NavTab, label: 'Campus Map', icon: 'map' as IconName },
-        { id: 'ai' as NavTab, label: 'Social & AI', icon: 'users' as IconName },
+        { id: 'ai' as NavTab, label: 'Messages', icon: 'chat' as IconName },
         { id: 'profile' as NavTab, label: 'Profile', icon: 'user' as IconName },
       ];
     }
@@ -56,7 +56,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
       { id: 'hub' as NavTab, label: 'Hub', icon: 'home' as IconName },
       { id: 'reader' as NavTab, label: 'Reader', icon: 'reader' as IconName },
       { id: 'schedule' as NavTab, label: 'Schedule', icon: 'calendar' as IconName },
-      { id: 'ai' as NavTab, label: 'Social & AI', icon: 'users' as IconName },
+      { id: 'ai' as NavTab, label: 'Messages', icon: 'chat' as IconName },
       { id: 'profile' as NavTab, label: 'Profile', icon: 'user' as IconName },
     ];
   }, [isSchoolWithMap]);

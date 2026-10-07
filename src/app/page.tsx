@@ -18,6 +18,7 @@ import { QuizRunner } from '@/components/organisms/QuizRunner';
 
 export default function AppHomePage() {
   const [activeTab, setActiveTab] = useState<NavTab>('hub');
+  const [previousTab, setPreviousTab] = useState<NavTab>('hub');
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
@@ -101,6 +102,7 @@ export default function AppHomePage() {
   }, []);
 
   const changeTab = (targetTab: NavTab) => {
+    setPreviousTab((prev) => (prev !== targetTab && activeTab !== targetTab ? activeTab : prev));
     setActiveTab(targetTab);
     if (typeof window !== 'undefined') {
       localStorage.setItem('cohart_active_tab', targetTab);
@@ -249,6 +251,7 @@ export default function AppHomePage() {
               onUpdateProfile={saveProfile}
               initialPrompt={aiInitialPrompt || undefined}
               onStartQuiz={(q) => setSharedQuiz(q)}
+              onBack={() => changeTab(previousTab || 'hub')}
             />
           </div>
         )}

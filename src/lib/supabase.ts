@@ -1107,3 +1107,66 @@ export async function clearAllAiConversations(userId?: string): Promise<boolean>
   }
 }
 
+// Real Peer Search and Messaging Operations
+export interface PeerUser {
+  id: string;
+  full_name: string;
+  matric_number?: string | null;
+  institution?: string | null;
+  department?: string | null;
+  level?: string | null;
+}
+
+export async function searchRealUsers(queryText: string): Promise<PeerUser[]> {
+  try {
+    let q = supabase
+      .from('profiles')
+      .select('id, full_name, matric_number, institution, department, level')
+      .limit(30);
+
+    const clean = queryText.trim();
+    if (clean) {
+      q = q.or(`full_name.ilike.%${clean}%,matric_number.ilike.%${clean}%,institution.ilike.%${clean}%,department.ilike.%${clean}%`);
+    }
+
+    const { data, error } = await q;
+    if (error || !data) return [];
+    return data as PeerUser[];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchUserDirectMessages(userId1: string, userId2: string) {
+  try {
+    const { data, error } = await supabase
+      .from('direct_messages')
+      .select('*')
+      .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
+      .order('created_at', { ascending: true });
+
+    if (error || !data) return [];
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+export async function sendUserDirectMessage(senderId: string, receiverId: string, content: string) {
+  const newMsg = {
+    id: `dm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    sender_id: senderId,
+    receiver_id: receiverId,
+    content: content.trim(),
+    created_at: new Date().toISOString(),
+    is_read: false,
+  };
+
+  try {
+    await supabase.from('direct_messages').insert([newMsg]);
+    return newMsg;
+  } catch {
+    return newMsg;
+  }
+}
+
