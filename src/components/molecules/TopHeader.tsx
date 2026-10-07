@@ -48,7 +48,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     : 'AJ';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] dark:border-white/[0.07] bg-white/90 dark:bg-[#131314]/90 backdrop-blur-xl transition-colors">
+    <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] dark:border-white/[0.08] bg-[var(--surface-main)]/95 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8 py-2">
         {/* Brand Identity */}
         <div className="flex items-center gap-3">
@@ -66,7 +66,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               value={searchQuery}
               onChange={handleSearchChange}
               placeholder="Search lectures, halls, courses..."
-              className="w-full rounded-full bg-neutral-100/90 dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] pl-9 pr-3.5 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#A8C7FA] transition-colors font-sans"
+              className="w-full rounded-full bg-neutral-100/90 dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] pl-9 pr-3.5 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8] transition-colors font-sans"
             />
           </div>
         </div>
@@ -78,7 +78,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             onClick={onOpenProfile}
             className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-800 dark:text-neutral-200 transition-all active:scale-95 text-xs font-medium"
           >
-            <GeminiIcon name="user" size={14} className="text-[#0B57D0] dark:text-[#A8C7FA]" />
+            <GeminiIcon name="user" size={14} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             <span className="hidden sm:inline font-sans">{profile.full_name?.split(' ')[0] || 'Account'}</span>
           </button>
         </div>

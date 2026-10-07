@@ -49,6 +49,34 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var savedTheme = localStorage.getItem('cohart_theme');
+                  var supportDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = savedTheme === 'dark' || (!savedTheme || savedTheme === 'system') && supportDark;
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                    document.documentElement.style.colorScheme = 'light';
+                  }
+                  var savedFont = localStorage.getItem('cohart_font_size');
+                  if (savedFont) {
+                    document.documentElement.setAttribute('data-font-size', savedFont);
+                  } else {
+                    document.documentElement.setAttribute('data-font-size', 'normal');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] antialiased font-sans">
         <ThemeProvider>{children}</ThemeProvider>

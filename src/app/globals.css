@@ -20,20 +20,25 @@
     --text-primary: #E3E3E3;
     --text-secondary: #C4C7C5;
     --border-subtle: rgba(255, 255, 255, 0.08);
-    --gemini-blue: #A8C7FA;
-    --gemini-blue-container: rgba(168, 199, 250, 0.12);
+    --gemini-blue: #1A73E8;
+    --gemini-blue-container: rgba(26, 115, 232, 0.16);
     color-scheme: dark;
   }
 
-  html[data-font-size="compact"] {
+  html[data-font-size="compact"],
+  html[data-font-size="compact"] body {
     font-size: 14px;
   }
 
-  html[data-font-size="normal"], html:not([data-font-size]) {
+  html[data-font-size="normal"],
+  html:not([data-font-size]),
+  html[data-font-size="normal"] body,
+  html:not([data-font-size]) body {
     font-size: 15.5px;
   }
 
-  html[data-font-size="comfortable"] {
+  html[data-font-size="comfortable"],
+  html[data-font-size="comfortable"] body {
     font-size: 17px;
   }
 

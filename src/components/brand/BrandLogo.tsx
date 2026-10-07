@@ -45,7 +45,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
                L 77 123 
                C 69 116, 69 106, 76 99 
                C 83 92, 93 92, 100 100"
-            className="stroke-[#0B57D0] dark:stroke-[#A8C7FA]"
+            className="stroke-[#0B57D0] dark:stroke-[#1A73E8]"
             strokeWidth="15"
             strokeLinecap="round"
             strokeLinejoin="round"

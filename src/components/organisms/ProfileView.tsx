@@ -601,7 +601,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     onClick={() => setTheme(t.id as any)}
                     className={`py-2 rounded-xl text-xs font-semibold border transition-all ${
                       theme === t.id
-                        ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border-[#0B57D0] dark:border-[#A8C7FA] text-[#0B57D0] dark:text-[#A8C7FA]'
+                        ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border-[#0B57D0] dark:border-[#1A73E8] text-[#0B57D0] dark:text-[#1A73E8]'
                         : 'border-black/[0.08] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
                     }`}
                   >
@@ -615,7 +615,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] font-mono text-neutral-500 uppercase">Text Size Scale</label>
-                <span className="text-xs font-mono text-neutral-400 capitalize">{fontSize}</span>
+                <span className="text-xs font-mono text-[#0B57D0] dark:text-[#1A73E8] font-bold capitalize">{fontSize}</span>
               </div>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                 Calibrated for study speed, reader clarity & sleek mobile viewing.
@@ -631,7 +631,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     onClick={() => setFontSize(s.id as any)}
                     className={`py-2.5 rounded-xl flex flex-col items-center gap-0.5 border transition-all ${
                       fontSize === s.id
-                        ? 'bg-[#0B57D0]/10 dark:bg-[#A8C7FA]/10 border-[#0B57D0] dark:border-[#A8C7FA] text-[#0B57D0] dark:text-[#A8C7FA]'
+                        ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border-[#0B57D0] dark:border-[#1A73E8] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs'
                         : 'border-black/[0.08] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:border-black/[0.15]'
                     }`}
                   >
