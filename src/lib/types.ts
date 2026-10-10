@@ -430,11 +430,11 @@ export const COHART_VOICES: CohartVoiceOption[] = [
   // Aura-2 Flagship Enterprise Conversational Voice Models
   {
     id: 'aura-2-thalia-en',
-    label: 'Cohart Nova (Clear Tutor)',
+    label: 'Cohart Lumen (Clear Tutor)',
     gender: 'Female',
     persona: 'Warm, engaging, articulates lecture concepts clearly',
     generation: 'aura-2',
-    sampleText: 'Hello scholar! I am Cohart Nova, your lead academic tutor. Let us break down your course materials together with clear analogies and step-by-step logic.',
+    sampleText: 'Hello scholar! I am Cohart Lumen, your lead academic companion. Let us break down your course materials together with clear analogies and step-by-step logic.',
     audioUrl: '/audio/voices/aura-2-thalia-en.mp3',
   },
   {
@@ -571,11 +571,72 @@ export interface InteractiveChoices {
   options: string[];
 }
 
+export interface InteractiveQuizQuestion {
+  questionId: string;
+  courseCode?: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+  whyChosenIsWrong?: string;
+  whyLooksSimilar?: string;
+  psychologicalMemoryHook?: string;
+}
+
+export interface AttachedFileDetail {
+  name: string;
+  type: string;
+  sizeBytes: number;
+  previewUrl?: string;
+  strategy?: 'image' | 'pdf' | 'text' | 'office_binary';
+  textContent?: string;
+  base64?: string;
+}
+
+export interface StudyKitPayload {
+  kitId: string;
+  title: string;
+  courseCode: string;
+  topic?: string;
+  readinessScore?: number;
+  summary: {
+    overview: string;
+    keyDefinitions?: Array<{ term: string; meaning: string }>;
+    lecturerEmphasis?: string[];
+    examPitfalls?: string[];
+  };
+  flashcards?: Array<{ question: string; answer: string; memoryHook?: string }>;
+  quiz?: {
+    quizId: string;
+    title: string;
+    questions: InteractiveQuizQuestion[];
+  };
+  checklist?: Array<{ id: string; label: string; completed: boolean }>;
+  predictedQuestions?: string[];
+  panicReliefTip?: string;
+}
+
+export interface LinkEmbedPayload {
+  url: string;
+  title?: string;
+  domain?: string;
+  summary: string;
+  keyTakeaways?: string[];
+}
+
+export interface MessageReplyContext {
+  id: string;
+  role: 'user' | 'assistant';
+  senderName?: string;
+  snippet: string;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  replyTo?: MessageReplyContext;
   suggestedAction?: {
     label: string;
     venueCode: string;
@@ -583,6 +644,17 @@ export interface Message {
   profileUpdatedBadge?: string;
   interactiveChoices?: InteractiveChoices;
   generatedQuiz?: QuizData;
+  interactiveQuestion?: InteractiveQuizQuestion;
+  parsedCgpaReport?: any;
+  parsedTimetable?: any[];
+  simplifiedBlend?: { originalText: string; blendedText: string };
+  studyKit?: StudyKitPayload;
+  linkEmbed?: LinkEmbedPayload;
+  attachedFile?: { name: string; type: string; sizeBytes: number; previewUrl?: string };
+  attachedFiles?: AttachedFileDetail[];
+  modelName?: string;
+  modelTier?: string;
+  clockWidget?: { type: 'circular' | 'rectangular'; time?: string; timezone?: string; position?: 'top' | 'bottom' };
 }
 
 export interface Conversation {
@@ -590,6 +662,7 @@ export interface Conversation {
   title: string;
   createdAt: string;
   messages: Message[];
+  modelTier?: string;
 }
 
 export interface PeerStudent {

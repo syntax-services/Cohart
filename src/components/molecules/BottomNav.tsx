@@ -66,7 +66,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
       <div className="max-w-sm mx-auto pointer-events-auto">
         <nav
           aria-label="Bottom Navigation"
-          className="relative flex items-center justify-between rounded-full bg-[#0A0A0A]/90 dark:bg-[#0A0A0A]/95 border border-white/10 backdrop-blur-2xl px-3 py-2 shadow-2xl shadow-black/50"
+          className="relative flex items-center justify-between rounded-full bg-white/20 dark:bg-black/20 border border-black/[0.06] dark:border-white/[0.08] backdrop-blur-3xl backdrop-saturate-200 px-2 py-1.5 shadow-2xl shadow-black/5 dark:shadow-black/50"
         >
           {navItems.map((item, idx) => {
             const isActive = activeTab === item.id;
@@ -79,12 +79,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                 aria-label={item.label}
                 className={`relative flex items-center justify-center rounded-full transition-all duration-200 active:scale-95 group ${
                   isCenterMap
-                    ? 'w-12 h-12 bg-white/10 border border-white/15 shadow-md shadow-white/5'
-                    : 'w-11 h-11'
+                    ? 'w-11 h-11 bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/20 dark:border-[#1A73E8]/30 shadow-sm'
+                    : 'w-10 h-10'
                 } ${
                   isActive
-                    ? 'text-white'
-                    : 'text-neutral-400 hover:text-white'
+                    ? 'text-[#0B57D0] dark:text-[#1A73E8]'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
                 {/* Active pill background */}
@@ -92,21 +92,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                   <motion.div
                     layoutId="activeNavBg"
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    className="absolute inset-0 rounded-full bg-white/15 border border-white/20"
+                    className="absolute inset-0 rounded-full bg-white/70 dark:bg-white/10 border border-black/[0.06] dark:border-white/[0.15] shadow-xs"
                   />
                 )}
 
                 <div className="relative z-10 flex items-center justify-center">
                   <GeminiIcon
                     name={item.icon}
-                    size={isActive ? 22 : 20}
+                    size={isActive ? 21 : 19}
                     strokeWidth={isActive ? 2.5 : 2}
                     className={`transition-colors duration-200 ${
                       isActive
-                        ? 'text-white'
+                        ? 'text-[#0B57D0] dark:text-[#1A73E8]'
                         : isCenterMap
-                          ? 'text-neutral-200 group-hover:text-white'
-                          : 'text-neutral-400 group-hover:text-white'
+                          ? 'text-[#0B57D0] dark:text-[#1A73E8]'
+                          : 'text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white'
                     }`}
                   />
                 </div>

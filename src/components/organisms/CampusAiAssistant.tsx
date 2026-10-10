@@ -1,6 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { AnimatedCircularClock } from '@/components/atoms/AnimatedCircularClock';
+import { AnimatedRectangularClock } from '@/components/atoms/AnimatedRectangularClock';
+import { AI_MODELS, ModelTierId, AI_BRAND_NAME, SUBSCRIPTION_TIERS, HARDSHIP_REFERRAL_PROGRAM, CAMPUS_GAMES_AND_REWARDS } from '@/lib/aiModels';
+import { downloadAsText, downloadAsDocx, downloadAsPdf, copyToClipboard } from '@/lib/exportUtils';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { MarkdownText } from '@/components/atoms/MarkdownText';
 import {
@@ -12,9 +16,45 @@ import {
   InteractiveChoices,
   Message,
   Conversation,
+  InteractiveQuizQuestion,
+  AttachedFileDetail,
+  StudyKitPayload,
+  LinkEmbedPayload,
+  MessageReplyContext,
 } from '@/lib/types';
-import { fetchAiConversations, upsertAiConversation, deleteAiConversation } from '@/lib/supabase';
+import {
+  fetchAiConversations,
+  upsertAiConversation,
+  deleteAiConversation,
+  getUserRecentActivity,
+  recordUserActivity,
+  fetchAttendanceLogs,
+} from '@/lib/supabase';
+import {
+  generateAssumedTimetable,
+  computeStudentAttendanceBrief,
+} from '@/lib/curriculumTimetable';
+import {
+  saveSharedDepartmentTimetable,
+  getLocalSharedDepartmentTimetable,
+} from '@/lib/departmentTimetables';
+import {
+  checkFeatureAccess,
+  recordFeatureUsage,
+  validateUploadBatch,
+  isHeavyFile,
+  getUserSubscriptionTier,
+  getUserTonesBalance,
+  isExamPassLoanActive,
+  activateExamPassLoan,
+  settleExamPassLoan,
+} from '@/lib/subscriptionQuota';
+import {
+  saveDocumentContext,
+} from '@/lib/documentArchive';
 import { QuizRunner } from './QuizRunner';
+import { CampusArenaViewer } from '@/components/arena/CampusArenaViewer';
+import { StudyKitWidget } from '@/components/study/StudyKitWidget';
 
 interface CampusAiAssistantProps {
   profile: StudentProfile;
@@ -30,28 +70,32 @@ interface CampusAiAssistantProps {
 
 const KNOWLEDGE_BASE: Record<string, { reply: string; venueCode?: string }> = {
   llt1: {
-    reply: "Here is how to walk to LLT1 (Arts Lecture Theatre I) from the PS Main Gate:\n1. Walk down the main tarred walkway straight past the Security Post towards the bank area (about 2 minutes walk).\n2. Look to your left and you will see the Access Bank ATM.\n3. Turn right directly opposite Access Bank at the Sam Ewang building, and cross the covered footbridge.\n4. LLT1 is the big lecture hall right on your right hand side.",
+    reply: "Here is how to get to LLT1 (Arts Lecture Theatre I) inside OOU PS:\n1. Note: Walking from the Main Gate is very far (about 1.5 - 2km), and commercial bikes are strictly banned inside campus.\n2. Buses drop at the central School Park (PS Bus Park).\n3. From School Park, take a short Maruwa or walk past the Access Bank ATM / Sam Ewang complex.\n4. Cross the covered concrete footbridge directly opposite Access Bank. LLT1 is the large auditorium right in front.",
     venueCode: 'LLT-1',
   },
   llt2: {
-    reply: "LLT2 (Law Lecture Theatre II) is right beside LLT1.\nFrom the Access Bank / Sam Ewang side, cross the covered footbridge into the LLT compound. LLT2 is right next to LLT1 heading towards the Faculty of Education.",
+    reply: "Here is how to get to LLT2 (Law Lecture Theatre II) inside OOU PS:\n1. From the School Park (where campus buses drop students), take a Maruwa towards Sam Ewang or walk past Access Bank ATM.\n2. Cross the covered footbridge into the LLT quad. LLT2 is right next to LLT1, heading towards the Faculty of Education.\n3. Note: Commercial okadas are not allowed inside campus—only university shuttles, Maruwa, and staff/private bikes.",
     venueCode: 'LLT-2',
   },
   llt3: {
-    reply: "LLT3 (Law Lecture Theatre III) is down at Motion Ground (New Motion).\nFrom the Main Gate, follow the main road past the Senate building roundabout straight down to Motion Ground. LLT3 is the big hall directly opposite Professor Saburi Market and right next to the ICAN Building.",
+    reply: "Here is how to get to LLT3 (Law Lecture Theatre III at Motion Ground):\n1. Walking from the Main Gate is far (1.5 - 2km). Always take transport to the School Park.\n2. From the School Park, board a Maruwa heading towards Motion Ground (New Motion).\n3. LLT3 is the large hall directly opposite Professor Saburi Market and adjacent to the ICAN Building.\n4. Note: Commercial bikes are banned inside OOU PS campus.",
     venueCode: 'LLT-3',
   },
   bank: {
-    reply: "The bank area is along the main central walkway, about 200 metres from the Main Gate. You will find the 24/7 Access Bank ATM gallery and branch there for your school fees and cash withdrawals.",
+    reply: "The Access Bank ATM Quad is along the central avenue near Sam Ewang.\nFrom the School Park, it is a short walk or Maruwa drop past the Senate roundabout. You will find the 24/7 ATM gallery for cash withdrawals and fee receipts.",
     venueCode: 'BANK-QUAD',
   },
   sms: {
-    reply: "SMS Lecture Theatre (Faculty of Administration & Management Sciences) is along the faculty walkway. From the central roundabout, follow the walkway past the Odukale Library and ETF Hall.",
+    reply: "Here is how to get to SMS Lecture Theatre (Faculty of Administration & Management Sciences):\n1. From the School Park drop-off, board an SMS or Science Maruwa along the faculty avenue.\n2. Pass the Odukale Library and ETF Complex. The SMS complex is south of ETF, with SLR 1 on the ground floor eastern wing.",
     venueCode: 'SMS-LT1',
   },
   market: {
-    reply: "Professor Saburi Market is at Motion Ground, directly facing LLT3. You can print documents, buy snacks, stationery, or do photocopying there.",
+    reply: "Professor Saburi Market is at Motion Ground, directly facing LLT3.\nFrom the School Park, board a Motion Ground Maruwa. The market has printing kiosks, snacks, stationery, and photocopying vendors.",
     venueCode: 'MKT-SABURI',
+  },
+  park: {
+    reply: "The OOU School Park (PS Bus & Maruwa Terminal) is the central transit hub inside campus.\nAll commuter buses from Ago garage, Ilisan, and surrounding towns drop students here. From School Park, you can board Maruwa to any faculty. Note: Commercial okadas are strictly prohibited inside campus!",
+    venueCode: 'SCHOOL-PARK',
   },
 };
 
@@ -116,6 +160,67 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   const [input, setInput] = useState(initialPrompt || '');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedChoices, setSelectedChoices] = useState<Record<string, string[]>>({});
+  // In-Chat Interactive Quiz States
+  const [answeredQuestions, setAnsweredQuestions] = useState<Record<string, { selectedIndex: number; isCorrect: boolean }>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('cohart_answered_quiz_questions');
+        return saved ? JSON.parse(saved) : {};
+      } catch {}
+    }
+    return {};
+  });
+
+  const [quizStreak, setQuizStreak] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('cohart_quiz_streak');
+        return saved ? parseInt(saved, 10) || 0 : 0;
+      } catch {}
+    }
+    return 0;
+  });
+
+  // Lumen Model Tier & Export State
+  const [selectedModelTier, setSelectedModelTier] = useState<ModelTierId>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('cohart_selected_model_tier') as ModelTierId) || 'core';
+    }
+    return 'core';
+  });
+  const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
+  const [activeDownloadMenuMsgId, setActiveDownloadMenuMsgId] = useState<string | null>(null);
+
+  const handleCopyMessage = async (msgId: string, text: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      setCopiedMsgId(msgId);
+      setTimeout(() => setCopiedMsgId(null), 2000);
+    }
+  };
+  const [streakHypeModal, setStreakHypeModal] = useState<{ count: number; title: string; praise: string } | null>(null);
+  const [replyingTo, setReplyingTo] = useState<MessageReplyContext | null>(null);
+
+  // Campus Arena Live Viewer & Pro Subscriptions State
+  const [showArenaViewer, setShowArenaViewer] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
+  const tonesInfo = getUserTonesBalance(profile);
+  const userTones = tonesInfo.balance;
+  const userTierId = getUserSubscriptionTier(profile);
+  const userTier = SUBSCRIPTION_TIERS[userTierId] || SUBSCRIPTION_TIERS.freemium;
+
+  // File Upload & Multimodal Vision State (max 10MB combined, 3 heavy or 5 light files per batch)
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFileDetail[]>([]);
+  const attachedFile = attachedFiles.length > 0 ? attachedFiles[0] : null;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Flashcards Flipping State
+  const [flashcardIndices, setFlashcardIndices] = useState<Record<string, number>>({});
+  const [flashcardFlipped, setFlashcardFlipped] = useState<Record<string, boolean>>({});
+
+  // Timetable Save Toast State
+  const [timetableSavedNotice, setTimetableSavedNotice] = useState<string | null>(null);
 
   // Deepgram Voice & Audio State (voice selected in Settings)
   const [selectedVoice] = useState<string>(() => {
@@ -259,12 +364,189 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         }
       };
 
-      recorder.start(250);
+      recorder.start(100);
       setIsRecording(true);
     } catch (err) {
       console.error('Microphone error:', err);
       setIsRecording(false);
     }
+  };
+
+  
+  // Handle File Attachment (Max 10MB with Quota Gate)
+
+  // File type detection helpers
+  const FILE_TEXT_EXTS = ['.txt', '.md', '.csv', '.log', '.json', '.py', '.js', '.ts', '.jsx', '.tsx', '.html', '.xml', '.yaml', '.yml'];
+  const FILE_IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif', '.bmp'];
+  const FILE_OFFICE_EXTS = ['.docx', '.xlsx', '.pptx', '.doc', '.xls'];
+
+  function getFileExt(name: string) { return name.slice(name.lastIndexOf('.')).toLowerCase(); }
+  function isImgFile(name: string, mime?: string) { return FILE_IMAGE_EXTS.includes(getFileExt(name)) || (mime?.startsWith('image/') ?? false); }
+  function isPdfFile(name: string, mime?: string) { return getFileExt(name) === '.pdf' || mime === 'application/pdf'; }
+  function isTextFileType(name: string, mime?: string) { return FILE_TEXT_EXTS.includes(getFileExt(name)) || mime?.startsWith('text/') || mime === 'application/json'; }
+  function isOfficeFileType(name: string) { return FILE_OFFICE_EXTS.includes(getFileExt(name)); }
+
+  function getFileTypeBadge(name: string, mime?: string): string {
+    const ext = getFileExt(name);
+    if (isImgFile(name, mime)) return 'IMG';
+    if (isPdfFile(name, mime)) return 'PDF';
+    if (ext === '.docx' || ext === '.doc') return 'DOCX';
+    if (ext === '.xlsx' || ext === '.xls') return 'XLSX';
+    if (ext === '.pptx') return 'PPTX';
+    if (ext === '.csv') return 'CSV';
+    if (['.txt', '.md'].includes(ext)) return 'TXT';
+    if (['.py', '.js', '.ts', '.jsx', '.tsx'].includes(ext)) return 'CODE';
+    return 'FILE';
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFiles = Array.from(e.target.files || []);
+    if (rawFiles.length === 0) return;
+
+    // Check monthly free session quota (counts per upload session, not per file)
+    const quota = checkFeatureAccess('document_upload', profile);
+    if (!quota.allowed) {
+      setShowProModal(true);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Validate the candidate batch (3 heavy or 5 light, total combined size <= 10MB)
+    const validation = validateUploadBatch(rawFiles.map((f) => ({ name: f.name, type: f.type, size: f.size })));
+    if (!validation.valid) {
+      alert(validation.error);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Process all files in parallel
+    try {
+      const processed = await Promise.all(
+        rawFiles.map((file) => {
+          return new Promise<AttachedFileDetail>((resolve, reject) => {
+            const textBased = isTextFileType(file.name, file.type);
+            if (textBased) {
+              const textReader = new FileReader();
+              textReader.onload = () => {
+                const textContent = (textReader.result as string).slice(0, 80000);
+                resolve({
+                  name: file.name,
+                  type: file.type || 'text/plain',
+                  sizeBytes: file.size,
+                  strategy: 'text',
+                  textContent,
+                });
+              };
+              textReader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+              textReader.readAsText(file, 'UTF-8');
+            } else {
+              const binReader = new FileReader();
+              binReader.onload = () => {
+                const result = binReader.result as string;
+                const base64Data = result.split(',')[1] || '';
+                const previewUrl = isImgFile(file.name, file.type) ? result : undefined;
+                const strategy: 'image' | 'pdf' | 'office_binary' =
+                  isImgFile(file.name, file.type) ? 'image' :
+                  isPdfFile(file.name, file.type) ? 'pdf' : 'office_binary';
+                resolve({
+                  name: file.name,
+                  type: file.type || 'application/octet-stream',
+                  sizeBytes: file.size,
+                  strategy,
+                  base64: base64Data,
+                  previewUrl,
+                });
+              };
+              binReader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+              binReader.readAsDataURL(file);
+            }
+          });
+        })
+      );
+
+      // Append to attachedFiles up to batch limits
+      setAttachedFiles((prev) => {
+        const combined = [...prev, ...processed];
+        const combValidation = validateUploadBatch(
+          combined.map((f) => ({ name: f.name, type: f.type, size: f.sizeBytes }))
+        );
+        if (!combValidation.valid) {
+          alert(combValidation.error);
+          return processed.slice(0, combValidation.maxAllowedFiles);
+        }
+        return combined;
+      });
+    } catch (err) {
+      console.error('File batch reading failed:', err);
+      alert('Error reading files. Please try again.');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle In-Chat Single Question Answer
+  const handleAnswerQuestion = (msgId: string, q: InteractiveQuizQuestion, pickedIndex: number) => {
+    if (answeredQuestions[msgId]) return; // permanently locked
+
+    const isCorrect = pickedIndex === q.correctIndex;
+    const newState = { selectedIndex: pickedIndex, isCorrect };
+
+    setAnsweredQuestions((prev) => {
+      const updated = { ...prev, [msgId]: newState };
+      try {
+        localStorage.setItem('cohart_answered_quiz_questions', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    recordUserActivity({
+      user_id: profile.id,
+      activity_type: 'quiz_answered',
+      course_code: q.courseCode,
+      topic: q.question.slice(0, 60),
+      question_text: q.question,
+      user_answer: q.options[pickedIndex],
+      is_correct: isCorrect,
+    });
+
+    if (isCorrect) {
+      const nextStreak = quizStreak + 1;
+      setQuizStreak(nextStreak);
+      try {
+        localStorage.setItem('cohart_quiz_streak', nextStreak.toString());
+      } catch {}
+
+      if (nextStreak === 3) {
+        setStreakHypeModal({
+          count: 3,
+          title: "3-IN-A-ROW! You're cooking, scholar!",
+          praise: "Three straight bullseyes! Your grasp of theoretical principles is razor-sharp. Keep that momentum alive!",
+        });
+      } else if (nextStreak === 10) {
+        setStreakHypeModal({
+          count: 10,
+          title: "10-STREAK MILESTONE! Exam-Proof Genius!",
+          praise: "Ten straight correct answers! You have achieved first-class exam mastery. Lecturer questions can't touch you!",
+        });
+      }
+    } else {
+      setQuizStreak(0);
+      try {
+        localStorage.setItem('cohart_quiz_streak', '0');
+      } catch {}
+    }
+  };
+
+  // Handle Saving Scanned Timetable to Department & Session Tracker
+  const handleAdoptTimetable = (timetableSchedule: any[]) => {
+    saveSharedDepartmentTimetable(
+      profile.institution || 'OOU',
+      profile.department || 'General Studies',
+      profile.level || '200L',
+      timetableSchedule
+    );
+    setTimetableSavedNotice('Timetable saved to your weekly schedule and shared with your course mates!');
+    setTimeout(() => setTimetableSavedNotice(null), 4000);
   };
 
   const handleStopRecording = () => {
@@ -338,8 +620,32 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   const handleSelectConversation = (conv: Conversation) => {
     setActiveConvId(conv.id);
     setMessages(conv.messages);
+    if (conv.modelTier && (['spark', 'core', 'depth', 'auto'] as string[]).includes(conv.modelTier)) {
+      setSelectedModelTier(conv.modelTier as ModelTierId);
+      try {
+        localStorage.setItem('cohart_selected_model_tier', conv.modelTier);
+      } catch {}
+    }
     setIsSidebarOpen(false);
     setTimeout(() => inputRef.current?.focus(), 150);
+  };
+
+  const handleSelectModelTier = (tierId: ModelTierId) => {
+    setSelectedModelTier(tierId);
+    try {
+      localStorage.setItem('cohart_selected_model_tier', tierId);
+    } catch {}
+    setIsModelMenuOpen(false);
+    setConversations((prev) => {
+      return prev.map((c) => {
+        if (c.id === activeConvId) {
+          const updated = { ...c, modelTier: tierId };
+          upsertAiConversation(updated, profile.id);
+          return updated;
+        }
+        return c;
+      });
+    });
   };
 
   const handleDeleteConversation = async (e: React.MouseEvent, id: string) => {
@@ -361,11 +667,29 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     const query = (userText || input).trim();
     if (!query) return;
 
+        // Capture attached files copy before resetting state
+    const currentAttachments = [...attachedFiles];
+    setAttachedFiles([]);
+    if (currentAttachments.length > 0) {
+      recordFeatureUsage('document_upload', profile);
+    }
+
+    const activeReplyContext = replyingTo ? { ...replyingTo } : undefined;
+    setReplyingTo(null);
+
     const userMsg: Message = {
       id: `usr_${Date.now()}`,
       role: 'user',
       content: query,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      replyTo: activeReplyContext,
+      attachedFile: currentAttachments.length > 0 ? {
+        name: currentAttachments[0].name,
+        type: currentAttachments[0].type,
+        sizeBytes: currentAttachments[0].sizeBytes,
+        previewUrl: currentAttachments[0].previewUrl,
+      } : undefined,
+      attachedFiles: currentAttachments.length > 0 ? currentAttachments : undefined,
     };
 
     const newMessages = [...messages, userMsg];
@@ -383,7 +707,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         updated = prev.map((c) => {
           if (c.id === activeConvId) {
             const currentTitle = c.title === 'New Conversation' ? convTitle : c.title;
-            const item = { ...c, title: currentTitle, messages: newMessages };
+            const item = { ...c, title: currentTitle, messages: newMessages, modelTier: c.modelTier || selectedModelTier };
             targetConv = item;
             return item;
           }
@@ -395,6 +719,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           title: convTitle,
           createdAt: new Date().toISOString(),
           messages: newMessages,
+          modelTier: selectedModelTier,
         };
         targetConv = newConv;
         updated = [newConv, ...prev];
@@ -414,6 +739,25 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
       let detectedChoices: InteractiveChoices | undefined;
 
+            // Gather user recent activity & attendance brief for personalized context
+      let recentActivityList: any[] = [];
+      let calculatedAttendanceBrief: any = null;
+      try {
+        recentActivityList = await getUserRecentActivity(profile.id);
+        const userLogs = await fetchAttendanceLogs(profile.id);
+        const dynamicTimetable = generateAssumedTimetable(profile.institution, profile.department, profile.level);
+        calculatedAttendanceBrief = computeStudentAttendanceBrief(userLogs, dynamicTimetable);
+      } catch (err) {
+        console.warn('Could not compile attendance brief for AI:', err);
+      }
+
+      let detectedInteractiveQuestion: InteractiveQuizQuestion | undefined;
+      let detectedCgpaReport: any | undefined;
+      let detectedTimetable: any[] | undefined;
+      let detectedSimplifiedBlend: any | undefined;
+      let detectedClockWidget: { type: 'circular' | 'rectangular'; time?: string; timezone?: string; position?: 'top' | 'bottom' } | undefined;
+      let detectedLinkEmbed: LinkEmbedPayload | undefined;
+
       // Tier 1: Local /api/ai Next.js route with Multi-Turn History
       try {
         const res = await fetch('/api/ai', {
@@ -424,23 +768,74 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             context: currentMode,
             studentProfile: profile,
             messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+            recentActivity: recentActivityList,
+            attendanceBrief: calculatedAttendanceBrief,
+            modelTier: selectedModelTier,
+            replyContext: activeReplyContext,
+            fileData: currentAttachments.length > 0 ? {
+              base64: currentAttachments[0].base64,
+              textContent: currentAttachments[0].textContent,
+              mimeType: currentAttachments[0].type,
+              fileName: currentAttachments[0].name,
+              strategy: currentAttachments[0].strategy,
+            } : undefined,
+            filesData: currentAttachments.map((f) => ({
+              base64: f.base64,
+              textContent: f.textContent,
+              mimeType: f.type,
+              fileName: f.name,
+              strategy: f.strategy,
+            })),
           }),
         });
 
         if (res.ok) {
           const data = await res.json();
           replyContent = data.reply;
-          if (data.milestoneAction) {
-            detectedMilestone = data.milestoneAction;
+          const returnedModelTier = data.modelTier || selectedModelTier;
+          const returnedModelName = data.model || 'Lumen Core';
+          if (data.milestoneAction) detectedMilestone = data.milestoneAction;
+          if (data.interactiveChoices) detectedChoices = data.interactiveChoices;
+          if (data.interactiveQuestion) detectedInteractiveQuestion = data.interactiveQuestion;
+          detectedClockWidget = data.clockWidget;
+          const lowerQ = query.toLowerCase();
+          const mentionsTime = lowerQ.includes('time') || lowerQ.includes('what hour') || lowerQ.includes('clock');
+          if (!detectedClockWidget && mentionsTime) {
+            const isPureTime = lowerQ.length < 35 && (lowerQ.includes('what time') || lowerQ.includes('tell me the time') || lowerQ.includes('what is the time') || lowerQ.includes('current time'));
+            if (isPureTime) {
+              detectedClockWidget = { type: 'circular', timezone: 'WAT' };
+            } else {
+              detectedClockWidget = {
+                type: 'rectangular',
+                timezone: 'WAT',
+                position: replyContent.length > 180 ? 'top' : 'bottom',
+              };
+            }
           }
-          if (data.interactiveChoices) {
-            detectedChoices = data.interactiveChoices;
-          }
+          if (data.parsedCgpaReport) detectedCgpaReport = data.parsedCgpaReport;
+          if (data.parsedTimetable) detectedTimetable = data.parsedTimetable;
+          if (data.simplifiedBlend) detectedSimplifiedBlend = data.simplifiedBlend;
+          if (data.linkEmbed) detectedLinkEmbed = data.linkEmbed;
           if (data.profileAction) {
             detectedProfileUpdate = data.profileAction;
-            if (onUpdateProfile) {
-              onUpdateProfile(data.profileAction);
-            }
+            if (onUpdateProfile) onUpdateProfile(data.profileAction);
+          }
+
+          // If documents were attached, archive semantic context for each
+          if (currentAttachments && currentAttachments.length > 0 && replyContent) {
+            currentAttachments.forEach((att) => {
+              saveDocumentContext({
+                originalFileName: att.name,
+                fileCategory: att.name.toLowerCase().includes('result') ? 'result_slip' : (att.name.toLowerCase().includes('time') ? 'timetable' : 'lecture_note'),
+                uploadedAt: new Date().toISOString(),
+                department: profile.department || 'General',
+                institution: profile.institution || 'OOU',
+                summary: replyContent.slice(0, 300),
+                keyConcepts: [profile.department || 'Curriculum', 'Session 2024/2025'],
+                extractedFacts: { detectedCgpaReport, detectedTimetable },
+                tags: ['multimodal_scan', profile.department || 'student'],
+              });
+            });
           }
         }
       } catch {
@@ -494,6 +889,27 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         onMilestoneAction(detectedMilestone);
       }
 
+            // Parse [INTERACTIVE_QUESTION:{...}] fallback
+      const iqMatch = replyContent.match(/\[INTERACTIVE_QUESTION:(\{[\s\S]*?\})\]/);
+      if (iqMatch) {
+        try { detectedInteractiveQuestion = JSON.parse(iqMatch[1]); } catch {}
+        replyContent = replyContent.replace(/\[INTERACTIVE_QUESTION:\{[\s\S]*?\}\]/g, '').trim();
+      }
+
+      // Parse [CGPA_REPORT:{...}] fallback
+      const cgpaMatch = replyContent.match(/\[CGPA_REPORT:(\{[\s\S]*?\})\]/);
+      if (cgpaMatch) {
+        try { detectedCgpaReport = JSON.parse(cgpaMatch[1]); } catch {}
+        replyContent = replyContent.replace(/\[CGPA_REPORT:\{[\s\S]*?\}\]/g, '').trim();
+      }
+
+      // Parse [SET_TIMETABLE:[...]] fallback
+      const ttMatch = replyContent.match(/\[SET_TIMETABLE:(\[[\s\S]*?\])\]/);
+      if (ttMatch) {
+        try { detectedTimetable = JSON.parse(ttMatch[1]); } catch {}
+        replyContent = replyContent.replace(/\[SET_TIMETABLE:\[[\s\S]*?\]\]/g, '').trim();
+      }
+
       // Parse any [INTERACTIVE_CHOICES:{...}] payload in reply text
       const choicesMatch = replyContent.match(/\[INTERACTIVE_CHOICES:(\{[\s\S]*?\})\]/);
       if (choicesMatch) {
@@ -525,6 +941,25 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           detectedQuiz = JSON.parse(quizMatch[1]);
         } catch {}
         replyContent = replyContent.replace(/\[QUIZ_GENERATED:\{[\s\S]*?\}\]/g, '').trim();
+      }
+
+      // Parse any [STUDY_KIT:{...}] payload in reply text (Exam Done and Dusted Module)
+      let detectedStudyKit: StudyKitPayload | undefined;
+      const kitMatch = replyContent.match(/\[STUDY_KIT:(\{[\s\S]*?\})\]/);
+      if (kitMatch) {
+        try {
+          detectedStudyKit = JSON.parse(kitMatch[1]);
+        } catch {}
+        replyContent = replyContent.replace(/\[STUDY_KIT:\{[\s\S]*?\}\]/g, '').trim();
+      }
+
+      if (!detectedLinkEmbed) {
+        const linkEmbedMatch = replyContent.match(/\[LINK_EMBED:(\{[\s\S]*?\})\]/);
+        if (linkEmbedMatch) {
+          try {
+            detectedLinkEmbed = JSON.parse(linkEmbedMatch[1]);
+          } catch {}
+        }
       }
 
       if (detectedProfileUpdate) {
@@ -559,6 +994,15 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         suggestedAction: venueCode ? { label: `Show ${venueCode} on Map`, venueCode } : undefined,
         interactiveChoices: detectedChoices,
         generatedQuiz: detectedQuiz,
+        studyKit: detectedStudyKit,
+        interactiveQuestion: detectedInteractiveQuestion,
+        parsedCgpaReport: detectedCgpaReport,
+        parsedTimetable: detectedTimetable,
+        simplifiedBlend: detectedSimplifiedBlend,
+        linkEmbed: detectedLinkEmbed,
+        modelTier: selectedModelTier,
+        modelName: AI_MODELS[selectedModelTier]?.name || 'Lumen Core',
+        clockWidget: detectedClockWidget,
       };
 
       const finalMessages = [...newMessages, assistantMsg];
@@ -568,7 +1012,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       setConversations((prev) => {
         const updated = prev.map((c) => {
           if (c.id === activeConvId) {
-            finalConv = { ...c, messages: finalMessages };
+            finalConv = { ...c, messages: finalMessages, modelTier: selectedModelTier };
             return finalConv;
           }
           return c;
@@ -715,13 +1159,99 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             </button>
 
             <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white truncate max-w-[180px] sm:max-w-xs font-sans">
-                {activeConversation?.title || 'Cohart AI'}
+              <h2 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white truncate max-w-[140px] sm:max-w-xs font-sans">
+                {activeConversation?.title || 'Lumen'}
               </h2>
+            </div>
+
+            {/* Lumen Model Tier Selector Pill */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/30 text-[#0B57D0] dark:text-[#1A73E8] text-xs font-semibold hover:bg-[#0B57D0]/20 transition-all cursor-pointer shadow-xs"
+                title="Choose Lumen Orchestration Engine"
+              >
+                <GeminiIcon name="sparkle" size={12} />
+                <span className="hidden sm:inline">{AI_MODELS[selectedModelTier]?.name || 'Lumen Core'}</span>
+                <span className="sm:hidden font-mono">{AI_MODELS[selectedModelTier]?.badge || 'Core'}</span>
+                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-black/10 dark:bg-white/10 uppercase hidden md:inline">
+                  {AI_MODELS[selectedModelTier]?.speed}
+                </span>
+                <GeminiIcon name="chevron-down" size={10} />
+              </button>
+
+              {isModelMenuOpen && (
+                <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-[#151922] border border-black/[0.08] dark:border-white/[0.1] shadow-2xl p-2 z-30 space-y-1 backdrop-blur-2xl animate-in fade-in zoom-in-95">
+                  <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold border-b border-black/[0.06] dark:border-white/[0.06] mb-1 flex items-center justify-between">
+                    <span>Lumen Engine Tier</span>
+                    <span>Orchestration</span>
+                  </div>
+                  {(['spark', 'core', 'depth', 'auto'] as ModelTierId[]).map((tierId) => {
+                    const tier = AI_MODELS[tierId];
+                    const isSelected = selectedModelTier === tierId;
+                    return (
+                      <button
+                        key={tierId}
+                        type="button"
+                        onClick={() => handleSelectModelTier(tierId)}
+                        className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/30 text-neutral-900 dark:text-white'
+                            : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300'
+                        }`}
+                      >
+                        <div className="mt-0.5">
+                          <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase ${
+                            tier.badge === 'Fast' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
+                            tier.badge === 'Balanced' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' :
+                            tier.badge === 'Deep' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' :
+                            'bg-purple-500/15 text-purple-600 dark:text-purple-400'
+                          }`}>
+                            {tier.badge}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-neutral-900 dark:text-white">{tier.name}</span>
+                            {isSelected && <GeminiIcon name="check" size={13} className="text-[#0B57D0] dark:text-[#1A73E8]" />}
+                          </div>
+                          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5 leading-snug">
+                            {tier.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Arena Live Spectator Button */}
+            <button
+              type="button"
+              onClick={() => setShowArenaViewer(true)}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-bold hover:bg-rose-500/20 transition-all active:scale-95 cursor-pointer shadow-xs"
+              title="Watch Campus Arena Tournaments & Win Free Tones"
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+              <span className="hidden sm:inline">Arena Live</span>
+              <span className="sm:hidden font-mono text-[10px]">Arena</span>
+            </button>
+
+            {/* Compute Tones Meter Badge Button */}
+            <button
+              type="button"
+              onClick={() => setShowProModal(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-500 dark:text-amber-400 text-xs font-mono font-bold hover:bg-amber-500/20 transition-all active:scale-95 cursor-pointer shadow-xs"
+              title="View Study Tones & Subscription Tiers"
+            >
+              <span>⚡</span>
+              <span>{userTones}</span>
+            </button>
+
             {/* New Chat Action */}
             <button
               onClick={() => handleStartNewChat('general')}
@@ -766,38 +1296,179 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   }`}
                 >
                   <div className={`flex items-center justify-between text-xs font-semibold mb-2 ${isUser ? 'text-white/80' : 'text-neutral-500 dark:text-neutral-400'}`}>
-                    <span>{isUser ? 'You' : 'Cohart AI'} • {m.timestamp}</span>
-                    {!isUser && (
+                    <span>{isUser ? 'You' : `Lumen (${m.modelTier ? (AI_MODELS[m.modelTier as ModelTierId]?.badge || 'Codex') : 'Codex'})`} • {m.timestamp}</span>
+                    <div className="flex items-center gap-1.5">
                       <button
-                        onClick={() => handleSpeakMessage(m.id, m.content)}
-                        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors cursor-pointer ${
-                          speakingMsgId === m.id
-                            ? 'bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#1A73E8]'
-                            : 'hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                        onClick={() => {
+                          setReplyingTo({
+                            id: m.id,
+                            role: m.role,
+                            senderName: isUser ? 'You' : (m.modelName || 'Lumen'),
+                            snippet: m.content.slice(0, 100),
+                          });
+                        }}
+                        className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-colors cursor-pointer ${
+                          isUser
+                            ? 'hover:bg-white/20 text-white/80 hover:text-white'
+                            : 'hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-400 hover:text-[#0B57D0] dark:hover:text-[#1A73E8]'
                         }`}
-                        title={speakingMsgId === m.id ? 'Stop listening' : 'Listen with Cohart AI Voice'}
+                        title="Reply to this message"
                       >
-                        {isSynthesizing === m.id ? (
-                          <GeminiIcon name="loader" size={14} />
-                        ) : speakingMsgId === m.id ? (
-                          <>
-                            <GeminiIcon name="volume-x" size={14} />
-                            <span className="text-[10px] font-bold">Stop</span>
-                          </>
-                        ) : (
-                          <>
-                            <GeminiIcon name="volume" size={14} />
-                            <span className="text-[10px] font-bold">Listen</span>
-                          </>
-                        )}
+                        <GeminiIcon name="arrow-left" size={11} className="rotate-180" />
+                        <span>Reply</span>
                       </button>
-                    )}
+                      {!isUser && (
+                        <button
+                          onClick={() => handleSpeakMessage(m.id, m.content)}
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                            speakingMsgId === m.id
+                              ? 'bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#1A73E8]'
+                              : 'hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                          }`}
+                          title={speakingMsgId === m.id ? 'Stop listening' : 'Listen with Cohart AI Voice'}
+                        >
+                          {isSynthesizing === m.id ? (
+                            <GeminiIcon name="loader" size={14} />
+                          ) : speakingMsgId === m.id ? (
+                            <>
+                              <GeminiIcon name="volume-x" size={14} />
+                              <span className="text-[10px] font-bold">Stop</span>
+                            </>
+                          ) : (
+                            <>
+                              <GeminiIcon name="volume" size={14} />
+                              <span className="text-[10px] font-bold">Listen</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
+                  {/* Quoted Message Context Preview */}
+                  {m.replyTo && (
+                    <div className={`mb-2.5 p-2 rounded-xl text-xs border-l-2 ${
+                      isUser
+                        ? 'bg-black/20 border-white/70 text-white/90'
+                        : 'bg-black/[0.03] dark:bg-white/[0.04] border-[#0B57D0] dark:border-[#1A73E8] text-neutral-700 dark:text-neutral-300'
+                    }`}>
+                      <div className="flex items-center gap-1 font-bold text-[10px] uppercase tracking-wider mb-0.5 opacity-80">
+                        <span>Replying to {m.replyTo.senderName || (m.replyTo.role === 'user' ? 'You' : 'Lumen')}</span>
+                      </div>
+                      <p className="line-clamp-2 italic text-[11px]">
+                        "{m.replyTo.snippet}"
+                      </p>
+                    </div>
+                  )}
+
                   {isUser ? (
-                    <p className="whitespace-pre-wrap">{m.content}</p>
+                    <div>
+                      <p className="whitespace-pre-wrap">{m.content}</p>
+                      {((m.attachedFiles && m.attachedFiles.length > 0) || m.attachedFile) && (
+                        <div className="mt-2.5 flex flex-wrap gap-1.5 pt-2 border-t border-white/20">
+                          {(m.attachedFiles || (m.attachedFile ? [m.attachedFile] : [])).map((att, attIdx) => (
+                            <div key={attIdx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 text-[11px] font-mono">
+                              <span className="font-bold text-[9px] px-1 py-0.2 rounded bg-white text-[#0B57D0]">
+                                {getFileTypeBadge(att.name, att.type)}
+                              </span>
+                              <span className="truncate max-w-[140px] font-sans font-medium">{att.name}</span>
+                              <span className="opacity-75 text-[10px]">({(att.sizeBytes / 1024).toFixed(0)}KB)</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ) : (
+                    <>
+                    {/* Circular Animated Clock (when user asks for time only) */}
+                    {m.clockWidget?.type === 'circular' && (
+                      <AnimatedCircularClock timezone={m.clockWidget.timezone || 'WAT'} />
+                    )}
+
+                    {/* Rectangular Digital Clock (when paired with discussion - top position) */}
+                    {m.clockWidget?.type === 'rectangular' && (m.clockWidget.position === 'top' || !m.clockWidget.position) && (
+                      <AnimatedRectangularClock timezone={m.clockWidget.timezone || 'WAT'} />
+                    )}
+
                     <MarkdownText content={m.content} />
+
+                    {/* Rectangular Digital Clock (when paired with discussion - bottom position) */}
+                    {m.clockWidget?.type === 'rectangular' && m.clockWidget.position === 'bottom' && (
+                      <AnimatedRectangularClock timezone={m.clockWidget.timezone || 'WAT'} />
+                    )}
+                      {/* Copy & Download Action Bar */}
+                      <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between flex-wrap gap-2 text-xs">
+                        <div className="flex items-center gap-1">
+                          {/* Copy Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleCopyMessage(m.id, m.content)}
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                            title="Copy full text"
+                          >
+                            <GeminiIcon name={copiedMsgId === m.id ? 'check' : 'copy'} size={13} />
+                            <span className="text-[11px] font-medium">{copiedMsgId === m.id ? 'Copied!' : 'Copy'}</span>
+                          </button>
+
+                          {/* Export / Download Dropdown Menu */}
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setActiveDownloadMenuMsgId(activeDownloadMenuMsgId === m.id ? null : m.id)}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                              title="Download as .txt, .docx, or .pdf"
+                            >
+                              <GeminiIcon name="download" size={13} />
+                              <span className="text-[11px] font-medium">Export</span>
+                              <GeminiIcon name="chevron-down" size={10} />
+                            </button>
+
+                            {activeDownloadMenuMsgId === m.id && (
+                              <div className="absolute left-0 bottom-full mb-1.5 w-44 rounded-xl bg-white dark:bg-[#1C202A] border border-black/[0.08] dark:border-white/[0.1] shadow-xl p-1.5 z-20 space-y-0.5 animate-in fade-in zoom-in-95">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    downloadAsText(`Cohart_Notes_${Date.now()}`, m.content);
+                                    setActiveDownloadMenuMsgId(null);
+                                  }}
+                                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors text-left cursor-pointer"
+                                >
+                                  <span>Plain Text</span>
+                                  <span className="text-[10px] font-mono text-neutral-400">.TXT</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    downloadAsDocx(`Cohart_Notes_${Date.now()}`, 'Cohart Academic Notes', m.content);
+                                    setActiveDownloadMenuMsgId(null);
+                                  }}
+                                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors text-left cursor-pointer"
+                                >
+                                  <span>Word Document</span>
+                                  <span className="text-[10px] font-mono text-neutral-400">.DOCX</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    downloadAsPdf(`Cohart_Notes_${Date.now()}`, 'Cohart Academic Notes', m.content);
+                                    setActiveDownloadMenuMsgId(null);
+                                  }}
+                                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors text-left cursor-pointer"
+                                >
+                                  <span>Print / PDF</span>
+                                  <span className="text-[10px] font-mono text-neutral-400">.PDF</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Speed / Tier Indicator */}
+                        <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500">
+                          {m.modelTier ? AI_MODELS[m.modelTier as ModelTierId]?.speed || 'Balanced' : 'Balanced'}
+                        </span>
+                      </div>
+                    </>
                   )}
 
                   {/* Interactive Choices Checklist Form */}
@@ -943,6 +1614,17 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                     </div>
                   )}
 
+                  {/* AI Study Kit Widget (Exam Done and Dusted Module) */}
+                  {m.studyKit && (
+                    <StudyKitWidget
+                      kit={m.studyKit}
+                      onLaunchFullQuiz={(quizData) => {
+                        if (onStartQuiz) onStartQuiz(quizData);
+                        else setActiveRunningQuiz(quizData);
+                      }}
+                    />
+                  )}
+
                   {/* Suggested Map Action Pin */}
                   {m.suggestedAction && onSelectVenue && (
                     <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
@@ -969,12 +1651,26 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           )}
         </div>
 
-        {/* Floating Bottom Input Dock with Liquid Glass */}
-        <footer className="p-3 sm:p-4 border-t border-black/[0.06] dark:border-white/[0.08] bg-white/85 dark:bg-[#10131B]/85 backdrop-blur-xl shrink-0">
+        {/* Floating Bottom Input Dock with Liquid Glass - pb-24 clearance for floating BottomNav */}
+        <footer className="p-3 sm:p-4 pb-24 sm:pb-28 border-t border-black/[0.06] dark:border-white/[0.08] bg-white/85 dark:bg-[#10131B]/85 backdrop-blur-xl shrink-0">
           <div className="max-w-3xl mx-auto space-y-2">
             {/* Quick Context Prompt Chips */}
             {messages.length <= 2 && (
               <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                <button
+                  onClick={() => handleSend('Generate a complete all-in-one AI Study Kit (exam summary, active flashcards, CBT drill, checklist, and lecturer predictions) for my courses.')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold shrink-0 transition-colors cursor-pointer"
+                >
+                  <GeminiIcon name="sparkle" size={13} />
+                  <span>AI Study Kit</span>
+                </button>
+                <button
+                  onClick={() => handleSend('I feel anxious and overwhelmed about my exams. Please give me an exam panic reliever breakdown, psychological calming anchor, and rapid study rescue plan.')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold shrink-0 transition-colors cursor-pointer"
+                >
+                  <GeminiIcon name="zap" size={13} />
+                  <span>Panic Reliever</span>
+                </button>
                 <button
                   onClick={() => handleSend('Set 10 practice exam questions for my courses')}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#0B57D0]/30 bg-[#0B57D0]/10 hover:bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#1A73E8] text-xs font-bold shrink-0 transition-colors cursor-pointer"
@@ -1008,8 +1704,98 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               </div>
             )}
 
+            {/* Attached files preview chips */}
+            {attachedFiles.length > 0 && (
+              <div className="p-2.5 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/30 flex flex-col gap-2 animate-in fade-in">
+                <div className="flex items-center justify-between text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
+                  <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                    Attached Files ({attachedFiles.length} of {attachedFiles.some((f) => isHeavyFile(f.name, f.type)) ? '3 max' : '5 max'})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachedFiles([])}
+                    className="text-neutral-400 hover:text-rose-500 text-[10px] underline cursor-pointer"
+                  >
+                    Clear all
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {attachedFiles.map((file, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/80 dark:bg-[#1A1F2C] border border-black/[0.06] dark:border-white/[0.08] shadow-xs text-xs"
+                    >
+                      <div className="h-5 w-5 rounded bg-[#0B57D0] text-white flex items-center justify-center text-[9px] font-bold shrink-0">
+                        {getFileTypeBadge(file.name, file.type)}
+                      </div>
+                      <span className="text-xs font-medium truncate max-w-[130px] sm:max-w-[180px] text-neutral-900 dark:text-white">
+                        {file.name}
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-500">
+                        ({(file.sizeBytes / 1024).toFixed(0)} KB)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachedFiles((prev) => prev.filter((_, i) => i !== idx))}
+                        className="p-0.5 text-neutral-400 hover:text-rose-500 transition-colors cursor-pointer ml-1"
+                        title="Remove file"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Active Quoted Message Reply Banner */}
+            {replyingTo && (
+              <div className="flex items-center justify-between px-3.5 py-2 mb-2 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-[#0B57D0]/30 dark:border-[#1A73E8]/30 shadow-md backdrop-blur-md animate-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-2 overflow-hidden min-w-0">
+                  <div className="h-6 w-6 rounded-lg bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8] shrink-0">
+                    <GeminiIcon name="chat" size={13} />
+                  </div>
+                  <div className="truncate text-xs">
+                    <span className="font-bold text-[#0B57D0] dark:text-[#1A73E8]">
+                      Replying to {replyingTo.senderName || (replyingTo.role === 'user' ? 'You' : 'Lumen')}:
+                    </span>
+                    <span className="text-neutral-600 dark:text-neutral-300 ml-1.5 italic truncate">
+                      "{replyingTo.snippet}"
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReplyingTo(null)}
+                  className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0 ml-2"
+                  title="Cancel reply"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* Input Bar Form with Deepgram Nova-3 Voice Input */}
-            <div className="flex items-center gap-2 p-2 rounded-[1.25rem] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] focus-within:border-[#0B57D0] dark:focus-within:border-[#1A73E8] transition-colors">
+              {/* Hidden file input for multi-file upload (up to 3 heavy / 5 text, 10MB total batch cap) */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,application/pdf,.txt,.md,.csv,.log,.json,.py,.js,.ts,.jsx,.tsx,.html,.xml,.yaml,.yml,.docx,.doc,.xlsx,.xls,.pptx,.ppt"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-xl text-neutral-500 hover:text-[#0B57D0] dark:hover:text-[#1A73E8] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
+                title="Attach files: Up to 3 for PDFs/Images/Word or 5 for text files (Max 10MB total batch)"
+              >
+                <GeminiIcon name="attachment" size={17} />
+              </button>
+
+              <div className="flex items-center gap-2 p-2 rounded-[1.25rem] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] focus-within:border-[#0B57D0] dark:focus-within:border-[#1A73E8] transition-colors">
               <input
                 ref={inputRef}
                 type="text"
@@ -1090,6 +1876,186 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             handleSend(`Please add 10 more questions to this ${activeRunningQuiz.courseCode} practice quiz under the same syllabus.`);
           }}
         />
+      )}
+
+      {/* Campus Arena Live Spectator Viewer */}
+      {showArenaViewer && (
+        <CampusArenaViewer
+          onClose={() => setShowArenaViewer(false)}
+          onJoinCompetition={(matchId: string) => {
+            setShowArenaViewer(false);
+            handleSend(`I want to enter and compete in the Campus Arena Tournament match: ${matchId}. Test my academic speed and accuracy!`);
+          }}
+        />
+      )}
+
+      {/* Cohart Scholar Pro & Study Tones Subscription Modal */}
+      {showProModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
+          <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#0A0B0E] border border-white/[0.08] text-white p-5 sm:p-6 shadow-2xl space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] pb-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-[#0B57D0]/20 text-[#1A73E8] border border-[#0B57D0]/30">
+                    Academic Access
+                  </span>
+                  <span className="text-xs font-mono text-neutral-400">
+                    Plan: {isExamPassLoanActive() ? 'Pro (Exam Loan Pass)' : userTier.name}
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold font-sans">
+                  Lumen Pro & Exam Pass
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowProModal(false)}
+                className="w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer text-xs font-mono"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Exam Emergency Pass (Borrow 1 Month Pro for Exams) */}
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-[#0B57D0]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-[#0B57D0]/20 text-[#1A73E8] border border-[#0B57D0]/40">
+                    Exam Season Grace
+                  </span>
+                  <span className="text-xs font-bold text-white">
+                    Borrow 1 Month Pro (₦0 Today)
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Writing exams and short on cash? Borrow 1 month of Lumen Pro right now. Settle ₦1,500 after your exams.
+                </p>
+              </div>
+              <div className="shrink-0">
+                {isExamPassLoanActive() ? (
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold">
+                      ✓ Active Loan Pass
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        settleExamPassLoan();
+                        alert('Exam Pass Loan settled! Thank you, scholar.');
+                        window.location.reload();
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-xs font-mono text-neutral-300 transition-colors cursor-pointer"
+                    >
+                      Settle ₦1,500
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      activateExamPassLoan();
+                      alert('Exam Emergency Pass activated! You now have 1 Month of Lumen Pro (2,000 Credits, unlimited uploads) for your exams. Settle ₦1,500 after exams.');
+                      window.location.reload();
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#0B57D0] hover:bg-[#1A73E8] text-white font-bold text-xs font-mono transition-all cursor-pointer whitespace-nowrap shadow-sm"
+                  >
+                    Activate Exam Pass
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Available Credits Card */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">Available Study Credits</span>
+                <span className="text-xs text-neutral-300">Refills monthly • Transparent student pricing</span>
+              </div>
+              <span className="text-base font-bold font-mono text-white">
+                ⚡ {userTones} Credits
+              </span>
+            </div>
+
+            {/* Institutional Past Questions Compounding Highlight */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1 text-xs">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#1A73E8] block">
+                Institutional Past Question Bank
+              </span>
+              <p className="text-neutral-300 leading-relaxed">
+                Materials and lecture tests uploaded this year automatically compound into the verified Past Question Bank for next set. Cohart also funds bulk purchases of official campus past questions per department.
+              </p>
+            </div>
+
+            {/* Subscription Plans Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {Object.values(SUBSCRIPTION_TIERS).filter((t) => t.id !== 'freemium_2').map((tier) => (
+                <div
+                  key={tier.id}
+                  className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between ${
+                    (tier.id === userTierId && !isExamPassLoanActive()) || (tier.id === 'pro_monthly' && isExamPassLoanActive())
+                      ? 'bg-[#0B57D0]/10 border-[#0B57D0]/50 ring-1 ring-[#0B57D0]/30'
+                      : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]'
+                  }`}
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold">{tier.name}</span>
+                      <span className="text-[11px] font-mono font-bold text-neutral-400">
+                        {tier.priceNgn === 0 ? 'Free' : `₦${tier.priceNgn.toLocaleString()}`}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 leading-snug">
+                      {tier.tagline}
+                    </p>
+                    <div className="text-[10px] font-mono text-emerald-400">
+                      ⚡ {tier.monthlyTones.toLocaleString()} Credits • {tier.uploadSessionsPerMonth >= 999 ? 'Unlimited' : `${tier.uploadSessionsPerMonth} uploads`}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 mt-2 border-t border-white/[0.05]">
+                    {((tier.id === userTierId && !isExamPassLoanActive()) || (tier.id === 'pro_monthly' && isExamPassLoanActive())) ? (
+                      <span className="block text-center text-[10px] font-mono text-[#1A73E8] font-bold py-1">
+                        Active
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          alert(`Subscription gateway for ${tier.name} (₦${tier.priceNgn.toLocaleString()}) ready. Card and bank transfer checkout activates.`);
+                        }}
+                        className="w-full py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-[11px] font-mono font-bold transition-all cursor-pointer"
+                      >
+                        Select
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Hardship Referral Relief (Pay ₦150) */}
+            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-0.5">
+                <span className="font-bold text-white block">Student Hardship: Pay Only 10% (₦150)</span>
+                <p className="text-neutral-400 text-[11px]">
+                  Refer 3 coursemates to get 90% off for your first month and earn cash rewards into your bank account.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const link = `${typeof window !== 'undefined' ? window.location.origin : 'https://cohart.app'}/?ref=${profile.id || 'scholar'}`;
+                  navigator.clipboard.writeText(link);
+                  alert(`Referral link copied!\n${link}\nShare with 3 coursemates to claim 10% price.`);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-xs font-mono font-bold transition-all cursor-pointer shrink-0"
+              >
+                Copy Link
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

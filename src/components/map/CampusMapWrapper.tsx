@@ -1,18 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Location } from '@/lib/types';
+import { Location, StudentProfile } from '@/lib/types';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
+import { CampusIsometricMap } from './CampusIsometricMap';
 
 interface CampusMapWrapperProps {
   locations: Location[];
+  profile?: StudentProfile;
   selectedLocationId?: string | null;
   onSelectLocation?: (location: Location) => void;
   className?: string;
 }
 
-// Minimalist Gemini Skeleton Loader while Leaflet loads client-side
 const MapSkeleton = () => (
   <div className="relative flex h-full w-full flex-col items-center justify-center rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-[#1E1F20] p-6 overflow-hidden">
     <div className="relative z-10 flex flex-col items-center text-center">
@@ -30,7 +31,6 @@ const MapSkeleton = () => (
   </div>
 );
 
-// Dynamic import with SSR disabled to prevent window is not defined server errors
 const DynamicCampusMap = dynamic(
   () => import('./CampusMap').then((mod) => mod.CampusMap),
   {
@@ -40,7 +40,45 @@ const DynamicCampusMap = dynamic(
 );
 
 export const CampusMapWrapper: React.FC<CampusMapWrapperProps> = (props) => {
-  return <DynamicCampusMap {...props} />;
+  // Default to 3D Isometric Map for native performance & offline speed
+  const [mapEngine, setMapEngine] = useState<'3d_isometric' | 'satellite'>('3d_isometric');
+
+  return (
+    <div className="relative h-full w-full">
+      {/* Map Engine Mode Switcher Pill */}
+      <div className="absolute top-3.5 right-16 z-30 flex items-center p-0.5 rounded-xl bg-white/95 dark:bg-[#1A1D27]/95 border border-black/[0.08] dark:border-white/[0.1] shadow-md backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setMapEngine('3d_isometric')}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+            mapEngine === '3d_isometric'
+              ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-bold shadow-xs'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+          }`}
+        >
+          <span>3D Isometric</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMapEngine('satellite')}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+            mapEngine === 'satellite'
+              ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-bold shadow-xs'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+          }`}
+        >
+          <span>Satellite</span>
+        </button>
+      </div>
+
+      {mapEngine === '3d_isometric' ? (
+        <CampusIsometricMap {...props} />
+      ) : (
+        <DynamicCampusMap {...props} />
+      )}
+    </div>
+  );
 };
 
 export default CampusMapWrapper;

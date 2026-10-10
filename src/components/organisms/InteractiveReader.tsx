@@ -1,87 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import { queueLongDocumentJob, getQueuedDocumentJobs, QueuedDocumentJob } from '@/lib/documentChunker';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { GeminiCard } from '@/components/ui/GeminiCard';
 import { Badge } from '@/components/ui/Badge';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { formatBionicText } from '@/lib/bionic';
 import { StudentProfile, ReaderChapter, SavedExplanation, COHART_VOICES, DEFAULT_COHART_VOICE } from '@/lib/types';
-import { saveExplanation, fetchSavedExplanations, deleteSavedExplanation } from '@/lib/supabase';
-
-const TOPIC_1: ReaderChapter = {
-  id: 'chap_eco_201_oligopoly',
-  courseCode: 'ECO 201',
-  title: 'Cournot Competition: How a Few Big Companies Compete',
-  subtitle: 'How rival companies choose how much to produce by watching each other',
-  readTimeMinutes: 4,
-  paragraphs: [
-    'In business and economics, an oligopoly simply means a market where only a few big companies control everything. Unlike a monopoly where one single company is in charge, or a regular market where hundreds of small traders sell, here the few big companies must carefully watch what each other is doing before making any move.',
-    'An economist named Augustin Cournot explained this simply: instead of fighting only on prices, companies choose how much goods (quantity) to produce at the same time. Each company looks at how much its rival is likely to produce, and then decides its own best production amount to make maximum profit.',
-    'We see this in Nigeria every day with cement and telecom companies. Think of MTN and Airtel, or Dangote Cement and BUA. If Dangote decides to produce 10,000 bags of cement in Ogun State, BUA looks at that amount and decides how many bags they should supply so the market is not overflooded and prices do not crash.',
-    'When each company\'s decision balances out and neither of them wants to change how much they are producing, economists call this the Cournot Equilibrium. At this point, the market stays stable, but consumers usually pay higher prices than if there were many small competitors.',
-    'Because there are only a few big players, they often keep prices higher than what it actually costs to make the product. That is why government consumer protection agencies watch these big companies closely to make sure they do not secretly agree to cheat buyers or fix high prices.',
-  ],
-  checkpoints: [
-    {
-      id: 'chk_1',
-      paragraphIndex: 2,
-      prompt: 'Quick Check: In Cournot competition, what do the companies choose at the same time?',
-      options: [
-        'The retail selling price',
-        'How much goods (quantity) to produce',
-        'Their advertising budget',
-        'Their office address',
-      ],
-      correctIndex: 1,
-      explanation:
-        'Correct! In Cournot competition, companies choose their production quantities at the same time, while in Bertrand competition they compete directly on prices.',
-    },
-    {
-      id: 'chk_2',
-      paragraphIndex: 4,
-      prompt: 'Quick Check: What happens when the companies reach the Cournot Equilibrium?',
-      options: [
-        'Both companies secretly merge',
-        'They reach a balance where neither company wants to change its production amount',
-        'Prices drop to zero naira',
-        'Both companies close down',
-      ],
-      correctIndex: 1,
-      explanation:
-        'Correct! At the Cournot Equilibrium, each company is producing its best amount given what the rival produces, so neither has any reason to change.',
-    },
-  ],
-};
-
-const TOPIC_2: ReaderChapter = {
-  id: 'chap_eco_201_bertrand',
-  courseCode: 'ECO 201',
-  title: 'Bertrand Competition: Direct Price Wars Between Rivals',
-  subtitle: 'What happens when companies fight by cutting prices to win customers',
-  readTimeMinutes: 4,
-  paragraphs: [
-    'Another economist named Joseph Bertrand had a different idea from Cournot. He said that in many markets, companies do not fight over how much to produce—they fight directly over prices. When two companies sell the exact same product and it costs buyers nothing to switch, buyers will always rush to whoever sells cheaper.',
-    'This leads to a direct price war. If Company A sells pure water or data subscriptions slightly cheaper than Company B, almost all customers will leave Company B and buy from Company A. So Company B is forced to drop its price even lower to survive.',
-    'If this price war continues, both companies will keep cutting prices until the price drops all the way down to what it actually costs them to make the product (Marginal Cost). At this point, profit becomes zero. Economists call this the "Bertrand Paradox" because even though there are only two companies, the price ends up as low as in a market with a thousand sellers.',
-    'In real Nigerian markets, companies usually avoid this zero-profit trap by making their products a bit different, building brand trust, offering better customer service, or because people live closer to one shop than another.',
-  ],
-  checkpoints: [
-    {
-      id: 'chk_b1',
-      paragraphIndex: 2,
-      prompt: 'Quick Check: What happens in a pure Bertrand price war if both companies sell the exact same product?',
-      options: [
-        'Both companies charge monopoly prices',
-        'Prices drop down to the actual cost of production, leaving zero profit',
-        'One company buys the whole state',
-        'Customers stop buying completely',
-      ],
-      correctIndex: 1,
-      explanation:
-        'Correct! In a pure Bertrand price war, intense price cuts push the selling price all the way down to the cost of production (P = MC).',
-    },
-  ],
-};
+import { saveExplanation, fetchSavedExplanations, deleteSavedExplanation, recordUserActivity } from '@/lib/supabase';
+import { SUPPORTED_BOOKS, CourseBook, getAllSupportedBooks } from '@/lib/booksLibrary';
+import { checkFeatureAccess, recordFeatureUsage } from '@/lib/subscriptionQuota';
 
 interface InteractiveReaderProps {
   profile: StudentProfile;
@@ -108,16 +36,176 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     return 'reader';
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('cohart_reader_view', activeView);
     }
     onAiModeChange?.(false);
   }, [activeView, onAiModeChange]);
 
-  const [activeTopicIndex, setActiveTopicIndex] = useState<0 | 1>(0);
-  const currentChapter = activeTopicIndex === 0 ? TOPIC_1 : TOPIC_2;
+  // Books Library & Active Chapter State
+  const allBooks = useMemo(() => getAllSupportedBooks(), []);
+  const [selectedBookId, setSelectedBookId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cohart_selected_book_id') || allBooks[0]?.id || 'book_eco_201';
+    }
+    return allBooks[0]?.id || 'book_eco_201';
+  });
 
+  const selectedBook: CourseBook = useMemo(() => {
+    return allBooks.find((b) => b.id === selectedBookId) || allBooks[0];
+  }, [allBooks, selectedBookId]);
+
+  const [selectedChapterId, setSelectedChapterId] = useState<string>(() => {
+    return selectedBook?.chapters[0]?.id || '';
+  });
+
+  // Keep selectedChapterId synced when selected book changes
+  useEffect(() => {
+    if (selectedBook && !selectedBook.chapters.some((c) => c.id === selectedChapterId)) {
+      setSelectedChapterId(selectedBook.chapters[0]?.id || '');
+    }
+  }, [selectedBook, selectedChapterId]);
+
+  const currentChapter: ReaderChapter = useMemo(() => {
+    const found = selectedBook?.chapters.find((c) => c.id === selectedChapterId);
+    return found || selectedBook?.chapters[0] || {
+      id: 'default',
+      courseCode: profile.department,
+      title: 'Course Reading',
+      subtitle: 'NUC Standard Curriculum',
+      readTimeMinutes: 5,
+      paragraphs: ['Welcome to your university textbook library. Select a book to start reading.'],
+      checkpoints: [],
+    };
+  }, [selectedBook, selectedChapterId, profile.department]);
+
+  // Drawer / Modals
+  const [isBooksDrawerOpen, setIsBooksDrawerOpen] = useState(false);
+  const [bookFilterDepartment, setBookFilterDepartment] = useState<string>('ALL');
+
+  // In-place Blended Paragraphs (paragraphIndex -> simplified text)
+  const [blendedParagraphs, setBlendedParagraphs] = useState<Record<number, string>>({});
+  const [isBlending, setIsBlending] = useState(false);
+  const [blendSuccessNotice, setBlendSuccessNotice] = useState<string | null>(null);
+
+  // Quota Upgrade Modal
+  // Quick Inline Lookup State (no-clutter definition)
+  const [quickLookupWord, setQuickLookupWord] = useState<string | null>(null);
+  const [quickLookupDef, setQuickLookupDef] = useState<string | null>(null);
+  const [isLoadingLookup, setIsLoadingLookup] = useState(false);
+
+  // Copy restriction & screenshot shield state
+  const [copyRestrictionNotice, setCopyRestrictionNotice] = useState<string | null>(null);
+  const [isScreenshotShieldActive, setIsScreenshotShieldActive] = useState(false);
+
+  // Background Async Jobs Drawer
+  const [isJobsDrawerOpen, setIsJobsDrawerOpen] = useState(false);
+  const [activeJobs, setActiveJobs] = useState<QueuedDocumentJob[]>([]);
+
+  // Periodic check for completed background synthesis jobs
+  useEffect(() => {
+    setActiveJobs(getQueuedDocumentJobs());
+    const interval = setInterval(() => {
+      setActiveJobs(getQueuedDocumentJobs());
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Screenshot & Print Protection on Reader Page
+  useEffect(() => {
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen') {
+        setIsScreenshotShieldActive(true);
+        setTimeout(() => setIsScreenshotShieldActive(false), 3000);
+      }
+    };
+
+    const handleBeforePrint = () => {
+      setIsScreenshotShieldActive(true);
+    };
+
+    const handleAfterPrint = () => {
+      setIsScreenshotShieldActive(false);
+    };
+
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    return () => {
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
+
+  // Copy limitation: allows short snippets (< 150 chars), restricts bulk copying
+  const handleCopyInReader = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    const text = selection ? selection.toString() : '';
+    if (text.length > 150) {
+      e.preventDefault();
+      const snippet = text.slice(0, 150) + '... [Excerpt capped at 150 chars. Full material available on Cohart]';
+      e.clipboardData.setData('text/plain', snippet);
+      setCopyRestrictionNotice('Bulk copying restricted to safeguard course material. Short excerpt (150 chars) copied.');
+      setTimeout(() => setCopyRestrictionNotice(null), 4000);
+    }
+  };
+
+  // Quick Inline Lookup (instant, lightweight 1-sentence definition)
+  const handleQuickLookup = async () => {
+    if (!selectedText) return;
+    setQuickLookupWord(selectedText);
+    setIsLoadingLookup(true);
+    setQuickLookupDef(null);
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Define this term/phrase in ONE crisp sentence suitable for a ${profile.department} student: "${selectedText}"`,
+          context: 'reader_explanation',
+          modelTier: 'spark', // Lumen Spark for ultra-fast lookup
+          studentProfile: profile,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setQuickLookupDef(data.reply || 'Definition unavailable.');
+      } else {
+        setQuickLookupDef('Could not look up term.');
+      }
+    } catch {
+      setQuickLookupDef('Network error looking up term.');
+    } finally {
+      setIsLoadingLookup(false);
+    }
+  };
+  const [quotaExceededNotice, setQuotaExceededNotice] = useState<string | null>(null);
+
+  // Handout Compression State (capped at 10MB)
+  const [isCompressModalOpen, setIsCompressModalOpen] = useState(false);
+  const [isCompressingHandout, setIsCompressingHandout] = useState(false);
+  const [compressedHandout, setCompressedHandout] = useState<{
+    fileName: string;
+    summary: string;
+    flashcards: Array<{ question: string; answer: string }>;
+    practiceQuiz?: {
+      prompt: string;
+      options: string[];
+      correctIndex: number;
+      explanation: string;
+    };
+  } | null>(null);
+  const [activeFlashcardIndex, setActiveFlashcardIndex] = useState(0);
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [handoutQuizAnswer, setHandoutQuizAnswer] = useState<number | null>(null);
+  const [handoutQuizRevealed, setHandoutQuizRevealed] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Reading Options (Bionic & Font Size)
   const [isBionic, setIsBionic] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('cohart_bionic_mode');
@@ -133,15 +221,19 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
       localStorage.setItem('cohart_bionic_mode', String(next));
     }
   };
+
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
+
+  // Text Selection & "Break Down Big Grammar"
   const [selectedText, setSelectedText] = useState<string>('');
+  const [selectedParagraphIndex, setSelectedParagraphIndex] = useState<number | null>(null);
   const [showAiSheet, setShowAiSheet] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Deepgram Audio Reader State
+  // Audio Reader (Deepgram Aura-2)
   const [selectedVoice, setSelectedVoice] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('cohart_selected_voice') || DEFAULT_COHART_VOICE;
@@ -151,7 +243,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   const [isVoiceDropdownOpen, setIsVoiceDropdownOpen] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isSynthesizingAudio, setIsSynthesizingAudio] = useState(false);
-  const readerAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const readerAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleToggleReadAloud = async () => {
     if (isPlayingAudio) {
@@ -229,25 +321,21 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
       try {
         const previewAudio = new Audio(voiceObj.audioUrl);
         readerAudioRef.current = previewAudio;
-        previewAudio.play().catch((err) => {
-          console.warn('Audio preview autoplay prevented:', err);
-        });
+        previewAudio.play().catch(() => {});
         previewAudio.onended = () => {
           readerAudioRef.current = null;
         };
-      } catch (err) {
-        console.warn('Failed to play local voice preview:', err);
-      }
+      } catch {}
     }
   };
 
-  // Saved explanations vault state
+  // Saved Vault State
   const [savedExplanations, setSavedExplanations] = useState<SavedExplanation[]>([]);
   const [vaultSearch, setVaultSearch] = useState('');
   const [vaultCourseFilter, setVaultCourseFilter] = useState('ALL');
   const [copiedNoteId, setCopiedNoteId] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function loadVault() {
       const data = await fetchSavedExplanations(profile.id);
       setSavedExplanations(data);
@@ -255,26 +343,31 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     loadVault();
   }, [profile.id]);
 
-  // Active recall state
+  // Active Recall Checkpoints State
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
-  const studentFirstName = profile.full_name?.trim()
-    ? profile.full_name.trim().split(' ')[0]
-    : 'Scholar';
+  // Reset chapter-specific state when chapter changes
+  useEffect(() => {
+    setBlendedParagraphs({});
+    setSelectedText('');
+    setSelectedParagraphIndex(null);
+  }, [currentChapter.id]);
 
   // Handle native text selection
-  const handleMouseUp = () => {
+  const handleMouseUp = (pIdx: number) => {
     if (typeof window !== 'undefined') {
       const selection = window.getSelection();
       const text = selection?.toString().trim();
       if (text && text.length > 5) {
         setSelectedText(text);
+        setSelectedParagraphIndex(pIdx);
       }
     }
   };
 
-  const handleExplainSelection = async (textToExplain?: string) => {
+  // "Break Down Big Grammar" Explanation Modal
+  const handleBreakDownGrammar = async (textToExplain?: string) => {
     const text = textToExplain || selectedText;
     if (!text) return;
 
@@ -284,63 +377,193 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     setIsSaved(false);
 
     try {
-      let explanation = '';
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: 'reader_explanation',
+          highlightedText: text,
+          prompt: `Break down this academic term/grammar into simple, everyday English with a practical Nigerian analogy for a ${profile.department} student.`,
+          studentProfile: profile,
+        }),
+      });
 
-      // Primary: Call /api/ai
-      try {
-        const res = await fetch('/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            context: 'reader_explanation',
-            highlightedText: text,
-            prompt: `Break this down with a real-world Nigerian/OOU analogy for a ${profile.department} student.`,
-            studentProfile: profile,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          explanation = data.reply;
-        }
-      } catch {
-        // Fallback to Supabase Edge Function
+      if (res.ok) {
+        const data = await res.json();
+        setAiExplanation(data.reply);
+      } else {
+        setAiExplanation('Unable to generate explanation right now. Please retry in a moment.');
       }
-
-      // Secondary fallback: Direct Supabase AI Edge Function
-      if (!explanation) {
-        try {
-          const edgeRes = await fetch(
-            'https://fnqnxdmdyevzavsbfelv.supabase.co/functions/v1/ai',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZucW54ZG1keWV2emF2c2JmZWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MTI3NDUsImV4cCI6MjEwNTQ4ODc0NX0.BdJAhqwdSiPbGHCb5d3KbwNHalTlbO1jaqWTgXvVz6A',
-              },
-              body: JSON.stringify({
-                context: 'reader_explanation',
-                highlightedText: text,
-                prompt: `Break this down with a real-world Nigerian/OOU analogy for a ${profile.department} student.`,
-                studentProfile: profile,
-              }),
-            }
-          );
-          if (edgeRes.ok) {
-            const data = await edgeRes.json();
-            explanation = data.reply;
-          }
-        } catch {
-          // Both failed
-        }
-      }
-
-      setAiExplanation(explanation || 'Unable to generate explanation right now. Please retry in a moment.');
     } catch {
       setAiExplanation('Network error connecting to AI engine. Please verify your connection.');
     } finally {
       setIsExplaining(false);
     }
+  };
+
+  // "Simplify & Blend into Text" in-place paragraph rewriting
+  const handleSimplifyAndBlend = async () => {
+    if (!selectedText) return;
+    const pIdx = selectedParagraphIndex !== null ? selectedParagraphIndex : 0;
+
+    // Check Quota (5 free per month for free tier, unlimited for pro)
+    const access = checkFeatureAccess('simplify_and_blend', profile);
+    if (!access.allowed) {
+      setQuotaExceededNotice(
+        `Monthly Teaser Limit Reached (${access.maxLimit}/${access.maxLimit} blend rewrites used this month). Upgrade to Cohart Pro for unlimited in-text simplification!`
+      );
+      return;
+    }
+
+    setIsBlending(true);
+    setBlendSuccessNotice(null);
+
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: 'simplify_and_blend',
+          highlightedText: selectedText,
+          studentProfile: profile,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const simplifiedText = data.simplifiedBlend?.blendedText || data.reply || selectedText;
+        
+        // Replace paragraph or blend in
+        const originalPara = currentChapter.paragraphs[pIdx] || '';
+        let newPara = originalPara;
+        if (originalPara.includes(selectedText)) {
+          newPara = originalPara.replace(selectedText, simplifiedText);
+        } else {
+          newPara = simplifiedText;
+        }
+
+        setBlendedParagraphs((prev) => ({ ...prev, [pIdx]: newPara }));
+        recordFeatureUsage('simplify_and_blend', profile);
+        setBlendSuccessNotice('Passage simplified & blended directly into your reading flow!');
+        setSelectedText('');
+        setTimeout(() => setBlendSuccessNotice(null), 4000);
+      }
+    } catch (err) {
+      console.error('Simplify & blend failed:', err);
+    } finally {
+      setIsBlending(false);
+    }
+  };
+
+  // Upload & Compress Handout (Capped at 10MB)
+  // File type helpers (reader)
+  const READER_TEXT_EXTS = ['.txt', '.md', '.csv', '.log', '.json', '.py', '.js', '.ts', '.html', '.xml', '.yaml', '.yml'];
+  function readerGetExt(n: string) { return n.slice(n.lastIndexOf('.')).toLowerCase(); }
+  function readerIsTextFile(n: string, m?: string) { return READER_TEXT_EXTS.includes(readerGetExt(n)) || m?.startsWith('text/') === true; }
+  function readerIsImage(n: string, m?: string) { return ['.jpg','.jpeg','.png','.gif','.webp','.heic','.bmp'].includes(readerGetExt(n)) || m?.startsWith('image/') === true; }
+  function readerIsPdf(n: string, m?: string) { return readerGetExt(n) === '.pdf' || m === 'application/pdf'; }
+
+  const handleHandoutFilePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isText = readerIsTextFile(file.name, file.type);
+    const sizeLimit = isText ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > sizeLimit) {
+      alert(isText
+        ? 'Text file exceeds the 5MB limit. Please upload a smaller document.'
+        : 'File size exceeds the 10MB safety cap. Please upload a smaller or compressed document.'
+      );
+      return;
+    }
+
+    const access = checkFeatureAccess('document_upload', profile);
+    if (!access.allowed) {
+      setQuotaExceededNotice(
+        `Monthly Teaser Limit Reached (${access.maxLimit}/${access.maxLimit} scans used this month). Upgrade to Cohart Pro for unlimited document compression!`
+      );
+      return;
+    }
+
+    setIsCompressModalOpen(true);
+    setIsCompressingHandout(true);
+    setCompressedHandout(null);
+
+    // Read file: text files as UTF-8 string, binary as base64
+    const isTextFile = readerIsTextFile(file.name, file.type);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      let filePayload: Record<string, any>;
+      if (isTextFile) {
+        const textContent = (reader.result as string).slice(0, 80000);
+        filePayload = {
+          textContent,
+          mimeType: file.type || 'text/plain',
+          fileName: file.name,
+          strategy: 'text',
+        };
+      } else {
+        const base64 = (reader.result as string).split(',')[1];
+        const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+        const strategy: string = readerIsImage(file.name, file.type) ? 'image' : readerIsPdf(file.name, file.type) ? 'pdf' : 'office_binary';
+        filePayload = {
+          base64,
+          mimeType: file.type || 'application/octet-stream',
+          fileName: file.name,
+          strategy,
+        };
+      }
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            context: 'compress_handout',
+            prompt: `Compress this academic material for a ${profile.department} student (${profile.institution}) into clear bullet notes, active recall flashcards, and a practice question.`,
+            studentProfile: profile,
+            fileData: filePayload,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          recordFeatureUsage('document_upload', profile);
+
+          const rawFlashcards = data.extractedFlashcards || [
+            { question: 'Key takeaway from this material?', answer: data.reply?.slice(0, 100) || 'Core syllabus topic.' }
+          ];
+
+          setCompressedHandout({
+            fileName: file.name,
+            summary: data.reply || 'Summary complete.',
+            flashcards: rawFlashcards.map((f: any) => ({
+              question: f.question || f.front || 'Core Concept',
+              answer: f.answer || f.back || 'Clarified answer.',
+            })),
+            practiceQuiz: data.interactiveQuestion ? {
+              prompt: data.interactiveQuestion.question || 'Practice Question',
+              options: data.interactiveQuestion.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+              correctIndex: data.interactiveQuestion.correctIndex || 0,
+              explanation: data.interactiveQuestion.explanation || 'Verified explanation.',
+            } : undefined,
+          });
+          setActiveFlashcardIndex(0);
+          setIsCardFlipped(false);
+          setHandoutQuizAnswer(null);
+          setHandoutQuizRevealed(false);
+        }
+      } catch (err) {
+        console.error('Compression failed:', err);
+      } finally {
+        setIsCompressingHandout(false);
+      }
+    };
+    if (isTextFile) {
+      reader.readAsText(file, 'UTF-8');
+    } else {
+      reader.readAsDataURL(file);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSaveToVault = async () => {
@@ -371,12 +594,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   };
 
   const fontSizeClasses = {
-    sm: 'text-xs leading-relaxed',
-    md: 'text-sm leading-relaxed',
-    lg: 'text-base leading-loose',
+    sm: 'text-sm leading-relaxed tracking-normal',
+    md: 'text-[15px] sm:text-[16px] leading-[1.8] tracking-[-0.01em]',
+    lg: 'text-[17px] sm:text-[18px] leading-[1.85] tracking-[-0.01em]',
   };
 
-  const availableCourses = React.useMemo(() => {
+  const availableCourses = useMemo(() => {
     const set = new Set<string>();
     savedExplanations.forEach((s) => {
       if (s.course_code) set.add(s.course_code);
@@ -384,7 +607,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     return ['ALL', ...Array.from(set)];
   }, [savedExplanations]);
 
-  const filteredVault = React.useMemo(() => {
+  const filteredVault = useMemo(() => {
     return savedExplanations.filter((item) => {
       const matchesCourse =
         vaultCourseFilter === 'ALL' || item.course_code === vaultCourseFilter;
@@ -398,11 +621,16 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     });
   }, [savedExplanations, vaultCourseFilter, vaultSearch]);
 
+  const filteredBooks = useMemo(() => {
+    if (bookFilterDepartment === 'ALL') return allBooks;
+    return allBooks.filter((b) => b.department.toLowerCase().includes(bookFilterDepartment.toLowerCase()) || b.courseCode.startsWith('GST'));
+  }, [allBooks, bookFilterDepartment]);
+
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Compact In-App Style Mode Switcher with Dropdown */}
-      <div className="flex items-center justify-between gap-2">
-        {/* View Mode Dropdown */}
+      {/* Top Workspace Bar */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        {/* View Mode Switcher */}
         <div className="relative">
           <button
             onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
@@ -477,9 +705,37 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
         {/* Reader Customizer Actions */}
         {activeView === 'reader' && (
           <div className="flex items-center gap-2">
+            {/* Books Library Drawer Trigger */}
+            <button
+              onClick={() => setIsBooksDrawerOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]/20 hover:bg-[#0B57D0]/20 transition-all active:scale-95 cursor-pointer"
+              title="Open Course Books Library"
+            >
+              <GeminiIcon name="book-open" size={13} />
+              <span>Books Library</span>
+            </button>
+
+            {/* Upload & Compress Handout Trigger */}
+            <label
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all active:scale-95 cursor-pointer"
+              title="Compress Handout / PDF (Max 10MB)"
+            >
+              <GeminiIcon name="attachment" size={13} />
+              <span className="hidden sm:inline">Compress Handout</span>
+              <span className="sm:hidden">Compress</span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,image/*,.txt,.md,.csv,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.json,.py,.js,.ts,.html"
+                onChange={handleHandoutFilePicked}
+                className="hidden"
+              />
+            </label>
+
+            {/* Bionic Mode Pill */}
             <button
               onClick={handleToggleBionic}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
                 isBionic
                   ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-medium'
                   : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
@@ -488,10 +744,11 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               <span>Bionic: {isBionic ? 'On' : 'Off'}</span>
             </button>
 
+            {/* Font Sizing */}
             <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
               <button
                 onClick={() => setFontSize('sm')}
-                className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                className={`px-2 py-0.5 rounded-full transition-colors ${
                   fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                 }`}
               >
@@ -499,7 +756,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               </button>
               <button
                 onClick={() => setFontSize('md')}
-                className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                className={`px-2 py-0.5 rounded-full transition-colors ${
                   fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                 }`}
               >
@@ -507,7 +764,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               </button>
               <button
                 onClick={() => setFontSize('lg')}
-                className={`px-2.5 py-0.5 rounded-full transition-colors ${
+                className={`px-2 py-0.5 rounded-full transition-colors ${
                   fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
                 }`}
               >
@@ -518,9 +775,33 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
         )}
       </div>
 
+      {/* Quota Notice Banner */}
+      {quotaExceededNotice && (
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <GeminiIcon name="sparkle" size={15} className="text-amber-500 shrink-0" />
+            <span className="font-medium">{quotaExceededNotice}</span>
+          </div>
+          <button
+            onClick={() => setQuotaExceededNotice(null)}
+            className="p-1 rounded-full text-amber-500 hover:text-amber-700"
+          >
+            <GeminiIcon name="close" size={13} />
+          </button>
+        </div>
+      )}
+
+      {/* Blend Success Notice */}
+      {blendSuccessNotice && (
+        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in">
+          <GeminiIcon name="check-circle" size={15} className="text-emerald-500 shrink-0" />
+          <span className="font-medium">{blendSuccessNotice}</span>
+        </div>
+      )}
+
       {activeView === 'vault' ? (
+        /* Vault View */
         <div className="space-y-4 sm:space-y-5">
-          {/* Vault Header Card */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -541,10 +822,8 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </Badge>
           </div>
 
-          {/* Filter Bar: Course Pills & Search */}
           <GeminiCard className="p-3.5 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-              {/* Course Chips */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
                 {availableCourses.map((c) => (
                   <button
@@ -561,7 +840,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 ))}
               </div>
 
-              {/* Search Bar */}
               <div className="relative w-full sm:w-64 shrink-0">
                 <input
                   type="text"
@@ -577,7 +855,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </div>
           </GeminiCard>
 
-          {/* Vault Cards Stream */}
           {filteredVault.length === 0 ? (
             <GeminiCard className="p-8 text-center space-y-3">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
@@ -588,7 +865,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               </h3>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md mx-auto leading-relaxed">
                 {savedExplanations.length === 0
-                  ? 'While reading chapters in the Course Reader, highlight any complex paragraph and tap "Save to Vault". Your personalized real-world breakdowns will be permanently stored here for quick exam revision.'
+                  ? 'While reading chapters, highlight any complex paragraph and tap "Save to Vault". Your personalized real-world breakdowns will be permanently stored here for quick exam revision.'
                   : `No notes found matching "${vaultSearch}". Try a different keyword or switch to All Courses.`}
               </p>
               {savedExplanations.length === 0 && (
@@ -606,7 +883,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             <div className="space-y-3.5">
               {filteredVault.map((item) => (
                 <GeminiCard key={item.id} className="p-4 sm:p-5 space-y-3">
-                  {/* Note Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
@@ -618,20 +894,17 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         </span>
                       )}
                     </div>
-
                     <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 shrink-0">
                       {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent'}
                     </span>
                   </div>
 
-                  {/* Quoted Selection */}
                   <div className="pl-3 py-1 border-l-2 border-[#0B57D0] dark:border-[#1A73E8] bg-black/[0.015] dark:bg-white/[0.02] rounded-r-lg">
                     <p className="text-xs italic text-neutral-600 dark:text-neutral-300 font-serif leading-relaxed">
                       &ldquo;{item.selected_text}&rdquo;
                     </p>
                   </div>
 
-                  {/* AI Explanation Content */}
                   <div className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-3 border border-black/[0.05] dark:border-white/[0.05]">
                     <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#0B57D0] dark:text-[#1A73E8] mb-1.5">
                       <GeminiIcon name="chat" size={13} />
@@ -642,7 +915,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     </p>
                   </div>
 
-                  {/* Note Action Toolbar */}
                   <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-xs">
                     <button
                       onClick={() => handleCopyNote(item)}
@@ -670,46 +942,52 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           )}
         </div>
       ) : (
+        /* Course Reader View */
         <>
-          {/* 2-Topic Prep Selector */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
-            <button
-              onClick={() => setActiveTopicIndex(0)}
-              className={`px-3.5 py-1.5 rounded-full font-mono transition-all shrink-0 ${
-                activeTopicIndex === 0
-                  ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
-                  : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
-              }`}
-            >
-              Topic 1: Cournot (Output)
-            </button>
-            <button
-              onClick={() => setActiveTopicIndex(1)}
-              className={`px-3.5 py-1.5 rounded-full font-mono transition-all shrink-0 ${
-                activeTopicIndex === 1
-                  ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
-                  : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
-              }`}
-            >
-              Topic 2: Bertrand (Price War)
-            </button>
+          {/* Active Book Chapters Switcher & Library Button */}
+          <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]/20">
+                {selectedBook.courseCode}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {selectedBook.chapters.map((ch, idx) => (
+                <button
+                  key={ch.id}
+                  onClick={() => setSelectedChapterId(ch.id)}
+                  className={`px-3 py-1.5 rounded-full font-mono transition-all shrink-0 cursor-pointer ${
+                    selectedChapterId === ch.id
+                      ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold shadow-xs'
+                      : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  Chapter {idx + 1}: {ch.title.split(':')[0]}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Reader Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
             <div>
-              <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-                {currentChapter.courseCode} • {currentChapter.readTimeMinutes} min read
-              </span>
-              <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans mt-0.5">
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                  {currentChapter.courseCode} • {selectedBook.title}
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  {currentChapter.readTimeMinutes} min read
+                </span>
+              </div>
+              <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
                 {currentChapter.title}
               </h1>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">{currentChapter.subtitle}</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{currentChapter.subtitle}</p>
             </div>
 
-            {/* Reader Customizer Actions */}
+            {/* Audio Listen & Voice Pill */}
             <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-              {/* Listen to Chapter Audio (Deepgram Aura-2) */}
               <div className="relative flex items-center gap-1">
                 <button
                   onClick={handleToggleReadAloud}
@@ -733,7 +1011,6 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   <span>{isPlayingAudio ? 'Stop' : isSynthesizingAudio ? 'Synthesizing...' : 'Listen'}</span>
                 </button>
 
-                {/* Voice Selection Pill */}
                 <button
                   onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
                   className="p-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
@@ -774,103 +1051,192 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   </>
                 )}
               </div>
-
-              {/* Bionic Toggle */}
-              <button
-                onClick={handleToggleBionic}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
-                  isBionic
-                    ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-medium'
-                    : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
-                }`}
-              >
-                <span>Bionic: {isBionic ? 'On' : 'Off'}</span>
-              </button>
-
-              {/* Font Sizing */}
-              <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
-                <button
-                  onClick={() => setFontSize('sm')}
-                  className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                    fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
-                  }`}
-                >
-                  A-
-                </button>
-                <button
-                  onClick={() => setFontSize('md')}
-                  className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                    fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
-                  }`}
-                >
-                  A
-                </button>
-                <button
-                  onClick={() => setFontSize('lg')}
-                  className={`px-2.5 py-0.5 rounded-full transition-colors ${
-                    fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
-                  }`}
-                >
-                  A+
-                </button>
-              </div>
             </div>
           </div>
 
-          {/* Floating Highlight Action Capsule when text is selected */}
+          {/* Floating Highlight Action Capsule: Look Up • Ask Lumen • Break Down • Simplify & Blend */}
           {selectedText && (
-            <div className="sticky top-16 z-30 flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.1] dark:border-white/[0.1] backdrop-blur-md shadow-md animate-in fade-in">
-              <div className="flex items-center gap-2 overflow-hidden text-xs">
-                <span className="text-neutral-800 dark:text-neutral-200 font-sans truncate">
-                  "{selectedText.slice(0, 40)}..."
-                </span>
+            <div className="sticky top-16 z-30 flex flex-col gap-2 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-[#0B57D0]/30 shadow-xl backdrop-blur-md animate-in fade-in">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 overflow-hidden text-xs">
+                  <span className="text-neutral-800 dark:text-neutral-200 font-sans font-medium truncate max-w-xs">
+                    "{selectedText.slice(0, 40)}{selectedText.length > 40 ? '...' : ''}"
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                  {/* 1. Quick Look Up (Inline Definition) */}
+                  <button
+                    onClick={handleQuickLookup}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-neutral-800 dark:text-neutral-200 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                    title="Look up quick meaning without cluttering"
+                  >
+                    <GeminiIcon name="search" size={12} />
+                    <span>Look Up</span>
+                  </button>
+
+                  {/* 2. Ask Lumen in Chat */}
+                  <button
+                    onClick={() => {
+                      if (onOpenAiChat) {
+                        onOpenAiChat(`Can you explain this excerpt from ${selectedBook.courseCode} in detail: "${selectedText}"?`);
+                      }
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                    title="Ask Lumen AI in Messages"
+                  >
+                    <GeminiIcon name="chat" size={12} />
+                    <span>Ask Lumen</span>
+                  </button>
+
+                  {/* 3. Break Down Big Grammar Modal */}
+                  <button
+                    onClick={() => handleBreakDownGrammar()}
+                    className="px-2.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+                    title="Explain complex terms with practical Nigerian analogy"
+                  >
+                    Break Down
+                  </button>
+
+                  {/* 4. Simplify & Blend into Text */}
+                  <button
+                    onClick={handleSimplifyAndBlend}
+                    disabled={isBlending}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    title="Rewrite this passage in-place in simple readable English"
+                  >
+                    {isBlending ? (
+                      <div className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    ) : (
+                      <GeminiIcon name="sparkle" size={12} />
+                    )}
+                    <span>Simplify & Blend</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSelectedText('');
+                      setQuickLookupWord(null);
+                    }}
+                    className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                  >
+                    <GeminiIcon name="close" size={14} />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  onClick={() => handleExplainSelection()}
-                  className="px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-medium hover:opacity-90 transition-opacity"
-                >
-                  Explain
-                </button>
-                <button
-                  onClick={() => setSelectedText('')}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
-                >
-                  <GeminiIcon name="close" size={14} />
-                </button>
-              </div>
+
+              {/* Lightweight Inline Lookup Card */}
+              {quickLookupWord && (
+                <div className="p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-xs animate-in fade-in">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono text-[10px] text-[#0B57D0] dark:text-[#1A73E8] font-bold uppercase">
+                      Definition: {quickLookupWord.slice(0, 30)}
+                    </span>
+                    <button
+                      onClick={() => setQuickLookupWord(null)}
+                      className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {isLoadingLookup ? (
+                    <div className="flex items-center gap-2 text-neutral-500 py-1">
+                      <div className="h-3 w-3 rounded-full border-2 border-[#0B57D0] border-t-transparent animate-spin" />
+                      <span className="text-[11px] font-mono">Finding definition...</span>
+                    </div>
+                  ) : (
+                    <p className="text-neutral-800 dark:text-neutral-200 leading-relaxed font-sans text-xs">
+                      {quickLookupDef}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
           {/* Main Chapter Text Layout */}
-          <GeminiCard className="p-5 sm:p-7">
+          {/* Copy Restriction Notice */}
+          {copyRestrictionNotice && (
+            <div className="fixed bottom-6 right-6 z-50 p-3 max-w-sm rounded-xl bg-[#1C202A] text-white border border-white/10 shadow-2xl text-xs flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+              <GeminiIcon name="shield" size={15} className="text-amber-400 shrink-0" />
+              <span>{copyRestrictionNotice}</span>
+            </div>
+          )}
+
+          {/* Screenshot Shield Overlay (Only active on Reader & Books) */}
+          {isScreenshotShieldActive && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-2xl p-6 text-center animate-in fade-in">
+              <div className="max-w-md space-y-3">
+                <div className="h-12 w-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+                  <GeminiIcon name="shield" size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-white">Protected Course Material</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Screenshots and screen captures are disabled on Course Books to safeguard academic publishing rights. You can highlight and save notes directly to your personal Vault.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <GeminiCard className="p-5 sm:p-7 relative select-text" onCopy={handleCopyInReader}>
             <div
-              onMouseUp={handleMouseUp}
               className={`space-y-5 text-neutral-800 dark:text-neutral-200 font-sans ${fontSizeClasses[fontSize]}`}
             >
               {currentChapter.paragraphs.map((para, index) => {
+                const isBlended = Boolean(blendedParagraphs[index]);
+                const activeParaText = blendedParagraphs[index] || para;
+
                 const checkpoint = currentChapter.checkpoints.find(
                   (c) => c.paragraphIndex === index
                 );
 
                 return (
                   <React.Fragment key={index}>
-                    <p className="tracking-normal select-text">
-                      {isBionic ? (
-                        <span>
-                          {formatBionicText(para).map((token) => (
-                            <span key={token.id} className="inline">
-                              <strong className="font-semibold text-neutral-950 dark:text-white">
-                                {token.bold}
-                              </strong>
-                              {token.regular}{token.space ? ' ' : ''}
-                            </span>
-                          ))}
-                        </span>
-                      ) : (
-                        para
+                    <div className="relative group">
+                      {isBlended && (
+                        <div className="flex items-center justify-between mb-1 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                          <span className="flex items-center gap-1">
+                            <GeminiIcon name="sparkle" size={12} />
+                            Simplified & Blended Passage
+                          </span>
+                          <button
+                            onClick={() => {
+                              setBlendedParagraphs((prev) => {
+                                const copy = { ...prev };
+                                delete copy[index];
+                                return copy;
+                              });
+                            }}
+                            className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 underline cursor-pointer"
+                          >
+                            Revert to Original
+                          </button>
+                        </div>
                       )}
-                    </p>
+
+                      <p
+                        onMouseUp={() => handleMouseUp(index)}
+                        className={`tracking-normal select-text transition-all ${
+                          isBlended
+                            ? 'p-3 rounded-xl bg-emerald-500/[0.04] border-l-2 border-emerald-500'
+                            : ''
+                        }`}
+                      >
+                        {isBionic ? (
+                          <span>
+                            {formatBionicText(activeParaText).map((token) => (
+                              <span key={token.id} className="inline">
+                                <strong className="font-semibold text-neutral-950 dark:text-white">
+                                  {token.bold}
+                                </strong>
+                                {token.regular}{token.space ? ' ' : ''}
+                              </span>
+                            ))}
+                          </span>
+                        ) : (
+                          activeParaText
+                        )}
+                      </p>
+                    </div>
 
                     {/* Checkpoint recall quiz */}
                     {checkpoint && (
@@ -928,12 +1294,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 );
               })}
 
-              {/* Chapter Mastery & Exam Readiness Assessment Score Banner */}
+              {/* Chapter Completion Banner */}
               {(() => {
                 const totalCheckpoints = currentChapter.checkpoints.length;
                 const answeredCheckpoints = currentChapter.checkpoints.filter((c) => revealed[c.id]);
                 const correctCheckpoints = currentChapter.checkpoints.filter((c) => answers[c.id] === c.correctIndex);
-                const isChapterCompleted = answeredCheckpoints.length === totalCheckpoints;
+                const isChapterCompleted = totalCheckpoints > 0 && answeredCheckpoints.length === totalCheckpoints;
 
                 if (!isChapterCompleted) return null;
 
@@ -961,7 +1327,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                       <button
                         onClick={() => {
-                          const prompt = `I completed the chapter "${currentChapter.title}" with a score of ${correctCheckpoints.length}/${totalCheckpoints}. Test me with exam practice questions on this topic!`;
+                          const prompt = `I completed the chapter "${currentChapter.title}" in ${currentChapter.courseCode} with a score of ${correctCheckpoints.length}/${totalCheckpoints}. Test me with exam practice questions on this topic!`;
                           onMilestoneAction?.('reader_quiz');
                           if (onOpenAiChat) {
                             onOpenAiChat(prompt);
@@ -979,7 +1345,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </div>
           </GeminiCard>
 
-          {/* AI Explanation Modal */}
+          {/* AI Explanation Modal ("Break Down Big Grammar") */}
           {showAiSheet && (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-3">
               <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
@@ -989,9 +1355,9 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       <GeminiIcon name="chat" size={15} />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Simple Explanation</h3>
+                      <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Break Down Big Grammar</h3>
                       <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                        Teaching style: {profile.learning_style.replace('_', ' ')}
+                        Plain English with Nigerian context
                       </p>
                     </div>
                   </div>
@@ -1043,6 +1409,266 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </div>
           )}
 
+          {/* Handout Compression Result Modal */}
+          {isCompressModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
+              <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                      <GeminiIcon name="attachment" size={16} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white">
+                        Compressed Handout & Study Pack
+                      </h3>
+                      <p className="text-[10px] font-mono text-neutral-500">
+                        {compressedHandout?.fileName || 'Academic Document'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsCompressModalOpen(false)}
+                    className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                  >
+                    <GeminiIcon name="close" size={16} />
+                  </button>
+                </div>
+
+                {isCompressingHandout ? (
+                  <div className="py-16 text-center space-y-3">
+                    <div className="h-8 w-8 rounded-full border-3 border-[#0B57D0] border-t-transparent animate-spin mx-auto" />
+                    <p className="text-xs font-mono text-neutral-500">
+                      Analyzing and compressing document into executive notes, flashcards, and practice questions...
+                    </p>
+                  </div>
+                ) : compressedHandout ? (
+                  <div className="space-y-5">
+                    {/* Executive Summary */}
+                    <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
+                      <h4 className="text-xs font-mono uppercase tracking-wider text-[#0B57D0] dark:text-[#1A73E8] font-bold mb-2">
+                        Executive Readable Summary
+                      </h4>
+                      <div className="text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-line">
+                        {compressedHandout.summary}
+                      </div>
+                    </div>
+
+                    {/* Active Recall Flashcards */}
+                    {compressedHandout.flashcards.length > 0 && (
+                      <div className="p-4 rounded-2xl bg-[#0B57D0]/[0.03] dark:bg-[#1A73E8]/[0.05] border border-[#0B57D0]/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-xs font-mono uppercase tracking-wider text-[#0B57D0] dark:text-[#1A73E8] font-bold">
+                            Active Recall Flashcards ({activeFlashcardIndex + 1}/{compressedHandout.flashcards.length})
+                          </h4>
+                          <span className="text-[10px] font-mono text-neutral-500">
+                            Tap card to flip
+                          </span>
+                        </div>
+
+                        {/* Flashcard Flip Card */}
+                        <div
+                          onClick={() => setIsCardFlipped(!isCardFlipped)}
+                          className="min-h-[120px] p-5 rounded-xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] shadow-sm flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#0B57D0]/50 transition-all select-none"
+                        >
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mb-1">
+                            {isCardFlipped ? 'Answer & Analogy' : 'Question / Concept'}
+                          </span>
+                          <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                            {isCardFlipped
+                              ? compressedHandout.flashcards[activeFlashcardIndex]?.answer
+                              : compressedHandout.flashcards[activeFlashcardIndex]?.question}
+                          </p>
+                        </div>
+
+                        {/* Flashcard Navigation */}
+                        <div className="flex items-center justify-between mt-3">
+                          <button
+                            onClick={() => {
+                              setActiveFlashcardIndex((prev) => Math.max(0, prev - 1));
+                              setIsCardFlipped(false);
+                            }}
+                            disabled={activeFlashcardIndex === 0}
+                            className="px-3 py-1 rounded-full text-xs font-mono bg-white dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] disabled:opacity-40"
+                          >
+                            &larr; Prev Card
+                          </button>
+                          <button
+                            onClick={() => {
+                              setActiveFlashcardIndex((prev) => Math.min(compressedHandout.flashcards.length - 1, prev + 1));
+                              setIsCardFlipped(false);
+                            }}
+                            disabled={activeFlashcardIndex === compressedHandout.flashcards.length - 1}
+                            className="px-3 py-1 rounded-full text-xs font-mono bg-white dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] disabled:opacity-40"
+                          >
+                            Next Card &rarr;
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Practice Quiz */}
+                    {compressedHandout.practiceQuiz && (
+                      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
+                        <h4 className="text-xs font-mono uppercase tracking-wider text-[#0B57D0] dark:text-[#1A73E8] font-bold mb-2">
+                          Checkpoint Exam Question
+                        </h4>
+                        <p className="text-xs font-medium text-neutral-900 dark:text-white mb-3">
+                          {compressedHandout.practiceQuiz.prompt}
+                        </p>
+                        <div className="space-y-2">
+                          {compressedHandout.practiceQuiz.options.map((opt, oIdx) => {
+                            const isAnswered = handoutQuizAnswer === oIdx;
+                            const isCorrect = compressedHandout.practiceQuiz?.correctIndex === oIdx;
+                            const isLocked = handoutQuizRevealed;
+
+                            let btnStyle = 'bg-white dark:bg-white/[0.04] border-black/[0.08] dark:border-white/[0.08] hover:border-[#0B57D0]/50';
+                            if (isLocked) {
+                              if (isCorrect) {
+                                btnStyle = 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-500 text-emerald-900 dark:text-emerald-300 font-semibold';
+                              } else if (isAnswered) {
+                                btnStyle = 'bg-rose-50 dark:bg-rose-500/20 border-rose-500 text-rose-900 dark:text-rose-300 line-through';
+                              } else {
+                                btnStyle = 'opacity-40 border-black/[0.04] dark:border-white/[0.04] text-neutral-400';
+                              }
+                            }
+
+                            return (
+                              <button
+                                key={oIdx}
+                                disabled={isLocked}
+                                onClick={() => {
+                                  setHandoutQuizAnswer(oIdx);
+                                  setHandoutQuizRevealed(true);
+                                }}
+                                className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all ${btnStyle}`}
+                              >
+                                {opt}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {handoutQuizRevealed && (
+                          <div className="mt-2.5 pt-2 border-t border-black/[0.05] dark:border-white/[0.05] text-[11px] font-mono text-neutral-600 dark:text-neutral-400">
+                            {compressedHandout.practiceQuiz.explanation}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          {/* Books Library Drawer */}
+          {isBooksDrawerOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
+              <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white">
+                      Course Textbooks & Material Library
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      Standard NUC CCMAS textbooks with full chapters and pencil-drawn illustrations
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsBooksDrawerOpen(false)}
+                    className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+                  >
+                    <GeminiIcon name="close" size={16} />
+                  </button>
+                </div>
+
+                {/* Department Filter Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 no-scrollbar text-xs">
+                  {['ALL', 'Economics', 'Computer Science', 'Law', 'Accounting', 'Mass Communication'].map((dept) => (
+                    <button
+                      key={dept}
+                      onClick={() => setBookFilterDepartment(dept)}
+                      className={`px-3 py-1 rounded-full font-mono transition-all shrink-0 cursor-pointer ${
+                        bookFilterDepartment === dept
+                          ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
+                          : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {dept === 'ALL' ? 'All Departments' : dept}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Books Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredBooks.map((book) => {
+                    const isSelected = selectedBookId === book.id;
+                    return (
+                      <div
+                        key={book.id}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex gap-4 ${
+                          isSelected
+                            ? 'border-[#0B57D0] bg-[#0B57D0]/[0.03] dark:bg-[#1A73E8]/[0.05] ring-2 ring-[#0B57D0]/20'
+                            : 'border-black/[0.08] dark:border-white/[0.08] hover:border-[#0B57D0]/40 bg-white dark:bg-[#1E1F20]'
+                        }`}
+                        onClick={() => {
+                          setSelectedBookId(book.id);
+                          setSelectedChapterId(book.chapters[0]?.id || '');
+                          if (typeof window !== 'undefined') {
+                            localStorage.setItem('cohart_selected_book_id', book.id);
+                          }
+                          setIsBooksDrawerOpen(false);
+                        }}
+                      >
+                        {/* Stickman Pencil Illustration Cover */}
+                        <div className="w-20 h-28 rounded-xl overflow-hidden shrink-0 border border-black/[0.08] dark:border-white/[0.08] bg-neutral-100 dark:bg-black/20 relative">
+                          <img
+                            src={book.coverIllustration}
+                            alt={book.title}
+                            className="w-full h-full object-cover grayscale contrast-125"
+                          />
+                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-sm bg-black/70 text-white text-[9px] font-mono font-bold">
+                            {book.courseCode}
+                          </div>
+                        </div>
+
+                        {/* Book Metadata */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                              <span className="text-[10px] font-mono text-neutral-400">
+                                {book.department} • {book.units} Units
+                              </span>
+                              {isSelected && (
+                                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">
+                                  Currently Reading
+                                </span>
+                              )}
+                            </div>
+                            <h4 className="text-sm font-bold text-neutral-900 dark:text-white line-clamp-1">
+                              {book.title}
+                            </h4>
+                            <p className="text-[11px] text-neutral-500 line-clamp-2 mt-0.5">
+                              {book.subtitle}
+                            </p>
+                          </div>
+
+                          <div className="mt-2 pt-2 border-t border-black/[0.05] dark:border-white/[0.05] flex items-center justify-between text-[11px] font-mono text-neutral-500">
+                            <span>{book.chapters.length} Chapters</span>
+                            <span className="text-[#0B57D0] dark:text-[#1A73E8] font-semibold">
+                              Select &rarr;
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Sleek Chapter Discussion in Messages */}
           <div className="p-4 sm:p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -1050,8 +1676,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 <GeminiIcon name="chat" size={18} />
               </div>
               <div>
-                <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">Discuss {currentChapter.courseCode} with Cohart AI</h4>
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Ask doubts, solve past questions, or brainstorm in Messages</p>
+                <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
+                  Discuss {currentChapter.courseCode} with Cohart AI
+                </h4>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  Ask doubts, solve past questions, or brainstorm in Messages
+                </p>
               </div>
             </div>
 

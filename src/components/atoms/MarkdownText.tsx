@@ -19,12 +19,56 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
   let codeBuffer: string[] = [];
 
   const parseInline = (text: string, keyPrefix: string): React.ReactNode[] => {
-    // Regex matches bold (**text**), italics (*text*), inline code (`code`), and references
+    // Regex matches bold (**text**), italics (*text*), inline code (`code`), markdown links [text](url), bare URLs, and references
     const tokens: React.ReactNode[] = [];
     let remaining = text;
     let idx = 0;
 
     while (remaining.length > 0) {
+      // Markdown link [text](url) -> Electric emerald frosted glass pill
+      const linkMatch = remaining.match(/^\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/);
+      if (linkMatch) {
+        tokens.push(
+          <a
+            key={`${keyPrefix}-link-${idx++}`}
+            href={linkMatch[2]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-medium hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all text-[11px] sm:text-xs"
+          >
+            <span>{linkMatch[1]}</span>
+            <span className="text-[10px] opacity-75">↗</span>
+          </a>
+        );
+        remaining = remaining.slice(linkMatch[0].length);
+        continue;
+      }
+
+      // Bare URL (https://...) -> Electric emerald frosted glass pill
+      const urlMatch = remaining.match(/^(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/);
+      if (urlMatch) {
+        let domain = '';
+        try {
+          domain = new URL(urlMatch[1]).hostname.replace(/^www\./, '');
+        } catch {
+          domain = 'link';
+        }
+        tokens.push(
+          <a
+            key={`${keyPrefix}-url-${idx++}`}
+            href={urlMatch[1]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-medium hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all text-[11px] sm:text-xs font-mono"
+          >
+            <span>{domain}</span>
+            <span className="text-[10px] opacity-75">↗</span>
+          </a>
+        );
+        remaining = remaining.slice(urlMatch[0].length);
+        continue;
+      }
+
       // Bold **text**
       const boldMatch = remaining.match(/^(\*\*|__)(.*?)\1/);
       if (boldMatch) {
@@ -71,7 +115,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
       }
 
       // Plain text up to next special character
-      const nextSpecial = remaining.search(/[\*_`]/);
+      const nextSpecial = remaining.search(/[\*_`\[]|https?:\/\//);
       if (nextSpecial === -1) {
         tokens.push(<span key={`${keyPrefix}-t-${idx++}`}>{remaining}</span>);
         break;
@@ -123,6 +167,71 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
     if (!trimmed) {
       renderedElements.push(<div key={`empty-${lineIdx}`} className="h-1.5" />);
       return;
+    }
+
+    // Dynamic Electric Green Link Embed Card
+    if (trimmed.startsWith('[LINK_EMBED:')) {
+      const embedMatch = trimmed.match(/^\[LINK_EMBED:(\{[\s\S]*?\})\]$/);
+      if (embedMatch) {
+        try {
+          const embedData = JSON.parse(embedMatch[1]);
+          renderedElements.push(
+            <div
+              key={`link-embed-${lineIdx}`}
+              className="my-3 p-4 rounded-2xl bg-gradient-to-br from-emerald-500/[0.08] via-emerald-950/[0.04] to-transparent border border-emerald-500/30 backdrop-blur-md shadow-xs space-y-2.5 transition-all hover:border-emerald-500/50"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <GeminiIcon name="pin" size={13} />
+                  </span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 truncate">
+                    {embedData.domain || 'External Resource'}
+                  </span>
+                </div>
+                {embedData.url && (
+                  <a
+                    href={embedData.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all cursor-pointer"
+                  >
+                    <span>Visit Source</span>
+                    <span>↗</span>
+                  </a>
+                )}
+              </div>
+
+              {embedData.title && (
+                <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white leading-snug">
+                  {embedData.title}
+                </h4>
+              )}
+
+              {embedData.summary && (
+                <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed font-sans">
+                  {embedData.summary}
+                </p>
+              )}
+
+              {embedData.keyTakeaways && Array.isArray(embedData.keyTakeaways) && embedData.keyTakeaways.length > 0 && (
+                <div className="pt-2 border-t border-emerald-500/15 space-y-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-bold block">
+                    Key Insights
+                  </span>
+                  {embedData.keyTakeaways.map((takeaway: string, tIdx: number) => (
+                    <div key={tIdx} className="flex items-start gap-2 text-[11px] text-neutral-700 dark:text-neutral-300">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                      <span className="leading-snug">{takeaway}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+          return;
+        } catch {}
+      }
     }
 
     // Headers (### Header)

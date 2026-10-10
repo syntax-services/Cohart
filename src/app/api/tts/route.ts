@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Deepgram API key not configured' }, { status: 500 });
     }
 
-    // Use requested voice or fall back to default Cohart Nova (Aura-2 Thalia)
+    // Use requested voice or fall back to default Cohart Lumen (Aura-2 Thalia)
     const selectedVoice = (voiceId && typeof voiceId === 'string' && voiceId.trim())
       ? voiceId.trim()
       : DEFAULT_COHART_VOICE;

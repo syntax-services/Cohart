@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     // Call Deepgram Listen API using the latest flagship Nova-3 model
     // smart_format=true, punctuate=true, and model=nova-3 for highest accuracy & Nigerian student speech clarity
-    const deepgramUrl = 'https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true&punctuate=true';
+    const deepgramUrl = 'https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true&punctuate=true&numerals=true&filler_words=false&endpointing=250';
 
     const response = await fetch(deepgramUrl, {
       method: 'POST',

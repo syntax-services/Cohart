@@ -1020,12 +1020,17 @@ export async function fetchAiConversations(userId?: string): Promise<Conversatio
     const { data, error } = await query.limit(30);
 
     if (!error && data && data.length > 0) {
-      const parsed: Conversation[] = data.map((row: any) => ({
-        id: row.id,
-        title: row.title,
-        createdAt: row.created_at,
-        messages: Array.isArray(row.messages) ? row.messages : [],
-      }));
+      const parsed: Conversation[] = data.map((row: any) => {
+        const msgs = Array.isArray(row.messages) ? row.messages : [];
+        const lastMsgTier = msgs.slice().reverse().find((m: any) => m.modelTier)?.modelTier;
+        return {
+          id: row.id,
+          title: row.title,
+          createdAt: row.created_at,
+          messages: msgs,
+          modelTier: row.model_tier || lastMsgTier || 'core',
+        };
+      });
       if (typeof window !== 'undefined') {
         localStorage.setItem('cohart_ai_conversations', JSON.stringify(parsed));
       }
@@ -1059,15 +1064,22 @@ export async function upsertAiConversation(conversation: Conversation, userId?: 
   }
 
   try {
-    const payload = {
+    const payload: any = {
       id: conversation.id,
       title: conversation.title,
       messages: conversation.messages,
       user_id: userId && isValidUUID(userId) ? userId : null,
       updated_at: new Date().toISOString(),
     };
+    if (conversation.modelTier) {
+      payload.model_tier = conversation.modelTier;
+    }
 
-    await supabase.from('ai_conversations').upsert(payload);
+    const { error } = await supabase.from('ai_conversations').upsert(payload);
+    if (error && error.message?.includes('model_tier')) {
+      delete payload.model_tier;
+      await supabase.from('ai_conversations').upsert(payload);
+    }
   } catch (e) {
     console.warn('Failed to sync conversation to cloud:', e);
   }
@@ -1195,5 +1207,267 @@ export async function uploadAvatar(userId: string, file: File): Promise<string |
   } catch (err) {
     console.error('Failed to upload avatar:', err);
     return null;
+  }
+}
+
+
+// ==========================================
+// USER ACADEMIC ACTIVITY & CONTEXT ENGINE
+// ==========================================
+
+export interface UserActivityLog {
+  id?: string;
+  user_id: string;
+  activity_type: 'reading_progress' | 'quiz_answered' | 'chapter_completed' | 'voice_session';
+  course_code?: string;
+  topic?: string;
+  chapter_id?: string;
+  paragraph_index?: number;
+  question_id?: string;
+  question_text?: string;
+  user_answer?: string;
+  is_correct?: boolean;
+  metadata?: Record<string, any>;
+  created_at?: string;
+}
+
+/**
+ * Persist user activity both to backend (Supabase) and local cookie/cache
+ * so the AI immediately has context without the student repeating themselves.
+ */
+export async function recordUserActivity(activity: UserActivityLog): Promise<void> {
+  const timestamp = new Date().toISOString();
+  const fullActivity = { ...activity, created_at: timestamp };
+
+  // 1. Local Cookie / LocalStorage persistence for instant zero-latency retrieval
+  if (typeof window !== 'undefined') {
+    try {
+      const storageKey = `cohart_activity_${activity.user_id}`;
+      const existingRaw = localStorage.getItem(storageKey);
+      let list: UserActivityLog[] = existingRaw ? JSON.parse(existingRaw) : [];
+      list = [fullActivity, ...list].slice(0, 50); // Keep last 50 activities
+      localStorage.setItem(storageKey, JSON.stringify(list));
+
+      // Also set a lightweight cookie for server-side / fast edge inspection
+      if (activity.activity_type === 'reading_progress' && activity.course_code) {
+        document.cookie = `cohart_last_read=${encodeURIComponent(JSON.stringify({
+          course: activity.course_code,
+          topic: activity.topic,
+          chapterId: activity.chapter_id,
+          paragraphIndex: activity.paragraph_index,
+          timestamp,
+        }))}; path=/; max-age=2592000; SameSite=Lax`;
+      }
+    } catch (e) {
+      console.warn('Local activity cache error:', e);
+    }
+  }
+
+  // 2. Cloud DB persistence in user_activities table
+  try {
+    await supabase.from('user_activities').insert([
+      {
+        user_id: activity.user_id,
+        activity_type: activity.activity_type,
+        course_code: activity.course_code,
+        topic: activity.topic,
+        chapter_id: activity.chapter_id,
+        paragraph_index: activity.paragraph_index,
+        question_id: activity.question_id,
+        question_text: activity.question_text,
+        user_answer: activity.user_answer,
+        is_correct: activity.is_correct,
+        metadata: activity.metadata || {},
+        created_at: timestamp,
+      },
+    ]);
+  } catch (err) {
+    // Graceful fallback if table is not yet created in remote DB
+    console.warn('Backend activity sync skipped/queued:', err);
+  }
+}
+
+/**
+ * Retrieve recent academic context for a user to inject into AI prompt
+ */
+export async function getUserRecentActivity(userId: string): Promise<UserActivityLog[]> {
+  // Check local memory first
+  if (typeof window !== 'undefined') {
+    try {
+      const storageKey = `cohart_activity_${userId}`;
+      const local = localStorage.getItem(storageKey);
+      if (local) {
+        return JSON.parse(local);
+      }
+    } catch {}
+  }
+
+  // Fallback to Supabase query
+  try {
+    const { data } = await supabase
+      .from('user_activities')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    return (data as UserActivityLog[]) || [];
+  } catch {
+    return [];
+  }
+}
+
+
+// ==========================================
+// USER FEEDBACK PIPELINE TO DEVELOPER BACKEND
+// ==========================================
+
+export interface UserFeedback {
+  id?: string;
+  user_id?: string;
+  user_name?: string;
+  institution?: string;
+  department?: string;
+  category: 'feature_request' | 'bug_report' | 'course_feedback' | 'general';
+  feedback_text: string;
+  sentiment?: 'positive' | 'neutral' | 'frustrated';
+  created_at?: string;
+}
+
+export async function submitUserFeedback(feedback: UserFeedback): Promise<boolean> {
+  const timestamp = new Date().toISOString();
+
+  // 1. Local caching
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = JSON.parse(localStorage.getItem('cohart_dev_feedbacks') || '[]');
+      existing.unshift({ ...feedback, created_at: timestamp });
+      localStorage.setItem('cohart_dev_feedbacks', JSON.stringify(existing.slice(0, 30)));
+    } catch {}
+  }
+
+  // 2. Cloud DB persistence in user_feedbacks table
+  try {
+    const { error } = await supabase.from('user_feedbacks').insert([
+      {
+        user_id: feedback.user_id || 'anonymous',
+        user_name: feedback.user_name || 'Scholar',
+        institution: feedback.institution || 'Unknown',
+        department: feedback.department || 'General',
+        category: feedback.category,
+        feedback_text: feedback.feedback_text,
+        sentiment: feedback.sentiment || 'neutral',
+        created_at: timestamp,
+      },
+    ]);
+    if (error) {
+      console.warn('Backend feedback insert note:', error.message);
+    }
+    return true;
+  } catch (err) {
+    console.warn('Backend feedback error, cached locally:', err);
+    return true;
+  }
+}
+
+// ==========================================
+// TENTATIVE LECTURE NOTES ARCHIVE
+// ==========================================
+
+export interface TentativeLectureNote {
+  id?: string;
+  department: string;
+  course_code: string;
+  institution?: string;
+  topic: string;
+  key_concepts: string[];
+  lecturer_emphasis?: string;
+  summary: string;
+  created_at?: string;
+}
+
+export async function saveTentativeLectureNote(note: Omit<TentativeLectureNote, 'id' | 'created_at'>) {
+  const timestamp = new Date().toISOString();
+
+  if (typeof window !== 'undefined') {
+    try {
+      const key = `cohart_tentative_notes_${note.department.toLowerCase()}`;
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      existing.unshift({ ...note, created_at: timestamp });
+      localStorage.setItem(key, JSON.stringify(existing.slice(0, 30)));
+    } catch {}
+  }
+
+  try {
+    await supabase.from('tentative_lecture_notes').insert([
+      {
+        department: note.department,
+        course_code: note.course_code,
+        institution: note.institution || 'ALL',
+        topic: note.topic,
+        key_concepts: note.key_concepts,
+        lecturer_emphasis: note.lecturer_emphasis,
+        summary: note.summary,
+        created_at: timestamp,
+      },
+    ]);
+  } catch (err) {
+    console.warn('Tentative note cloud sync skipped:', err);
+  }
+}
+
+export async function getTentativeDepartmentNotes(
+  department: string,
+  institution?: string,
+  courseCode?: string
+): Promise<TentativeLectureNote[]> {
+  const instKey = (institution || 'all').toLowerCase();
+  if (typeof window !== 'undefined') {
+    try {
+      const key = `cohart_tentative_notes_${instKey}_${department.toLowerCase()}`;
+      const local = JSON.parse(localStorage.getItem(key) || '[]');
+      if (local && local.length > 0) {
+        return courseCode ? local.filter((n: any) => n.course_code === courseCode) : local;
+      }
+    } catch {}
+  }
+
+  try {
+    let query = supabase.from('tentative_lecture_notes').select('*').eq('department', department);
+    if (institution && institution !== 'ALL') {
+      query = query.or(`institution.eq.${institution},institution.eq.ALL`);
+    }
+    query = query.order('created_at', { ascending: false }).limit(10);
+    if (courseCode) {
+      query = query.eq('course_code', courseCode);
+    }
+    const { data } = await query;
+    return (data as TentativeLectureNote[]) || [];
+  } catch {
+    return [];
+  }
+}
+
+// ==========================================
+// CROSS-DEVICE CLOUD CONVERSATION MEMORY
+// ==========================================
+
+export async function fetchUserAllConversationsSummary(userId: string): Promise<string> {
+  if (!userId || userId === 'usr_guest_scholar') return '';
+
+  try {
+    const convs = await fetchAiConversations(userId);
+    if (!convs || convs.length === 0) return '';
+
+    const recent = convs.slice(0, 5);
+    const summary = recent
+      .map((c: Conversation) => {
+        const lastTurn = c.messages?.slice(-2).map((m) => `${m.role}: ${m.content.slice(0, 100)}`).join(' | ');
+        return `- [${c.title}]: ${lastTurn || 'General discussion'}`;
+      })
+      .join('\n');
+
+    return summary;
+  } catch {
+    return '';
   }
 }

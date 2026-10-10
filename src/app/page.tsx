@@ -221,11 +221,11 @@ export default function AppHomePage() {
     );
   }, [locations, searchFilter]);
 
-  const isAiActive = (isAiFullscreen && activeTab === 'reader') || activeTab === 'ai';
+  const isAiActive = isAiFullscreen && activeTab === 'reader';
 
   return (
     <div className={`min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans transition-colors duration-200 ${isAiActive ? 'h-screen overflow-hidden' : ''}`}>
-      {/* Top Header - Hidden in AI Mode */}
+      {/* Top Header - Hidden in Fullscreen Reader AI Mode */}
       {!isAiActive && (
         <TopHeader
           profile={profile}
@@ -234,8 +234,8 @@ export default function AppHomePage() {
         />
       )}
 
-      {/* Main Content Area - Full Bleed in AI Mode, else pb-24 clearance */}
-      <main className={isAiActive ? 'flex-1 w-full h-full overflow-hidden p-0 m-0' : 'flex-1 px-3 sm:px-6 lg:px-8 py-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28'}>
+      {/* Main Content Area - Full Bleed in Fullscreen Reader AI Mode, else pb-24 clearance for floating dock */}
+      <main className={isAiActive ? 'flex-1 w-full h-full overflow-hidden p-0 m-0' : activeTab === 'ai' ? 'flex-1 w-full max-w-4xl mx-auto pb-24 sm:pb-28' : 'flex-1 px-3 sm:px-6 lg:px-8 py-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28'}>
         {activeTab === 'hub' && (
           <AcademicHubView
             profile={profile}
