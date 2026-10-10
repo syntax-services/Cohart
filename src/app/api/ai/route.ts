@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { supabase, fetchUserAllConversationsSummary } from '@/lib/supabase';
 import { getBookContextPrompt } from '@/lib/booksLibrary';
+import { generateCurriculumContextPrompt } from '@/lib/nationalCurriculumCatalog';
 import { formatArchivedDocumentsForAiPrompt } from '@/lib/documentArchive';
 
 // Daily in-memory rate limiter per IP / User: 30 requests per day
@@ -205,10 +206,17 @@ export async function POST(req: NextRequest) {
     }
 
     
-    // Ingest Selected Book Knowledge if student selected a book from the library
+    // Ingest Selected Book Knowledge or Departmental NUC Curriculum & Book Matrix
     let bookContextPrompt = '';
     if (selectedBookId) {
       bookContextPrompt = '\n' + getBookContextPrompt(selectedBookId);
+    } else if (studentProfile?.department) {
+      bookContextPrompt = '\n' + generateCurriculumContextPrompt({
+        institution: studentProfile.institution || 'University',
+        department: studentProfile.department,
+        level: studentProfile.level || '100L',
+        faculty: studentProfile.faculty,
+      });
     }
 
     // Ingest Departmental Archived Documents Context (semantic memory of offloaded files)

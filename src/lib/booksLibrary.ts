@@ -471,6 +471,196 @@ export const SUPPORTED_BOOKS: CourseBook[] = [
       },
     ],
   },
+
+  // 8. COMPUTER SCIENCE (COS 101 / CSC 301)
+  {
+    id: 'book_csc_301',
+    courseCode: 'CSC 301',
+    title: 'Data Structures, Algorithms & Program Design',
+    subtitle: 'Asymptotic Analysis, Trees, Hash Maps & Algorithmic Efficiency',
+    department: 'Computer Science',
+    faculty: 'Computing & Information Technology',
+    level: '300L',
+    institutionScope: 'ALL',
+    units: 3,
+    author: 'Thomas H. Cormen (CLRS) & Prof. O. Folorunso',
+    coverIllustration: '/illustrations/stickman_tech.jpg',
+    description: 'Foundational computing manual covering Big-O algorithmic complexity, dynamic arrays, binary search trees, hash table collisions, and graph traversal techniques.',
+    nucCcmasTopicStandards: ['Asymptotic Notation (Big-O, Omega, Theta)', 'Stack & Queue ADT', 'Binary Search Trees & Balancing', 'Hash Tables & Collision Resolution', 'Sorting Algorithms (QuickSort, MergeSort)'],
+    chapters: [
+      {
+        id: 'chap_csc_301_big_o',
+        courseCode: 'CSC 301',
+        title: 'Asymptotic Analysis & Big-O Complexity Explained',
+        subtitle: 'How software engineers measure algorithm performance as input scales to millions',
+        readTimeMinutes: 5,
+        paragraphs: [
+          'In computer science, measuring the performance of an algorithm by checking how many seconds it takes on your laptop is misleading, because a faster laptop will run the same code quicker than an older phone.',
+          'Instead, computer scientists use Asymptotic Analysis to measure how the execution time or memory space grows as the input size (N) grows towards infinity. This mathematical upper bound is written as Big-O notation: O(N).',
+          'For example, O(1) means constant time—whether you have 10 bank accounts or 10 million bank accounts in a database, looking up an account by its unique primary key in a hash table takes the exact same single step.',
+          'Conversely, O(N) represents linear time: checking through an unsorted student attendance list line by line. If there are 1,000 students, the loop checks up to 1,000 times.',
+          'Top tech companies and bank switches (like Interswitch or Paystack) avoid O(N²) quadratic loops in transactions because as transactions grow from 10,000 to 1,000,000, an O(N²) algorithm would freeze the entire payment gateway.',
+        ],
+        checkpoints: [
+          {
+            id: 'chk_csc_1',
+            paragraphIndex: 2,
+            prompt: 'Quick Check: What does O(1) constant time complexity mean?',
+            options: [
+              'The algorithm takes exactly one second to execute',
+              'The execution time remains constant regardless of the input size N',
+              'The algorithm can only process one user at a time',
+              'The code runs once and deletes itself',
+            ],
+            correctIndex: 1,
+            explanation: 'Correct! O(1) constant time means the number of steps does not increase with input size.',
+          },
+        ],
+      },
+    ],
+  },
+
+  // 9. ENGINEERING (ENG 101 / MEG 201)
+  {
+    id: 'book_eng_101',
+    courseCode: 'ENG 101',
+    title: 'Engineering Mathematics & Calculus Mechanics',
+    subtitle: 'First-Order Differential Equations, Vectors & Structural Equilibrium',
+    department: 'Mechanical Engineering',
+    faculty: 'Engineering & Technology',
+    level: '100L',
+    institutionScope: 'ALL',
+    units: 3,
+    author: 'K. A. Stroud & Prof. Matthew Sadiku',
+    coverIllustration: '/illustrations/stickman_tech.jpg',
+    description: 'Statutory mathematics curriculum for all Nigerian engineering undergraduates covering differential calculus, vector mechanics, matrices, and rate of change dynamics.',
+    nucCcmasTopicStandards: ['First-Order Ordinary Differential Equations', 'Separation of Variables', 'Integrating Factors', 'Vector Dot & Cross Products', 'Newtonian Mechanical Equilibrium'],
+    chapters: [
+      {
+        id: 'chap_eng_101_ode',
+        courseCode: 'ENG 101',
+        title: 'First-Order Differential Equations & Rates of Physical Change',
+        subtitle: 'Modeling cooling engines, fluid discharge, and electrical circuit charging',
+        readTimeMinutes: 5,
+        paragraphs: [
+          'In engineering design, physical systems are rarely static; temperatures cool down, bridge supports deflect under moving truck loads, and electric capacitors discharge voltage over time. These dynamic rates of change are modeled using Differential Equations.',
+          'A first-order ordinary differential equation (ODE) contains only the first derivative dy/dx. The most fundamental analytical technique is the Method of Separation of Variables, where all terms containing y are gathered on one side with dy, and all terms containing x are gathered on the other side with dx.',
+          'Once variables are separated, both sides are integrated directly: ∫ g(y) dy = ∫ f(x) dx + C. The constant of integration (C) is evaluated using initial boundary conditions (e.g. at time t = 0, initial voltage V = 220V).',
+          'When variables cannot be separated cleanly, engineers apply the Integrating Factor method: I(x) = e^(∫ P(x) dx), which transforms the left-hand side into the derivative of a product: d/dx [y · I(x)] = Q(x) · I(x).',
+        ],
+        checkpoints: [
+          {
+            id: 'chk_eng_1',
+            paragraphIndex: 3,
+            prompt: 'Quick Check: What is the formula for the Integrating Factor I(x) in a standard linear first-order differential equation dy/dx + P(x)y = Q(x)?',
+            options: [
+              'I(x) = P(x) + Q(x)',
+              'I(x) = e^(∫ P(x) dx)',
+              'I(x) = ln(P(x))',
+              'I(x) = d/dx [Q(x)]',
+            ],
+            correctIndex: 1,
+            explanation: 'Correct! The integrating factor is calculated as I(x) = e^(∫ P(x) dx).',
+          },
+        ],
+      },
+    ],
+  },
+
+  // 10. BASIC MEDICAL SCIENCES & BIOCHEMISTRY (BCH 201 / ANA 201)
+  {
+    id: 'book_bch_201',
+    courseCode: 'BCH 201',
+    title: 'General Biochemistry & Cellular Energetics',
+    subtitle: 'Biomolecules, Glycolysis, ATP Synthesis & Enzymatic Catalysis',
+    department: 'Biochemistry',
+    faculty: 'Basic Medical Sciences',
+    level: '200L',
+    institutionScope: 'ALL',
+    units: 3,
+    author: 'David L. Nelson, Michael M. Cox (Lehninger) & Prof. A. Olorunsogo',
+    coverIllustration: '/illustrations/stickman_study.jpg',
+    description: 'Seminal bioscience treatise for pre-clinical medicine, biochemistry, pharmacology, and nursing students covering carbohydrate metabolism, enzyme kinetics, and cellular ATP bioenergetics.',
+    nucCcmasTopicStandards: ['Carbohydrate Structures', 'Glycolysis Pathway (Preparatory & Payoff Phases)', 'Substrate-Level Phosphorylation', 'Net ATP Yield', 'Enzyme Inhibition (Competitive vs Non-Competitive)'],
+    chapters: [
+      {
+        id: 'chap_bch_201_glycolysis',
+        courseCode: 'BCH 201',
+        title: 'The 10 Steps of Glycolysis & Substrate-Level Phosphorylation',
+        subtitle: 'How human cells break down glucose to generate cellular energy ATP',
+        readTimeMinutes: 5,
+        paragraphs: [
+          'All living cells require energy to sustain life, pump ions across cell membranes, and synthesize proteins. This energy is stored chemically in the high-energy phosphoanhydride bonds of Adenosine Triphosphate (ATP).',
+          'Glycolysis is the universal, evolutionarily ancient pathway in the cell cytoplasm that splits one 6-carbon molecule of Glucose into two 3-carbon molecules of Pyruvate. This occurs in 10 enzyme-catalyzed chemical reactions divided into two distinct phases.',
+          'Phase 1 is the Preparatory (Investment) Phase: the cell actually consumes 2 molecules of ATP to phosphorylate glucose into Fructose-1,6-bisphosphate (catalyzed by Hexokinase and Phosphofructokinase-1).',
+          'Phase 2 is the Payoff Phase: the 3-carbon fragments are oxidized and converted to pyruvate. Here, 4 molecules of ATP are generated directly by Substrate-Level Phosphorylation, along with 2 molecules of reduced NADH.',
+          'Therefore, the Net Energy Yield of aerobic glycolysis per molecule of glucose is: 2 ATP + 2 NADH + 2 Pyruvate.',
+        ],
+        checkpoints: [
+          {
+            id: 'chk_bch_1',
+            paragraphIndex: 4,
+            prompt: 'Quick Check: What is the net yield of ATP produced per molecule of glucose during glycolysis?',
+            options: [
+              '36 ATP',
+              '2 ATP net (4 produced minus 2 invested)',
+              '10 ATP',
+              'Zero ATP',
+            ],
+            correctIndex: 1,
+            explanation: 'Correct! Glycolysis consumes 2 ATP in the preparatory phase and generates 4 ATP in the payoff phase, leaving a net gain of 2 ATP.',
+          },
+        ],
+      },
+    ],
+  },
+
+  // 11. PURE & APPLIED SCIENCES (PHY 101)
+  {
+    id: 'book_phy_101',
+    courseCode: 'PHY 101',
+    title: 'General Physics I: Mechanics & Thermal Properties of Matter',
+    subtitle: 'Newtonian Dynamics, Conservation of Momentum & Work-Energy Theorem',
+    department: 'Physics',
+    faculty: 'Pure & Applied Sciences',
+    level: '100L',
+    institutionScope: 'ALL',
+    units: 3,
+    author: 'David Halliday, Robert Resnick, Jearl Walker & P. Nelkon',
+    coverIllustration: '/illustrations/stickman_tech.jpg',
+    description: 'Prescribed 100L physical science textbook across all Nigerian faculties of science, engineering, and agriculture covering kinematics, Newton\'s laws, momentum conservation, and elasticity.',
+    nucCcmasTopicStandards: ['Vectors and Scalars', 'Newton\'s Laws of Motion', 'Conservation of Linear Momentum', 'Work, Energy and Power', 'Elasticity & Hooke\'s Law'],
+    chapters: [
+      {
+        id: 'chap_phy_101_momentum',
+        courseCode: 'PHY 101',
+        title: 'Conservation of Linear Momentum & Inelastic Collisions',
+        subtitle: 'Why total momentum before collision equals total momentum after collision',
+        readTimeMinutes: 4,
+        paragraphs: [
+          'Linear momentum (p) of an object is defined as the product of its mass (m) and its velocity (v): p = mv. Momentum is a vector quantity, meaning it possesses both magnitude and direction.',
+          'The Law of Conservation of Linear Momentum states that in an isolated system where no external unbalanced force acts, the total momentum remains constant over time: m1u1 + m2u2 = m1v1 + m2v2.',
+          'In university exam problems, lecturers frequently test the difference between Elastic and Inelastic Collisions. In an Elastic Collision, both momentum and kinetic energy are conserved.',
+          'In a Perfectly Inelastic Collision, momentum is conserved, but kinetic energy is lost (converted into heat, sound, or deformation). The two colliding bodies stick together and move with a single common velocity (V): m1u1 + m2u2 = (m1 + m2)V.',
+        ],
+        checkpoints: [
+          {
+            id: 'chk_phy_1',
+            paragraphIndex: 3,
+            prompt: 'Quick Check: What happens in a perfectly inelastic collision between two bodies?',
+            options: [
+              'Kinetic energy increases spontaneously',
+              'The two bodies stick together and move with a single common velocity',
+              'Momentum is destroyed completely',
+              'The velocities invert without touching',
+            ],
+            correctIndex: 1,
+            explanation: 'Correct! In a perfectly inelastic collision, maximum kinetic energy is dissipated and the bodies move together with a shared velocity.',
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 // Helper to filter books based on user institution, department, and level
@@ -479,23 +669,26 @@ export function getBooksForStudent(
   department: string = 'Economics',
   level: string = '200L'
 ): CourseBook[] {
-  const normDept = department.toLowerCase();
-  const normLevel = level.replace('L', '');
+  const normDept = (department || '').toLowerCase();
+  const normLevel = (level || '100L').replace('L', '');
 
-  return SUPPORTED_BOOKS.filter((b) => {
+  const matches = SUPPORTED_BOOKS.filter((b) => {
     // GST books are available to all students
     if (b.courseCode.startsWith('GST') || b.courseCode.startsWith('GNS')) return true;
 
-    // Department match or fuzzy match
+    // Department match or faculty match
     const deptMatch =
       b.department.toLowerCase().includes(normDept) ||
-      normDept.includes(b.department.toLowerCase());
+      normDept.includes(b.department.toLowerCase()) ||
+      b.faculty.toLowerCase().includes(normDept);
 
     // Level match
     const levelMatch = b.level.includes(normLevel);
 
     return deptMatch || levelMatch;
   });
+
+  return matches.length > 0 ? matches : SUPPORTED_BOOKS;
 }
 
 export function getBookById(id: string): CourseBook | undefined {
