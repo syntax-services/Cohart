@@ -184,9 +184,10 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   // Lumen Model Tier & Export State
   const [selectedModelTier, setSelectedModelTier] = useState<ModelTierId>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('cohart_selected_model_tier') as ModelTierId) || 'core';
+      const saved = localStorage.getItem('cohart_selected_model_tier') as ModelTierId;
+      if (saved && AI_MODELS[saved]) return saved;
     }
-    return 'core';
+    return 'astral';
   });
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
@@ -1001,7 +1002,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         simplifiedBlend: detectedSimplifiedBlend,
         linkEmbed: detectedLinkEmbed,
         modelTier: selectedModelTier,
-        modelName: AI_MODELS[selectedModelTier]?.name || 'Lumen Core',
+        modelName: AI_MODELS[selectedModelTier]?.name || 'Lumen Astral',
         clockWidget: detectedClockWidget,
       };
 
@@ -1173,8 +1174,8 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 title="Choose Lumen Orchestration Engine"
               >
                 <GeminiIcon name="sparkle" size={12} />
-                <span className="hidden sm:inline">{AI_MODELS[selectedModelTier]?.name || 'Lumen Core'}</span>
-                <span className="sm:hidden font-mono">{AI_MODELS[selectedModelTier]?.badge || 'Core'}</span>
+                <span className="hidden sm:inline">{AI_MODELS[selectedModelTier]?.name || 'Lumen Astral'}</span>
+                <span className="sm:hidden font-mono">{AI_MODELS[selectedModelTier]?.badge || 'Astral'}</span>
                 <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-black/10 dark:bg-white/10 uppercase hidden md:inline">
                   {AI_MODELS[selectedModelTier]?.speed}
                 </span>
@@ -1184,11 +1185,12 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               {isModelMenuOpen && (
                 <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-[#151922] border border-black/[0.08] dark:border-white/[0.1] shadow-2xl p-2 z-30 space-y-1 backdrop-blur-2xl animate-in fade-in zoom-in-95">
                   <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold border-b border-black/[0.06] dark:border-white/[0.06] mb-1 flex items-center justify-between">
-                    <span>Lumen Engine Tier</span>
-                    <span>Orchestration</span>
+                    <span>Lumen Intelligence Tier</span>
+                    <span>Performance</span>
                   </div>
-                  {(['spark', 'core', 'depth', 'auto'] as ModelTierId[]).map((tierId) => {
+                  {(['lyric', 'prism', 'astral', 'zenith', 'mythos'] as ModelTierId[]).map((tierId) => {
                     const tier = AI_MODELS[tierId];
+                    if (!tier) return null;
                     const isSelected = selectedModelTier === tierId;
                     return (
                       <button
@@ -1203,10 +1205,11 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                       >
                         <div className="mt-0.5">
                           <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase ${
-                            tier.badge === 'Fast' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-                            tier.badge === 'Balanced' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' :
-                            tier.badge === 'Deep' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' :
-                            'bg-purple-500/15 text-purple-600 dark:text-purple-400'
+                            tier.badge === 'Lyric' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+                            tier.badge === 'Prism' ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20' :
+                            tier.badge === 'Astral' ? 'bg-[#0B57D0]/15 text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]/20' :
+                            tier.badge === 'Zenith' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20' :
+                            'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
                           }`}>
                             {tier.badge}
                           </span>

@@ -1,4 +1,4 @@
-export type ModelTierId = 'spark' | 'core' | 'depth' | 'auto';
+export type ModelTierId = 'lyric' | 'prism' | 'astral' | 'zenith' | 'mythos' | 'spark' | 'core' | 'depth' | 'auto';
 
 export interface AiModelConfig {
   id: ModelTierId;
@@ -16,74 +16,36 @@ export interface AiModelConfig {
 
 export const AI_BRAND_NAME = 'Lumen';
 
-/**
- * Intellectual Library & Classical Intelligence Engine Naming Candidates:
- * Pure, simple to pronounce, sticky in memory, and zero collision with big AI labs.
- * Standalone prestige naming without cliché or appended suffixes.
- */
-export const ENGINE_NAME_CANDIDATES = [
-  {
-    name: 'Lumen',
-    origin: 'Latin (lūmen) — Pure light of understanding, intellectual illumination, and clarity of mind',
-    pronunciation: 'LOO-men',
-    tagline: 'Illuminating Academic Intelligence',
-    tiers: ['Lumen Spark', 'Lumen Core', 'Lumen Depth', 'Lumen Auto'],
-  },
-  {
-    name: 'Telos',
-    origin: 'Ancient Greek (τέλος) — The ultimate aim, highest purpose, and peak potential of human learning',
-    pronunciation: 'TEH-los',
-    tagline: 'Peak Potential Reasoning Engine',
-    tiers: ['Telos Spark', 'Telos Core', 'Telos Depth', 'Telos Auto'],
-  },
-  {
-    name: 'Praxis',
-    origin: 'Ancient Greek (πρᾶξις) — Translating deep theoretical knowledge into practical action and exam mastery',
-    pronunciation: 'PRAK-sis',
-    tagline: 'Actionable Scholarship Engine',
-    tiers: ['Praxis Spark', 'Praxis Core', 'Praxis Depth', 'Praxis Auto'],
-  },
-  {
-    name: 'Kairos',
-    origin: 'Ancient Greek (καιρός) — The opportune, decisive moment where understanding clicks and clarity strikes',
-    pronunciation: 'KY-ros',
-    tagline: 'Breakthrough Cognition Engine',
-    tiers: ['Kairos Spark', 'Kairos Core', 'Kairos Depth', 'Kairos Auto'],
-  },
-  {
-    name: 'Zeno',
-    origin: 'Ancient Greek (Ζήνων) — Master of stoic logic, dialectic reasoning, and step-by-step proofs',
-    pronunciation: 'ZEE-no',
-    tagline: 'Dialectic Logic & Proof System',
-    tiers: ['Zeno Spark', 'Zeno Core', 'Zeno Depth', 'Zeno Auto'],
-  },
-  {
-    name: 'Eidos',
-    origin: 'Platonic Greek (εἶδος) — The pure, immutable form and essence of true knowledge behind every idea',
-    pronunciation: 'AY-dos',
-    tagline: 'Essential Form Cognition',
-    tiers: ['Eidos Spark', 'Eidos Core', 'Eidos Depth', 'Eidos Auto'],
-  },
-];
-
-export const AI_MODELS: Record<ModelTierId, AiModelConfig> = {
-  spark: {
-    id: 'spark',
-    name: 'Lumen Axiom',
-    badge: 'Axiom',
-    tagline: 'Instant first-principles speed',
-    description: 'Sub-second answers for instant lookups, definitions, venue routing, and rapid facts.',
+export const AI_MODELS: Record<string, AiModelConfig> = {
+  lyric: {
+    id: 'lyric',
+    name: 'Lumen Lyric',
+    badge: 'Lyric',
+    tagline: 'Instant speed & melodic conciseness',
+    description: 'Sub-second answers for quick lookups, definitions, and rapid factual guidance.',
     speed: 'Ultra-Fast',
     orchestrationLevel: 1,
     geminiModel: 'gemini-3.5-flash-lite',
     temperature: 0.2,
     maxOutputTokens: 2048,
   },
-  core: {
-    id: 'core',
-    name: 'Lumen Codex',
-    badge: 'Codex',
-    tagline: 'Comprehensive academic manuscript',
+  prism: {
+    id: 'prism',
+    name: 'Lumen Prism',
+    badge: 'Prism',
+    tagline: 'Refracting complex topics into pure clarity',
+    description: 'Multi-angle concept breakdowns and bite-sized explanations without clutter.',
+    speed: 'Ultra-Fast',
+    orchestrationLevel: 1,
+    geminiModel: 'gemini-3.5-flash-lite',
+    temperature: 0.25,
+    maxOutputTokens: 2500,
+  },
+  astral: {
+    id: 'astral',
+    name: 'Lumen Astral',
+    badge: 'Astral',
+    tagline: 'Comprehensive campus daily driver',
     description: 'Balanced daily driver attuned to university lecture notes, syllabi breakdowns, quizzes, and course outlines.',
     speed: 'Balanced',
     orchestrationLevel: 2,
@@ -92,24 +54,24 @@ export const AI_MODELS: Record<ModelTierId, AiModelConfig> = {
     maxOutputTokens: 4096,
     isDefault: true,
   },
-  depth: {
-    id: 'depth',
-    name: 'Lumen Opus',
-    badge: 'Opus',
-    tagline: 'Masterpiece deep reasoning & forensics',
-    description: 'Deep chain-of-thought orchestration for CGPA forensics, mathematical proofs, exam derivations, and complex handouts.',
+  zenith: {
+    id: 'zenith',
+    name: 'Lumen Zenith',
+    badge: 'Zenith',
+    tagline: 'Peak cognitive reasoning & forensics',
+    description: 'Deep chain-of-thought orchestration for CGPA calculations, exam proofs, and long handout synthesis.',
     speed: 'Deep Reasoning',
     orchestrationLevel: 3,
     geminiModel: 'gemini-3.6-flash',
     temperature: 0.2,
     maxOutputTokens: 6000,
   },
-  auto: {
-    id: 'auto',
-    name: 'Lumen Nexus',
-    badge: 'Nexus',
-    tagline: 'Dynamic intelligence router',
-    description: 'Intelligently analyzes query weight: routes to Axiom for quick lookups, elevates to Opus for multi-step reasoning.',
+  mythos: {
+    id: 'mythos',
+    name: 'Lumen Mythos',
+    badge: 'Mythos',
+    tagline: 'Dynamic smart router & multi-source engine',
+    description: 'Intelligently analyzes query weight: routes to Lyric/Prism for speed or scales to Zenith for deep proofs.',
     speed: 'Balanced',
     orchestrationLevel: 2,
     geminiModel: 'gemini-3.5-flash-lite',
@@ -118,15 +80,21 @@ export const AI_MODELS: Record<ModelTierId, AiModelConfig> = {
   },
 };
 
+// Aliases for seamless backwards compatibility
+AI_MODELS.spark = AI_MODELS.lyric;
+AI_MODELS.core = AI_MODELS.astral;
+AI_MODELS.depth = AI_MODELS.zenith;
+AI_MODELS.auto = AI_MODELS.mythos;
+
 /**
- * Fast client-side / server-side classifier to determine best model if 'auto' is picked.
+ * Fast client-side / server-side classifier to determine best model if 'auto' / 'mythos' is picked.
  * Defaults to faster models unless the prompt explicitly needs reasoning.
  */
 export function resolveAutoModelTier(
   prompt: string,
   hasAttachment: boolean = false,
   context?: string
-): 'spark' | 'core' | 'depth' {
+): 'lyric' | 'prism' | 'astral' | 'zenith' {
   const p = prompt.toLowerCase();
 
   // Tasks requiring heavy reasoning -> Depth
@@ -144,10 +112,10 @@ export function resolveAutoModelTier(
     (hasAttachment && (p.includes('result') || p.includes('analysis')));
 
   if (needsDeepReasoning) {
-    return 'depth';
+    return 'zenith';
   }
 
-  // Quick single-hop tasks -> Spark
+  // Quick single-hop tasks -> Lyric
   const isSimpleLookup =
     p.length < 40 &&
     (p.includes('where is') ||
@@ -159,11 +127,11 @@ export function resolveAutoModelTier(
       context === 'campus_navigation');
 
   if (isSimpleLookup) {
-    return 'spark';
+    return 'lyric';
   }
 
-  // Default balanced
-  return 'core';
+  // Default balanced -> Astral
+  return 'astral';
 }
 
 /**
@@ -221,6 +189,11 @@ export function calculateToneCost(params: ToneCalculationParams): ToneConsumptio
 
   // Base tier charge
   const tierBaseRate: Record<ModelTierId, number> = {
+    lyric: 0.5,
+    prism: 0.6,
+    astral: 1.0,
+    zenith: 1.8,
+    mythos: 1.0,
     spark: 0.5,
     core: 1.0,
     depth: 1.8,
@@ -229,6 +202,11 @@ export function calculateToneCost(params: ToneCalculationParams): ToneConsumptio
 
   // Compute cost per 1,000 characters
   const charRates: Record<ModelTierId, number> = {
+    lyric: 0.2,
+    prism: 0.25,
+    astral: 0.5,
+    zenith: 0.9,
+    mythos: 0.5,
     spark: 0.2,
     core: 0.5,
     depth: 0.9,

@@ -225,18 +225,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Resolve dynamic model tier early (spark, core, depth, auto)
-    let requestedTier = (modelTier as ModelTierId) || 'core';
-    let activeTier: 'spark' | 'core' | 'depth' = 'core';
-    if (requestedTier === 'auto') {
+    // Resolve dynamic model tier early (lyric, prism, astral, zenith, mythos, and backwards-compatible spark, core, depth, auto)
+    let requestedTier = (modelTier as ModelTierId) || 'astral';
+    let activeTier: ModelTierId = 'astral';
+    if (requestedTier === 'auto' || requestedTier === 'mythos') {
       activeTier = resolveAutoModelTier(prompt || '', Boolean(fileData), context);
-    } else if (requestedTier === 'spark' || requestedTier === 'core' || requestedTier === 'depth') {
+    } else if (AI_MODELS[requestedTier]) {
       activeTier = requestedTier;
     }
 
-    // Lumen Depth Deep Search across student lecture notes archive in Supabase
+    // Lumen Zenith / Depth Deep Search across student lecture notes archive in Supabase
     let deepSearchArchiveContext = '';
-    if (activeTier === 'depth') {
+    if (activeTier === 'depth' || activeTier === 'zenith') {
       try {
         const dept = studentProfile?.department;
         const inst = studentProfile?.institution;
@@ -822,11 +822,11 @@ Question or extra help needed: ${prompt || 'Break this down in simple words.'}`;
     let replyText = '';
 
     // Use already resolved activeTier (or update if userContent was customized)
-    if (requestedTier === 'auto' && userContent) {
+    if ((requestedTier === 'auto' || requestedTier === 'mythos') && userContent) {
       activeTier = resolveAutoModelTier(userContent, Boolean(incomingFiles.length > 0), context);
     }
 
-    const tierConfig = AI_MODELS[activeTier] || AI_MODELS.core;
+    const tierConfig = AI_MODELS[activeTier] || AI_MODELS.astral || AI_MODELS.core;
     let targetGeminiModel = tierConfig.geminiModel;
     let usedModel = targetGeminiModel;
 
