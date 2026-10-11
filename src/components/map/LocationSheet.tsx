@@ -224,7 +224,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
 
                 <button
                   onClick={handleShare}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-black/[0.1] dark:border-white/[0.12] bg-black/[0.02] dark:bg-white/[0.04] px-3 py-2.5 text-xs font-medium text-neutral-800 dark:text-white transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.98]"
+                  className="flex items-center justify-center gap-1.5 rounded-full border border-black/[0.1] dark:border-white/[0.12] bg-black/[0.02] dark:bg-white/[0.04] px-3 py-2.5 text-xs font-medium text-neutral-800 dark:text-white transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.98]"
                 >
                   <GeminiIcon name={copied ? 'check' : 'share'} size={14} />
                   <span>{copied ? 'Copied' : 'Share'}</span>

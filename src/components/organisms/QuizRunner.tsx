@@ -195,7 +195,7 @@ Keep the explanation under 3 short sentences so the student grasps the fundament
           </div>
 
           {/* Score Banner */}
-          <GeminiCard className="p-6 rounded-3xl bg-white/[0.04] border border-white/[0.08] text-center space-y-3">
+          <GeminiCard className="p-6 rounded-[2rem] bg-white/[0.04] border border-white/[0.08] text-center space-y-3">
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0B57D0]/20 text-[#1A73E8] text-2xl font-mono font-bold">
               {percentage}%
             </div>
@@ -342,7 +342,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
           <button
             onClick={onClose}
             title="Exit quiz"
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-neutral-400 hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
           >
             <GeminiIcon name="close" size={18} />
           </button>
@@ -409,7 +409,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
                     disabled={isAnswered}
                     className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer ${stateClasses}`}
                   >
-                    <span className="flex-shrink-0 h-6 w-6 rounded-xl bg-white/[0.06] flex items-center justify-center text-xs font-mono font-bold text-neutral-300">
+                    <span className="flex-shrink-0 h-6 w-6 rounded-full bg-white/[0.06] flex items-center justify-center text-xs font-mono font-bold text-neutral-300">
                       {String.fromCharCode(65 + optIdx)}
                     </span>
                     <span className="text-xs sm:text-sm pt-0.5 leading-snug">{optionText}</span>
@@ -451,7 +451,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
             </div>
           )}
 
-          {/* Mini AI Assistant Slide-in */}
+          {/* Mini Assistant Slide-in */}
           {miniAiExplanation && miniAiExplanation.index === currentIndex && (
             <div className="p-4 rounded-2xl bg-[#0B57D0]/10 border border-[#0B57D0]/30 space-y-2 animate-in fade-in duration-150">
               <div className="flex items-center justify-between text-xs text-[#1A73E8] font-mono">
@@ -523,7 +523,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
       {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#161822] border border-white/10 p-5 space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="w-full max-w-sm rounded-[2rem] bg-[#161822] border border-white/10 p-5 space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <GeminiIcon name="share" size={16} className="text-[#1A73E8]" />

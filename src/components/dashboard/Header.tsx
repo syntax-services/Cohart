@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
               value={searchQuery}
               onChange={handleSearchChange}
               placeholder="Search courses, lecture venues, topics..."
-              className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#387BFF]/50 focus:ring-1 focus:ring-[#387BFF]/30 transition-all font-sans"
+              className="w-full rounded-full bg-white/[0.04] border border-white/[0.08] pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#387BFF]/50 focus:ring-1 focus:ring-[#387BFF]/30 transition-all font-sans"
             />
           </div>
         </div>
@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
 
           {/* Notifications / Alerts */}
           <button 
-            className="relative rounded-xl border border-white/[0.08] bg-white/[0.04] p-2 text-slate-400 hover:text-white hover:border-white/[0.15] transition-colors"
+            className="relative rounded-full border border-white/[0.08] bg-white/[0.04] p-2 text-slate-400 hover:text-white hover:border-white/[0.15] transition-colors"
             aria-label="Alerts"
           >
             <GeminiIcon name="bell" size={16} />

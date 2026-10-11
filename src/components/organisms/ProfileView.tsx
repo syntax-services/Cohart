@@ -299,14 +299,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       </div>
 
       {/* 2. String 2x2 Bento Menu Grid */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] overflow-hidden shadow-lg shadow-black/[0.02]">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.06] dark:border-white/[0.08] overflow-hidden shadow-lg shadow-black/[0.02]">
         <div className="grid grid-cols-2 divide-x divide-black/[0.05] dark:divide-white/[0.06] border-b border-black/[0.05] dark:divide-white/[0.06]">
           {/* Reader & Notes */}
           <button
             onClick={onOpenReader}
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
           >
-            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
               <GeminiIcon name="reader" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             </div>
             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
@@ -319,7 +319,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             onClick={onOpenSchedule}
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
           >
-            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
               <GeminiIcon name="calendar" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             </div>
             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
@@ -334,17 +334,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             onClick={() => onOpenAiChat?.()}
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
           >
-            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
               <GeminiIcon name="sparkle" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
             </div>
             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
-              Cohart AI Chat
+              Cohart Chat
             </span>
           </button>
 
           {/* Wallet / Earnings */}
           <div className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all">
-            <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center">
               <GeminiIcon name="wallet" size={20} className="text-emerald-500" />
             </div>
             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
@@ -355,7 +355,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       </div>
 
       {/* 3. Sleek Single-Line Action Rows (String CustomerProfile Pattern) */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] divide-y divide-black/[0.05] dark:divide-white/[0.06] shadow-lg shadow-black/[0.02] overflow-hidden">
+      <div className="bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.06] dark:border-white/[0.08] divide-y divide-black/[0.05] dark:divide-white/[0.06] shadow-lg shadow-black/[0.02] overflow-hidden">
         {/* Account Details & Level */}
         <button
           onClick={() => {
@@ -369,7 +369,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
+            <div className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="user" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -385,7 +385,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
+            <div className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="compass" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -401,7 +401,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
+            <div className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="settings" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -423,7 +423,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="h-8 w-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-105 transition-transform">
               <GeminiIcon name="zap" size={16} />
             </div>
             <div>
@@ -454,7 +454,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-105 transition-transform">
               <GeminiIcon name="wallet" size={16} />
             </div>
             <div>
@@ -480,7 +480,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all text-left group"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
+            <div className="h-8 w-8 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:text-[#0B57D0] dark:group-hover:text-[#1A73E8] transition-colors">
               <GeminiIcon name="book-open" size={16} />
             </div>
             <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -497,7 +497,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-rose-500/[0.04] transition-all text-left group"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <GeminiIcon name="close" size={16} />
               </div>
               <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
@@ -514,7 +514,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* MODAL A: Edit Academic Info */}
       {activeModal === 'edit_profile' && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
               <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Account Details</h3>
               <button
@@ -612,7 +612,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* MODAL B: University Selection */}
       {activeModal === 'university' && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
               <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Switch University</h3>
               <button
@@ -711,7 +711,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* MODAL C: Appearance & Font Scaling */}
       {activeModal === 'appearance' && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
               <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Appearance & Typography</h3>
               <button
@@ -801,7 +801,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* MODAL E: Help & Feedback */}
       {activeModal === 'help' && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-4 animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
               <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Help & Feedback</h3>
               <button

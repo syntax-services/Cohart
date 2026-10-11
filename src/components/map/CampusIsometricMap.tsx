@@ -742,7 +742,7 @@ export const CampusIsometricMap: React.FC<CampusIsometricMapProps> = ({
           type="button"
           onClick={handleZoomIn}
           title="Zoom In"
-          className="h-9 w-9 rounded-xl bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md shadow-md flex items-center justify-center text-neutral-800 dark:text-neutral-200 hover:border-[#1A73E8] transition-all cursor-pointer"
+          className="h-9 w-9 rounded-full bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md shadow-md flex items-center justify-center text-neutral-800 dark:text-neutral-200 hover:border-[#1A73E8] transition-all cursor-pointer"
         >
           <span className="text-lg font-bold leading-none">+</span>
         </button>
@@ -750,7 +750,7 @@ export const CampusIsometricMap: React.FC<CampusIsometricMapProps> = ({
           type="button"
           onClick={handleZoomOut}
           title="Zoom Out"
-          className="h-9 w-9 rounded-xl bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md shadow-md flex items-center justify-center text-neutral-800 dark:text-neutral-200 hover:border-[#1A73E8] transition-all cursor-pointer"
+          className="h-9 w-9 rounded-full bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md shadow-md flex items-center justify-center text-neutral-800 dark:text-neutral-200 hover:border-[#1A73E8] transition-all cursor-pointer"
         >
           <span className="text-lg font-bold leading-none">-</span>
         </button>
@@ -758,7 +758,7 @@ export const CampusIsometricMap: React.FC<CampusIsometricMapProps> = ({
           type="button"
           onClick={handleReset}
           title="Center Campus"
-          className="h-9 w-9 rounded-xl bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md shadow-md flex items-center justify-center text-neutral-800 dark:text-neutral-200 hover:border-[#1A73E8] transition-all cursor-pointer"
+          className="h-9 w-9 rounded-full bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md shadow-md flex items-center justify-center text-neutral-800 dark:text-neutral-200 hover:border-[#1A73E8] transition-all cursor-pointer"
         >
           <GeminiIcon name="compass" size={15} />
         </button>
@@ -794,7 +794,7 @@ export const CampusIsometricMap: React.FC<CampusIsometricMapProps> = ({
               onClick={() => setSelectedBuilding(null)}
               className="h-7 w-7 rounded-full bg-black/[0.05] dark:bg-white/[0.08] hover:bg-black/[0.1] flex items-center justify-center text-neutral-500 hover:text-white transition-colors"
             >
-              ✕
+              
             </button>
           </div>
 

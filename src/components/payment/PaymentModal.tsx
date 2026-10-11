@@ -239,11 +239,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-5 my-8">
+      <div className="w-full max-w-md bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl space-y-5 my-8">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] flex items-center justify-center">
+            <div className="h-9 w-9 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] flex items-center justify-center">
               <GeminiIcon name="sparkle" size={18} />
             </div>
             <div>

@@ -62,7 +62,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
   }, [isSchoolWithMap]);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-safe px-4 sm:px-6 pb-6 pt-2">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-safe px-4 sm:px-6 pb-6 pt-2 md:hidden">
       <div className="max-w-sm mx-auto pointer-events-auto">
         <nav
           aria-label="Bottom Navigation"

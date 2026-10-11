@@ -139,13 +139,13 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
           <div className="mt-3 flex items-center gap-2">
             <button
               onClick={onClose}
-              className="flex-1 py-2 px-3 rounded-xl border border-black/[0.08] dark:border-white/[0.08] text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors text-center"
+              className="flex-1 py-2 px-3 rounded-full border border-black/[0.08] dark:border-white/[0.08] text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors text-center"
             >
               Close
             </button>
             <button
               onClick={openGoogleMaps}
-              className="flex-1 py-2 px-3 rounded-xl bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-mono font-semibold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
+              className="flex-1 py-2 px-3 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-mono font-semibold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
             >
               <span>Open in Maps</span>
               <GeminiIcon name="pin" size={12} />

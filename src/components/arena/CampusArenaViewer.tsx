@@ -56,7 +56,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-3 sm:p-5 animate-in fade-in select-none">
-      <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#0D1017] border border-white/10 shadow-2xl flex flex-col text-neutral-100 font-sans">
+      <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-[2rem] bg-[#0D1017] border border-white/10 shadow-2xl flex flex-col text-neutral-100 font-sans">
         {/* Top Header */}
         <header className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-3">
@@ -84,7 +84,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             >
               <GeminiIcon name="close" size={18} />
             </button>
@@ -243,7 +243,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
               <button
                 onClick={handleClaimSpectatorReward}
                 disabled={spectatorRewardClaimed}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold font-mono text-xs transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm"
+                className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold font-mono text-xs transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm"
               >
                 {spectatorRewardClaimed ? 'Claimed (+25 Tones)' : 'Claim +25 Free Tones'}
               </button>

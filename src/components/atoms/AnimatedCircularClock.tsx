@@ -43,7 +43,7 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
   });
 
   return (
-    <div className="my-4 p-5 rounded-3xl bg-white/90 dark:bg-[#12151D]/90 border border-black/[0.08] dark:border-white/[0.1] shadow-xl backdrop-blur-2xl flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 max-w-xs mx-auto">
+    <div className="my-4 p-5 rounded-[2rem] bg-white/90 dark:bg-[#12151D]/90 border border-black/[0.08] dark:border-white/[0.1] shadow-xl backdrop-blur-2xl flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 max-w-xs mx-auto">
       {/* Outer Glow Ring */}
       <div className="relative w-44 h-44 rounded-full p-2 bg-gradient-to-br from-black/[0.04] to-black/[0.08] dark:from-white/[0.04] dark:to-white/[0.08] border border-black/[0.08] dark:border-white/[0.1] flex items-center justify-center shadow-inner">
         {/* Clock Face */}

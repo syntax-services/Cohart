@@ -1135,7 +1135,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             <div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08]">
               <button
                 onClick={onExitFullscreen}
-                className="flex items-center gap-2 w-full p-2.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs font-medium transition-colors cursor-pointer"
+                className="flex items-center gap-2 w-full p-2.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs font-medium transition-colors cursor-pointer"
               >
                 <GeminiIcon name="reader" size={15} />
                 <span>Back to Course Reader</span>
@@ -1148,12 +1148,12 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       {/* Main Full-Screen AI Content Workstation */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {/* Minimalist Top Bar matching site theme */}
-        <header className="h-14 px-4 shrink-0 flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] bg-white/80 dark:bg-[#10131B]/80 backdrop-blur-xl">
+        <header className="h-14 px-4 shrink-0 flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-[#131314]">
           <div className="flex items-center gap-3">
             {/* Custom 2-Sleek-Lines Menu Button */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-1 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer flex items-center justify-center"
+              className="p-2 -ml-1 rounded-full text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer flex items-center justify-center"
               title="Open Chat Sessions"
             >
               <GeminiIcon name="two-lines" size={19} />
@@ -1251,7 +1251,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-500 dark:text-amber-400 text-xs font-mono font-bold hover:bg-amber-500/20 transition-all active:scale-95 cursor-pointer shadow-xs"
               title="View Study Tones & Subscription Tiers"
             >
-              <span>⚡</span>
+              <span></span>
               <span>{userTones}</span>
             </button>
 
@@ -1295,7 +1295,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   className={`max-w-[90%] sm:max-w-[85%] rounded-[1.5rem] p-5 text-sm sm:text-base leading-relaxed transition-all shadow-sm ${
                     isUser
                       ? 'bg-[#0B57D0] text-white rounded-br-md'
-                      : 'bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.04] dark:border-white/[0.04] text-neutral-900 dark:text-neutral-100 rounded-bl-md backdrop-blur-3xl'
+                      : 'bg-white dark:bg-[#1E1F20] shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-black/[0.06] dark:ring-white/[0.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] text-neutral-900 dark:text-neutral-100 rounded-bl-md'
                   }`}
                 >
                   <div className={`flex items-center justify-between text-xs font-semibold mb-2 ${isUser ? 'text-white/80' : 'text-neutral-500 dark:text-neutral-400'}`}>
@@ -1655,7 +1655,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
         </div>
 
         {/* Floating Bottom Input Dock with Liquid Glass - pb-24 clearance for floating BottomNav */}
-        <footer className="p-3 sm:p-4 pb-24 sm:pb-28 border-t border-black/[0.06] dark:border-white/[0.08] bg-white/85 dark:bg-[#10131B]/85 backdrop-blur-xl shrink-0">
+        <footer className="p-3 sm:p-4 border-t border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-[#131314] shrink-0">
           <div className="max-w-3xl mx-auto space-y-2">
             {/* Quick Context Prompt Chips */}
             {messages.length <= 2 && (
@@ -1743,7 +1743,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                         className="p-0.5 text-neutral-400 hover:text-rose-500 transition-colors cursor-pointer ml-1"
                         title="Remove file"
                       >
-                        ✕
+                        
                       </button>
                     </div>
                   ))}
@@ -1773,7 +1773,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0 ml-2"
                   title="Cancel reply"
                 >
-                  ✕
+                  
                 </button>
               </div>
             )}
@@ -1895,7 +1895,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       {/* Cohart Scholar Pro & Study Tones Subscription Modal */}
       {showProModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-          <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#0A0B0E] border border-white/[0.08] text-white p-5 sm:p-6 shadow-2xl space-y-5">
+          <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-[#0A0B0E] border border-white/[0.08] text-white p-5 sm:p-6 shadow-2xl space-y-5">
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] pb-3">
               <div>
@@ -1916,7 +1916,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 onClick={() => setShowProModal(false)}
                 className="w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer text-xs font-mono"
               >
-                ✕
+                
               </button>
             </div>
 
@@ -1939,7 +1939,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 {isExamPassLoanActive() ? (
                   <div className="flex items-center gap-2">
                     <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold">
-                      ✓ Active Loan Pass
+                       Active Loan Pass
                     </span>
                     <button
                       type="button"
@@ -1976,7 +1976,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 <span className="text-xs text-neutral-300">Refills monthly • Transparent student pricing</span>
               </div>
               <span className="text-base font-bold font-mono text-white">
-                ⚡ {userTones} Credits
+                 {userTones} Credits
               </span>
             </div>
 
@@ -2012,7 +2012,7 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                       {tier.tagline}
                     </p>
                     <div className="text-[10px] font-mono text-emerald-400">
-                      ⚡ {tier.monthlyTones.toLocaleString()} Credits • {tier.uploadSessionsPerMonth >= 999 ? 'Unlimited' : `${tier.uploadSessionsPerMonth} uploads`}
+                       {tier.monthlyTones.toLocaleString()} Credits • {tier.uploadSessionsPerMonth >= 999 ? 'Unlimited' : `${tier.uploadSessionsPerMonth} uploads`}
                     </div>
                   </div>
 

@@ -14,7 +14,6 @@ import {
   sendUserDirectMessage,
   PeerUser,
 } from '@/lib/supabase';
-import { CampusAiAssistant } from './CampusAiAssistant';
 
 interface CampusSocialHubProps {
   profile: StudentProfile;
@@ -25,6 +24,7 @@ interface CampusSocialHubProps {
   onStartQuiz?: (quiz: QuizData) => void;
   initialPrompt?: string;
   onBack?: () => void;
+  onOpenPinnedAi?: () => void;
 }
 
 interface MessageAttachment {
@@ -54,8 +54,9 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
   onStartQuiz,
   initialPrompt,
   onBack,
+  onOpenPinnedAi,
 }) => {
-  // Navigation / view state: 'inbox' | 'ai' | 'chat'
+  // Navigation / view state: 'inbox' | 'chat'
   const [currentView, setCurrentView] = useState<'inbox' | 'ai' | 'chat'>('inbox');
   const [searchQuery, setSearchQuery] = useState('');
   const [peerList, setPeerList] = useState<PeerUser[]>([]);
@@ -333,54 +334,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
     return { label: 'National Scholar', color: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-500 dark:text-neutral-400 border-black/[0.04] dark:border-white/[0.06]' };
   };
 
-  // If in Pinned AI view:
-  if (currentView === 'ai') {
-    return (
-      <div className="h-full w-full flex flex-col bg-[var(--bg-main)]">
-        <div className="px-4 py-3 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between bg-white/70 dark:bg-[#1E1F20]/70 backdrop-blur-xl shrink-0">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setCurrentView('inbox')}
-              className="p-1.5 rounded-full hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-600 dark:text-neutral-300 transition-colors cursor-pointer"
-              title="Back to Messages"
-            >
-              <GeminiIcon name="arrow-left" size={18} />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8]">
-                <GeminiIcon name="sparkle" size={15} />
-              </div>
-              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">
-                Cohart Lumen AI
-              </h2>
-            </div>
-          </div>
 
-          <button
-            onClick={() => {
-              if (onBack) onBack();
-              else setCurrentView('inbox');
-            }}
-            className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
-          >
-            Close
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          <CampusAiAssistant
-            profile={profile}
-            locations={locations}
-            onSelectVenue={onSelectVenue}
-            onMilestoneAction={onMilestoneAction}
-            onUpdateProfile={onUpdateProfile}
-            onStartQuiz={onStartQuiz}
-            initialPrompt={initialPrompt}
-          />
-        </div>
-      </div>
-    );
-  }
 
   // If in 1-on-1 Peer Chat view:
   if (currentView === 'chat' && selectedUser) {
@@ -449,7 +403,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
         <div className="flex-1 p-4 overflow-y-auto space-y-2.5">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-400">
-              <div className="h-12 w-12 rounded-2xl bg-black/[0.04] dark:bg-white/[0.05] flex items-center justify-center text-neutral-400 mb-2">
+              <div className="h-12 w-12 rounded-full bg-black/[0.04] dark:bg-white/[0.05] flex items-center justify-center text-neutral-400 mb-2">
                 <GeminiIcon name="chat" size={22} />
               </div>
               <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
@@ -557,7 +511,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                 className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white text-xs p-1 cursor-pointer"
                 title="Cancel reply"
               >
-                ✕
+                
               </button>
             </div>
           )}
@@ -576,7 +530,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                 className="text-neutral-400 hover:text-rose-500 text-xs p-1 cursor-pointer"
                 title="Remove file"
               >
-                ✕
+                
               </button>
             </div>
           )}
@@ -621,12 +575,12 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
         {/* Scholar Profile Lookup Modal */}
         {inspectingPeer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in">
-            <div className="bg-white dark:bg-[#181B24] rounded-3xl border border-black/[0.08] dark:border-white/[0.08] p-6 max-w-sm w-full shadow-2xl relative">
+            <div className="bg-white dark:bg-[#181B24] rounded-[2rem] border border-black/[0.08] dark:border-white/[0.08] p-6 max-w-sm w-full shadow-2xl relative">
               <button
                 onClick={() => setInspectingPeer(null)}
                 className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
               >
-                ✕
+                
               </button>
 
               <div className="flex flex-col items-center text-center">
@@ -661,7 +615,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                   <div>
                     <span className="text-[10px] font-mono text-neutral-400 block uppercase">Academic Verification</span>
                     <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] mt-0.5">
-                      ✓ Active Verified Cohart Scholar
+                       Active Verified Cohart Scholar
                     </span>
                   </div>
                 </div>
@@ -711,7 +665,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
               <span className="font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20">
-                🛡️ Campus Safety Notice
+                ️ Campus Safety Notice
               </span>
             </div>
             <p className="text-[11px] leading-relaxed opacity-90">
@@ -723,7 +677,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
             className="p-1 text-amber-700 dark:text-amber-300 hover:opacity-75 transition-opacity cursor-pointer shrink-0"
             title="Dismiss notice"
           >
-            ✕
+            
           </button>
         </div>
       )}
@@ -743,15 +697,17 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
       </div>
 
       {/* 4. Messages & Peer List */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] divide-y divide-black/[0.04] dark:divide-white/[0.06] shadow-lg shadow-black/[0.02] overflow-hidden">
-        {/* Pinned Lumen AI Row */}
+      <div className="bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.06] dark:border-white/[0.08] divide-y divide-black/[0.04] dark:divide-white/[0.06] shadow-lg shadow-black/[0.02] overflow-hidden">
+        {/* Pinned Assistant Row */}
         <button
-          onClick={() => setCurrentView('ai')}
+          onClick={() => {
+            if (onOpenPinnedAi) onOpenPinnedAi();
+          }}
           className="w-full p-3.5 flex items-center justify-between hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors text-left group cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="relative shrink-0">
-              <div className="h-10 w-10 rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 dark:border-[#1A73E8]/20 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8]">
+              <div className="h-10 w-10 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 dark:border-[#1A73E8]/20 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8]">
                 <GeminiIcon name="sparkle" size={20} />
               </div>
             </div>
@@ -759,7 +715,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-neutral-900 dark:text-white">
-                  Cohart Lumen AI
+                  Cohart Assistant
                 </span>
                 <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-bold">
                   Pinned Assistant

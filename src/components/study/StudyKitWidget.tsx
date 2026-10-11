@@ -205,7 +205,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
               <button
                 type="button"
                 onClick={handlePrevFlashcard}
-                className="px-4 py-2 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-bold text-neutral-800 dark:text-neutral-200 transition-all cursor-pointer"
+                className="px-4 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-bold text-neutral-800 dark:text-neutral-200 transition-all cursor-pointer"
               >
                 Previous
               </button>
@@ -213,7 +213,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
               <button
                 type="button"
                 onClick={handleNextFlashcard}
-                className="px-4 py-2 rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
+                className="px-4 py-2 rounded-full bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
               >
                 Next Card
               </button>
@@ -273,8 +273,8 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                               className={`w-full text-left p-2.5 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-between ${btnStyle}`}
                             >
                               <span>{opt}</span>
-                              {isRevealed && isOptionCorrect && <span>✓</span>}
-                              {isRevealed && isOptionSelected && !isOptionCorrect && <span>✗</span>}
+                              {isRevealed && isOptionCorrect && <span></span>}
+                              {isRevealed && isOptionSelected && !isOptionCorrect && <span></span>}
                             </button>
                           );
                         })}
@@ -313,7 +313,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                         })),
                       })
                     }
-                    className="w-full py-2.5 rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white font-bold text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-full bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white font-bold text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
                   >
                     <span>Launch Full Screen CBT Exam Mode</span>
                   </button>
@@ -349,7 +349,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                         : 'border-neutral-400 dark:border-neutral-600'
                     }`}
                   >
-                    {item.completed && '✓'}
+                    {item.completed && ''}
                   </div>
                   <span className={`text-xs font-medium ${item.completed ? 'line-through text-neutral-500' : ''}`}>
                     {item.label}

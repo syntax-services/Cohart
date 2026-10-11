@@ -19,16 +19,16 @@ export const GeminiCard: React.FC<GeminiCardProps> = ({
 }) => {
   return (
     <motion.div
-      whileHover={interactive ? { y: -1, transition: { duration: 0.15 } } : undefined}
-      whileTap={interactive ? { scale: 0.99 } : undefined}
-      className={`relative rounded-2xl p-4 sm:p-5 transition-colors duration-150 ${
-        // Light mode: clean matte white container with subtle border
-        'bg-white border border-black/[0.08] text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.03)]'
+      whileHover={interactive ? { y: -2, transition: { duration: 0.15, ease: "easeOut" } } : undefined}
+      whileTap={interactive ? { scale: 0.98, transition: { duration: 0.1 } } : undefined}
+      className={`relative rounded-[2rem] p-6 transition-colors duration-150 ${
+        // Light mode: solid white container with ring
+        'bg-white ring-1 ring-black/[0.06] text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.03)]'
       } ${
-        // Dark mode: Gemini's official #1E1F20 matte surface
-        'dark:bg-[#1E1F20] dark:border-white/[0.08] dark:text-[#E3E3E3] dark:shadow-none'
+        // Dark mode: #1E1F20 matte surface with top inset highlight
+        'dark:bg-[#1E1F20] dark:ring-1 dark:ring-white/[0.06] dark:text-[#E3E3E3] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
       } ${
-        interactive ? 'cursor-pointer hover:border-black/[0.16] dark:hover:border-white/[0.18]' : ''
+        interactive ? 'cursor-pointer hover:ring-black/[0.16] dark:hover:ring-white/[0.18]' : ''
       } ${className}`}
       {...props}
     >

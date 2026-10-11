@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TopHeader } from '@/components/molecules/TopHeader';
 import { BottomNav, NavTab } from '@/components/molecules/BottomNav';
 import { AcademicHubView } from '@/components/organisms/AcademicHubView';
@@ -12,6 +13,7 @@ import { CampusAiAssistant } from '@/components/organisms/CampusAiAssistant';
 import { CampusSocialHub } from '@/components/organisms/CampusSocialHub';
 import { Location, QuizData } from '@/lib/types';
 import { fetchLocations } from '@/lib/supabase';
+import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { QuizRunner } from '@/components/organisms/QuizRunner';
@@ -29,6 +31,8 @@ export default function AppHomePage() {
   const [verifiedMilestones, setVerifiedMilestones] = useState<string[]>([]);
   const [aiInitialPrompt, setAiInitialPrompt] = useState<string | null>(null);
   const [sharedQuiz, setSharedQuiz] = useState<QuizData | null>(null);
+  const [isLumenOpen, setIsLumenOpen] = useState(false);
+  const [lumenMode, setLumenMode] = useState<'general' | 'grill_mode'>('general');
 
   const { profile, userId, saveProfile, signOut } = useStudentProfile();
   const isAuthenticated = Boolean(userId);
@@ -224,18 +228,74 @@ export default function AppHomePage() {
   const isAiActive = isAiFullscreen && activeTab === 'reader';
 
   return (
-    <div className={`min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex flex-col font-sans transition-colors duration-200 ${isAiActive ? 'h-screen overflow-hidden' : ''}`}>
-      {/* Top Header - Hidden in Fullscreen Reader AI Mode */}
-      {!isAiActive && (
-        <TopHeader
-          profile={profile}
-          onOpenProfile={() => handleTabChange('profile')}
-          onSearch={setSearchFilter}
-        />
-      )}
+    <div className="h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex font-sans transition-colors duration-200 relative overflow-hidden">
+      {/* Desktop Sidebar (Spatial Navigation) */}
+      <aside className="hidden md:flex flex-col w-[260px] border-r border-black/[0.06] dark:border-white/[0.08] bg-[#FAFAFA] dark:bg-[#131314] shrink-0">
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-8">
+            <div className="h-8 w-8 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] flex items-center justify-center text-white">
+              <GeminiIcon name="sparkle" size={16} />
+            </div>
+            <span className="font-bold tracking-tight text-lg">Cohart</span>
+          </div>
 
-      {/* Main Content Area - Full Bleed in Fullscreen Reader AI Mode, else pb-24 clearance for floating dock */}
-      <main className={isAiActive ? 'flex-1 w-full h-full overflow-hidden p-0 m-0' : activeTab === 'ai' ? 'flex-1 w-full max-w-4xl mx-auto pb-24 sm:pb-28' : 'flex-1 px-3 sm:px-6 lg:px-8 py-5 max-w-7xl mx-auto w-full pb-24 sm:pb-28'}>
+          <nav className="flex flex-col gap-1">
+            {[
+              { id: 'hub', label: 'Dashboard', icon: 'home' },
+              { id: 'reader', label: 'Study Notes', icon: 'reader' },
+              { id: 'schedule', label: 'Timetable', icon: 'calendar' },
+              { id: 'ai', label: 'Messages', icon: 'chat' },
+              ...(isOouStudent(profile?.institution) ? [{ id: 'map', label: 'Campus Map', icon: 'map' }] : []),
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleTabChange(item.id as NavTab)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-full transition-all font-medium text-sm text-left ${
+                  activeTab === item.id
+                    ? 'bg-black/[0.05] dark:bg-white/[0.1] text-[#0B57D0] dark:text-[#1A73E8] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                <GeminiIcon name={item.icon as any} size={18} />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+        
+        <div className="mt-auto p-4 border-t border-black/[0.06] dark:border-white/[0.08]">
+          <button
+            onClick={() => handleTabChange('profile')}
+            className="flex items-center gap-3 p-2 w-full hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-full transition-colors text-left"
+          >
+            <div className="h-9 w-9 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] flex items-center justify-center font-bold uppercase text-xs shrink-0">
+              {profile?.full_name?.charAt(0) || 'S'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold truncate text-neutral-900 dark:text-white">
+                {profile?.full_name || 'Scholar'}
+              </p>
+              <p className="text-[10px] text-neutral-500 font-mono truncate">
+                {profile?.institution || 'Guest'}
+              </p>
+            </div>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Column */}
+      <div className="flex-1 flex flex-col h-full overflow-y-auto relative">
+        {/* Top Header - Mobile Only */}
+        <div className="md:hidden">
+          <TopHeader
+            profile={profile}
+            onOpenProfile={() => handleTabChange('profile')}
+            onSearch={setSearchFilter}
+          />
+        </div>
+
+        {/* Main Stage */}
+        <main className="flex-1 px-3 sm:px-6 lg:px-8 py-5 max-w-6xl mx-auto w-full pb-24 md:pb-8">
         {activeTab === 'hub' && (
           <AcademicHubView
             profile={profile}
@@ -244,9 +304,10 @@ export default function AppHomePage() {
             onOpenReader={() => handleTabChange('reader')}
             onOpenSchedule={() => handleTabChange('schedule')}
             onOpenProfile={() => handleTabChange('profile')}
-            onOpenAi={(prompt) => {
+            onOpenAi={(prompt, mode = 'general') => {
               if (prompt) setAiInitialPrompt(prompt);
-              changeTab('ai');
+              setLumenMode(mode);
+              setIsLumenOpen(true);
             }}
             verifiedMilestones={verifiedMilestones}
             onMarkMilestone={handleMarkMilestone}
@@ -262,7 +323,7 @@ export default function AppHomePage() {
             onUpdateProfile={saveProfile}
             onOpenAiChat={(prompt) => {
               if (prompt) setAiInitialPrompt(prompt);
-              changeTab('ai');
+              setIsLumenOpen(true);
             }}
           />
         )}
@@ -295,6 +356,7 @@ export default function AppHomePage() {
               initialPrompt={aiInitialPrompt || undefined}
               onStartQuiz={(q) => setSharedQuiz(q)}
               onBack={() => changeTab(previousTab || 'hub')}
+              onOpenPinnedAi={() => setIsLumenOpen(true)}
             />
           </div>
         )}
@@ -307,7 +369,7 @@ export default function AppHomePage() {
             onOpenReader={() => handleTabChange('reader')}
             onOpenAiChat={(prompt) => {
               if (prompt) setAiInitialPrompt(prompt);
-              changeTab('ai');
+              setIsLumenOpen(true);
             }}
             onSignOut={signOut}
           />
@@ -322,6 +384,7 @@ export default function AppHomePage() {
           institution={profile?.institution}
         />
       )}
+      </div>
 
       {/* Shared Peer Quiz Runner */}
       {sharedQuiz && (
@@ -331,12 +394,12 @@ export default function AppHomePage() {
           onReviewWithAi={(debriefPrompt) => {
             setSharedQuiz(null);
             setAiInitialPrompt(debriefPrompt);
-            changeTab('ai');
+            setIsLumenOpen(true);
           }}
           onAddMoreQuestions={() => {
             setSharedQuiz(null);
             setAiInitialPrompt(`Please add 10 more questions to this ${sharedQuiz.courseCode} practice quiz under the same syllabus.`);
-            changeTab('ai');
+            setIsLumenOpen(true);
           }}
         />
       )}
@@ -348,18 +411,70 @@ export default function AppHomePage() {
         onSuccess={handleAuthSuccess}
       />
 
+      {/* Global AI Sliding Pane (Lumen) */}
+      <AnimatePresence>
+        {isLumenOpen && (
+          <>
+            {/* Mobile Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsLumenOpen(false)}
+              className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm"
+            />
+            {/* Slide Pane */}
+            <motion.div
+              initial={{ x: '100%', opacity: 0.5 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0.5 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 30, mass: 1 }}
+              className="fixed top-0 right-0 bottom-0 z-50 w-full md:w-[450px] lg:w-[500px] bg-white dark:bg-[#131314] border-l border-black/[0.08] dark:border-white/[0.08] shadow-2xl flex flex-col"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-black/[0.08] dark:border-white/[0.08] bg-white/80 dark:bg-[#1E1F20]/80 backdrop-blur-xl shrink-0">
+                <h2 className="text-sm font-bold flex items-center gap-2 text-neutral-900 dark:text-white">
+                  <div className="h-6 w-6 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8]">
+                    <GeminiIcon name="sparkle" size={14} />
+                  </div>
+                  Cohart Lumen
+                </h2>
+                <button
+                  onClick={() => setIsLumenOpen(false)}
+                  className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+                >
+                  
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden relative">
+                 <CampusAiAssistant
+                  profile={profile}
+                  locations={locations}
+                  onSelectVenue={handleSelectVenue}
+                  onExitFullscreen={() => setIsLumenOpen(false)}
+                  onMilestoneAction={handleMarkMilestone}
+                  onUpdateProfile={saveProfile}
+                  initialMode={lumenMode}
+                  initialPrompt={aiInitialPrompt || undefined}
+                  onStartQuiz={(q) => setSharedQuiz(q)}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Punchy Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] max-w-md w-[92%] sm:w-auto px-4 py-3 rounded-2xl bg-neutral-900/95 dark:bg-[#1E1F20]/95 border border-white/10 text-white shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] max-w-md w-[92%] sm:w-auto px-4 py-3 rounded-[2rem] bg-neutral-900/95 dark:bg-[#1E1F20]/95 border border-white/10 text-white shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-4 duration-200">
           <div className="flex items-center gap-2.5">
             <div className="h-2 w-2 rounded-full bg-[#1A73E8] animate-ping shrink-0" />
             <p className="font-medium leading-snug">{toastMessage}</p>
           </div>
           <button
             onClick={() => setToastMessage(null)}
-            className="p-1 text-neutral-400 hover:text-white rounded-md shrink-0 cursor-pointer"
+            className="p-1 text-neutral-400 hover:text-white rounded-full shrink-0 cursor-pointer"
           >
-            ✕
+            
           </button>
         </div>
       )}

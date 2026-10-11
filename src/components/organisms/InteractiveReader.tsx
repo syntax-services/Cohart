@@ -1082,7 +1082,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       }
                     }}
                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-semibold transition-all cursor-pointer shadow-xs"
-                    title="Ask Lumen AI in Messages"
+                    title="Ask Assistant in Messages"
                   >
                     <GeminiIcon name="chat" size={12} />
                     <span>Ask Lumen</span>
@@ -1135,7 +1135,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       onClick={() => setQuickLookupWord(null)}
                       className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
                     >
-                      ✕
+                      
                     </button>
                   </div>
                   {isLoadingLookup ? (
@@ -1166,7 +1166,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           {isScreenshotShieldActive && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-2xl p-6 text-center animate-in fade-in">
               <div className="max-w-md space-y-3">
-                <div className="h-12 w-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+                <div className="h-12 w-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
                   <GeminiIcon name="shield" size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-white">Protected Course Material</h3>
@@ -1412,7 +1412,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           {/* Handout Compression Result Modal */}
           {isCompressModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
-              <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in">
+              <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -1564,7 +1564,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           {/* Books Library Drawer */}
           {isBooksDrawerOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
-              <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in">
+              <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 sm:p-6 shadow-2xl animate-in fade-in">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div>
