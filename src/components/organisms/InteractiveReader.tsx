@@ -627,433 +627,277 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   }, [allBooks, bookFilterDepartment]);
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      {/* Top Workspace Bar */}
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        {/* View Mode Switcher */}
-        <div className="relative">
+    <div className="max-w-4xl mx-auto w-full space-y-3 pb-24">
+      {/* Compact Reader Island Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 sm:px-3 sm:py-2 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] shadow-xs">
+        {/* Left: Book & Chapter Switcher */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
           <button
-            onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-[#1E1F20] text-xs font-medium text-neutral-800 dark:text-neutral-200 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-all active:scale-95 cursor-pointer shadow-2xs"
-            title="Switch View"
+            onClick={() => setIsBooksDrawerOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]/20 text-xs font-semibold shrink-0 cursor-pointer hover:bg-[#0B57D0]/20 transition-all active:scale-95"
+            title="Open Course Library"
           >
-            <GeminiIcon
-              name={activeView === 'vault' ? 'bookmark' : 'reader'}
-              size={14}
-              className="text-[#0B57D0] dark:text-[#1A73E8]"
-            />
-            <span className="font-semibold capitalize">
-              {activeView === 'vault' ? 'Saved Vault' : 'Course Reader'}
-            </span>
-            <GeminiIcon name="chevron-down" size={12} className="text-neutral-400" />
+            <GeminiIcon name="book-open" size={13} />
+            <span>{selectedBook.courseCode}</span>
           </button>
 
-          {isModeDropdownOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setIsModeDropdownOpen(false)}
-              />
-              <div className="absolute left-0 top-full mt-1.5 w-48 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-lg backdrop-blur-xl p-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-2.5 py-1.5 text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
-                  Select Workspace
-                </div>
-                <button
-                  onClick={() => {
-                    setActiveView('reader');
-                    setIsModeDropdownOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
-                    activeView === 'reader'
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-semibold'
-                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <GeminiIcon name="reader" size={13} />
-                    <span>Course Reader</span>
-                  </div>
-                  {activeView === 'reader' && <GeminiIcon name="check" size={12} />}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setActiveView('vault');
-                    setIsModeDropdownOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
-                    activeView === 'vault'
-                      ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-semibold'
-                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <GeminiIcon name="bookmark" size={13} />
-                    <span>Saved Notes Vault</span>
-                  </div>
-                  {savedExplanations.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-300">
-                      {savedExplanations.length}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Reader Customizer Actions */}
-        {activeView === 'reader' && (
-          <div className="flex items-center gap-2">
-            {/* Books Library Drawer Trigger */}
+          {/* Chapter Pills */}
+          {selectedBook.chapters.map((ch, idx) => (
             <button
-              onClick={() => setIsBooksDrawerOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]/20 hover:bg-[#0B57D0]/20 transition-all active:scale-95 cursor-pointer"
-              title="Open Course Books Library"
-            >
-              <GeminiIcon name="book-open" size={13} />
-              <span>Books Library</span>
-            </button>
-
-            {/* Upload & Compress Handout Trigger */}
-            <label
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all active:scale-95 cursor-pointer"
-              title="Compress Handout / PDF (Max 10MB)"
-            >
-              <GeminiIcon name="attachment" size={13} />
-              <span className="hidden sm:inline">Compress Handout</span>
-              <span className="sm:hidden">Compress</span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,image/*,.txt,.md,.csv,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.json,.py,.js,.ts,.html"
-                onChange={handleHandoutFilePicked}
-                className="hidden"
-              />
-            </label>
-
-            {/* Bionic Mode Pill */}
-            <button
-              onClick={handleToggleBionic}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
-                isBionic
-                  ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-medium'
-                  : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08]'
+              key={ch.id}
+              onClick={() => {
+                setSelectedChapterId(ch.id);
+                if (activeView !== 'reader') setActiveView('reader');
+              }}
+              className={`px-2.5 py-1 rounded-full text-xs font-mono transition-all shrink-0 cursor-pointer ${
+                selectedChapterId === ch.id && activeView === 'reader'
+                  ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold shadow-xs'
+                  : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
             >
-              <span>Bionic: {isBionic ? 'On' : 'Off'}</span>
+              Ch. {idx + 1}
+            </button>
+          ))}
+        </div>
+
+        {/* Right: Compact Reader Tool Capsules */}
+        <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto flex-wrap">
+          {/* Audio Voice Pill */}
+          <div className="relative flex items-center bg-black/[0.03] dark:bg-white/[0.04] rounded-full p-0.5 border border-black/[0.04] dark:border-white/[0.06]">
+            <button
+              onClick={handleToggleReadAloud}
+              disabled={isSynthesizingAudio}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
+                isPlayingAudio
+                  ? 'bg-rose-500 text-white font-semibold'
+                  : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+              }`}
+              title={isPlayingAudio ? 'Stop reading' : 'Read aloud with AI Voice'}
+            >
+              <GeminiIcon name={isPlayingAudio ? 'volume-x' : isSynthesizingAudio ? 'loader' : 'volume'} size={12} />
+              <span>{isPlayingAudio ? 'Stop' : isSynthesizingAudio ? 'Loading' : 'Listen'}</span>
+            </button>
+            <button
+              onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
+              className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+              title="Select AI Voice"
+            >
+              <GeminiIcon name="chevron-down" size={11} />
             </button>
 
-            {/* Font Sizing */}
-            <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-full p-0.5 text-xs font-mono">
-              <button
-                onClick={() => setFontSize('sm')}
-                className={`px-2 py-0.5 rounded-full transition-colors ${
-                  fontSize === 'sm' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
-                }`}
-              >
-                A-
-              </button>
-              <button
-                onClick={() => setFontSize('md')}
-                className={`px-2 py-0.5 rounded-full transition-colors ${
-                  fontSize === 'md' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
-                }`}
-              >
-                A
-              </button>
-              <button
-                onClick={() => setFontSize('lg')}
-                className={`px-2 py-0.5 rounded-full transition-colors ${
-                  fontSize === 'lg' ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] shadow-xs font-medium' : 'text-neutral-500'
-                }`}
-              >
-                A+
-              </button>
-            </div>
+            {isVoiceDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-[99]"
+                  onClick={() => setIsVoiceDropdownOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-1.5 w-60 max-h-64 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-xl p-1.5 z-[100] animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-2.5 py-1 text-[10px] font-mono text-neutral-400 uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
+                    Select Reader Voice
+                  </div>
+                  <div className="space-y-0.5">
+                    {COHART_VOICES.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => handleSelectVoice(v.id)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
+                          selectedVoice === v.id
+                            ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] font-medium'
+                            : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <span className="truncate">{v.label}</span>
+                        {selectedVoice === v.id && (
+                          <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#1A73E8] shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Quota Notice Banner */}
-      {quotaExceededNotice && (
-        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-3 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <GeminiIcon name="sparkle" size={15} className="text-amber-500 shrink-0" />
-            <span className="font-medium">{quotaExceededNotice}</span>
-          </div>
+          {/* Bionic Toggle Pill */}
           <button
-            onClick={() => setQuotaExceededNotice(null)}
-            className="p-1 rounded-full text-amber-500 hover:text-amber-700"
+            onClick={handleToggleBionic}
+            className={`px-2.5 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
+              isBionic
+                ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
+                : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
+            }`}
+            title="Toggle Bionic Reading Mode"
           >
-            <GeminiIcon name="close" size={13} />
+            Bio: {isBionic ? 'On' : 'Off'}
+          </button>
+
+          {/* Font Sizing Pill */}
+          <div className="flex items-center bg-black/[0.03] dark:bg-white/[0.04] rounded-full p-0.5 text-xs font-mono border border-black/[0.04] dark:border-white/[0.06]">
+            {(['sm', 'md', 'lg'] as const).map((sz) => (
+              <button
+                key={sz}
+                onClick={() => setFontSize(sz)}
+                className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                  fontSize === sz
+                    ? 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] font-bold shadow-xs'
+                    : 'text-neutral-500'
+                }`}
+              >
+                {sz === 'sm' ? 'A-' : sz === 'md' ? 'A' : 'A+'}
+              </button>
+            ))}
+          </div>
+
+          {/* Compress Handout Pill */}
+          <label
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all cursor-pointer"
+            title="Upload handout or past question"
+          >
+            <GeminiIcon name="attachment" size={12} />
+            <span className="hidden sm:inline">Compress</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,image/*,.txt,.md,.docx"
+              onChange={handleHandoutFilePicked}
+              className="hidden"
+            />
+          </label>
+
+          {/* Vault Switcher */}
+          <button
+            onClick={() => setActiveView(activeView === 'vault' ? 'reader' : 'vault')}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
+              activeView === 'vault'
+                ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
+                : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.06] dark:hover:bg-white/[0.08]'
+            }`}
+            title="View saved revision vault"
+          >
+            <GeminiIcon name="bookmark" size={12} />
+            <span>Vault{savedExplanations.length > 0 ? ` (${savedExplanations.length})` : ''}</span>
           </button>
         </div>
-      )}
-
-      {/* Blend Success Notice */}
-      {blendSuccessNotice && (
-        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in">
-          <GeminiIcon name="check-circle" size={15} className="text-emerald-500 shrink-0" />
-          <span className="font-medium">{blendSuccessNotice}</span>
-        </div>
-      )}
+      </div>
 
       {activeView === 'vault' ? (
         /* Vault View */
-        <div className="space-y-4 sm:space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08]">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-                  {profile.institution} • {profile.department}
-                </span>
-              </div>
-              <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
-                Saved Study Notes & Explanations
+              <h2 className="text-base sm:text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+                Saved Study Notes & Vault
               </h2>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                Simple explanations and practical examples you saved while reading
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Simple concept explanations and practical examples saved while reading
               </p>
             </div>
-
-            <Badge variant="blue" size="sm" className="self-start sm:self-auto">
-              {filteredVault.length} {filteredVault.length === 1 ? 'Saved Note' : 'Saved Notes'}
+            <Badge variant="blue" size="sm" className="rounded-full self-start sm:self-auto">
+              {filteredVault.length} {filteredVault.length === 1 ? 'Note' : 'Notes'}
             </Badge>
           </div>
 
-          <GeminiCard className="p-3.5 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-                {availableCourses.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setVaultCourseFilter(c)}
-                    className={`px-3 py-1 rounded-full font-mono text-xs transition-all cursor-pointer shrink-0 ${
-                      vaultCourseFilter === c
-                        ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
-                        : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                    }`}
-                  >
-                    {c === 'ALL' ? 'All Courses' : c}
-                  </button>
-                ))}
-              </div>
+          <div className="p-3 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+              {availableCourses.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setVaultCourseFilter(c)}
+                  className={`px-3 py-1 rounded-full font-mono text-xs transition-all cursor-pointer shrink-0 ${
+                    vaultCourseFilter === c
+                      ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
+                      : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  {c === 'ALL' ? 'All Courses' : c}
+                </button>
+              ))}
+            </div>
 
-              <div className="relative w-full sm:w-64 shrink-0">
-                <input
-                  type="text"
-                  value={vaultSearch}
-                  onChange={(e) => setVaultSearch(e.target.value)}
-                  placeholder="Filter saved notes..."
-                  className="w-full rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] pl-8 pr-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
-                />
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
-                  <GeminiIcon name="search" size={13} />
-                </div>
+            <div className="relative w-full sm:w-56 shrink-0">
+              <input
+                type="text"
+                value={vaultSearch}
+                onChange={(e) => setVaultSearch(e.target.value)}
+                placeholder="Filter saved notes..."
+                className="w-full rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] pl-8 pr-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0]"
+              />
+              <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
+                <GeminiIcon name="search" size={13} />
               </div>
             </div>
-          </GeminiCard>
+          </div>
 
           {filteredVault.length === 0 ? (
-            <GeminiCard className="p-8 text-center space-y-3">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
-                <GeminiIcon name="bookmark" size={22} />
+            <div className="p-8 text-center rounded-[2rem] bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] space-y-2">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
+                <GeminiIcon name="bookmark" size={18} />
               </div>
-              <h3 className="text-base font-semibold text-neutral-900 dark:text-white font-sans">
-                {savedExplanations.length === 0 ? 'Your AI Vault is Empty' : 'No Matching Notes'}
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                {savedExplanations.length === 0 ? 'Your Vault is Empty' : 'No Matching Notes'}
               </h3>
-              <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-md mx-auto leading-relaxed">
+              <p className="text-xs text-neutral-500 max-w-sm mx-auto">
                 {savedExplanations.length === 0
-                  ? 'While reading chapters, highlight any complex paragraph and tap "Save to Vault". Your personalized real-world breakdowns will be permanently stored here for quick exam revision.'
-                  : `No notes found matching "${vaultSearch}". Try a different keyword or switch to All Courses.`}
+                  ? 'Highlight any complex term while reading and tap "Break Down" to save real-world explanations here.'
+                  : 'Try adjusting your search filter.'}
               </p>
-              {savedExplanations.length === 0 && (
-                <div className="pt-2">
-                  <button
-                    onClick={() => setActiveView('reader')}
-                    className="px-4 py-2 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-medium hover:opacity-90 transition-all active:scale-95 cursor-pointer"
-                  >
-                    Open Course Reader &rarr;
-                  </button>
-                </div>
-              )}
-            </GeminiCard>
+            </div>
           ) : (
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {filteredVault.map((item) => (
-                <GeminiCard key={item.id} className="p-4 sm:p-5 space-y-3">
+                <div key={item.id} className="p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] space-y-2.5">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8]">
                         {item.course_code}
                       </span>
                       {item.context_topic && (
-                        <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">
+                        <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
                           {item.context_topic}
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 shrink-0">
+                    <span className="text-[10px] font-mono text-neutral-400">
                       {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent'}
                     </span>
                   </div>
 
-                  <div className="pl-3 py-1 border-l-2 border-[#0B57D0] dark:border-[#1A73E8] bg-black/[0.015] dark:bg-white/[0.02] rounded-r-lg">
-                    <p className="text-xs italic text-neutral-600 dark:text-neutral-300 font-serif leading-relaxed">
-                      &ldquo;{item.selected_text}&rdquo;
-                    </p>
+                  <div className="pl-3 py-1 border-l-2 border-[#0B57D0] dark:border-[#1A73E8] bg-black/[0.015] dark:bg-white/[0.02] rounded-r-lg text-xs italic text-neutral-600 dark:text-neutral-300">
+                    &ldquo;{item.selected_text}&rdquo;
                   </div>
 
-                  <div className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-3 border border-black/[0.05] dark:border-white/[0.05]">
-                    <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#0B57D0] dark:text-[#1A73E8] mb-1.5">
-                      <GeminiIcon name="chat" size={13} />
-                      <span>AI Concept Breakdown</span>
-                    </div>
-                    <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre-line font-sans">
-                      {item.ai_explanation}
-                    </p>
+                  <div className="rounded-xl bg-black/[0.02] dark:bg-white/[0.03] p-3 text-xs leading-relaxed text-neutral-800 dark:text-neutral-200 whitespace-pre-line">
+                    {item.ai_explanation}
                   </div>
 
-                  <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center justify-between text-xs">
+                  <div className="pt-2 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between text-xs">
                     <button
                       onClick={() => handleCopyNote(item)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium cursor-pointer ${
                         copiedNoteId === item.id
-                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.06]'
                       }`}
                     >
-                      <GeminiIcon name={copiedNoteId === item.id ? 'check' : 'copy'} size={13} />
-                      <span>{copiedNoteId === item.id ? 'Copied to Clipboard' : 'Copy Note'}</span>
+                      <GeminiIcon name={copiedNoteId === item.id ? 'check' : 'copy'} size={12} />
+                      <span>{copiedNoteId === item.id ? 'Copied' : 'Copy'}</span>
                     </button>
 
                     <button
                       onClick={() => handleDeleteSavedNote(item.id)}
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
-                      title="Remove note from vault"
+                      className="p-1 rounded-full text-neutral-400 hover:text-rose-500 transition-colors cursor-pointer"
+                      title="Remove note"
                     >
-                      <GeminiIcon name="trash" size={14} />
+                      <GeminiIcon name="trash" size={13} />
                     </button>
                   </div>
-                </GeminiCard>
+                </div>
               ))}
             </div>
           )}
         </div>
       ) : (
-        /* Course Reader View */
         <>
-          {/* Active Book Chapters Switcher & Library Button */}
-          <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]/20">
-                {selectedBook.courseCode}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-              {selectedBook.chapters.map((ch, idx) => (
-                <button
-                  key={ch.id}
-                  onClick={() => setSelectedChapterId(ch.id)}
-                  className={`px-3 py-1.5 rounded-full font-mono transition-all shrink-0 cursor-pointer ${
-                    selectedChapterId === ch.id
-                      ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold shadow-xs'
-                      : 'bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                  }`}
-                >
-                  Chapter {idx + 1}: {ch.title.split(':')[0]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Reader Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.08] transition-colors">
-            <div>
-              <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-                  {currentChapter.courseCode} • {selectedBook.title}
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                  {currentChapter.readTimeMinutes} min read
-                </span>
-              </div>
-              <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
-                {currentChapter.title}
-              </h1>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{currentChapter.subtitle}</p>
-            </div>
-
-            {/* Audio Listen & Voice Pill */}
-            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-              <div className="relative flex items-center gap-1">
-                <button
-                  onClick={handleToggleReadAloud}
-                  disabled={isSynthesizingAudio}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-all active:scale-95 cursor-pointer ${
-                    isPlayingAudio
-                      ? 'bg-rose-500 text-white font-medium shadow-sm'
-                      : isSynthesizingAudio
-                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                      : 'bg-black/[0.03] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.06] dark:hover:bg-white/[0.08]'
-                  }`}
-                  title={isPlayingAudio ? 'Stop reading' : 'Read chapter aloud with Cohart AI Voice'}
-                >
-                  {isSynthesizingAudio ? (
-                    <GeminiIcon name="loader" size={13} />
-                  ) : isPlayingAudio ? (
-                    <GeminiIcon name="volume-x" size={13} />
-                  ) : (
-                    <GeminiIcon name="volume" size={13} />
-                  )}
-                  <span>{isPlayingAudio ? 'Stop' : isSynthesizingAudio ? 'Synthesizing...' : 'Listen'}</span>
-                </button>
-
-                <button
-                  onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
-                  className="p-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
-                  title="Choose reading voice"
-                >
-                  <GeminiIcon name="chevron-down" size={12} />
-                </button>
-
-                {isVoiceDropdownOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-[99]"
-                      onClick={() => setIsVoiceDropdownOpen(false)}
-                    />
-                    <div className="absolute right-0 top-full mt-1.5 w-64 max-h-72 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-xl p-1.5 z-[100] animate-in fade-in zoom-in-95 duration-100">
-                      <div className="px-2.5 py-1 text-[10px] font-mono text-neutral-400 uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
-                        Reader Voice (Aura-2)
-                      </div>
-                      <div className="space-y-0.5">
-                        {COHART_VOICES.map((v) => (
-                          <button
-                            key={v.id}
-                            onClick={() => handleSelectVoice(v.id)}
-                            className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
-                              selectedVoice === v.id
-                                ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] font-medium'
-                                : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                            }`}
-                          >
-                            <span className="truncate">{v.label}</span>
-                            {selectedVoice === v.id && (
-                              <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#1A73E8] shrink-0" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Floating Highlight Action Capsule: Look Up • Ask Lumen • Break Down • Simplify & Blend */}
           {selectedText && (
             <div className="sticky top-16 z-30 flex flex-col gap-2 p-2.5 sm:p-3 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-[#0B57D0]/30 shadow-xl backdrop-blur-md animate-in fade-in">
@@ -1133,9 +977,9 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     </span>
                     <button
                       onClick={() => setQuickLookupWord(null)}
-                      className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                      className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer"
                     >
-                      
+                      <GeminiIcon name="close" size={12} />
                     </button>
                   </div>
                   {isLoadingLookup ? (
@@ -1177,9 +1021,26 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </div>
           )}
 
-          <GeminiCard className="p-5 sm:p-7 relative select-text" onCopy={handleCopyInReader}>
+          <GeminiCard className="p-4 sm:p-7 relative select-text" onCopy={handleCopyInReader}>
+            {/* Clean chapter title & metadata */}
+            <div className="pb-3 mb-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+              <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400 mb-1">
+                <span>{selectedBook.courseCode}</span>
+                <span>•</span>
+                <span>{selectedBook.title}</span>
+                <span>•</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{currentChapter.readTimeMinutes} min read</span>
+              </div>
+              <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white font-sans">
+                {currentChapter.title}
+              </h2>
+              {currentChapter.subtitle && (
+                <p className="text-xs text-neutral-500 mt-0.5">{currentChapter.subtitle}</p>
+              )}
+            </div>
+
             <div
-              className={`space-y-5 text-neutral-800 dark:text-neutral-200 font-sans ${fontSizeClasses[fontSize]}`}
+              className={`space-y-4 text-neutral-800 dark:text-neutral-200 font-sans ${fontSizeClasses[fontSize]}`}
             >
               {currentChapter.paragraphs.map((para, index) => {
                 const isBlended = Boolean(blendedParagraphs[index]);

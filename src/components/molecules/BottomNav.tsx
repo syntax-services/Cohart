@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GeminiIcon, IconName } from '@/components/atoms/GeminiIcon';
 
-export type NavTab = 'hub' | 'reader' | 'schedule' | 'map' | 'ai' | 'profile';
+export type NavTab = 'hub' | 'reader' | 'schedule' | 'map' | 'ai' | 'profile' | 'arena';
 
 interface BottomNavProps {
   activeTab: NavTab;

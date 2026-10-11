@@ -16,8 +16,10 @@ import { fetchLocations } from '@/lib/supabase';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { QuizRunner } from '@/components/organisms/QuizRunner';
 import { isOouStudent } from '@/lib/campusVerification';
+import { QuizRunner } from '@/components/organisms/QuizRunner';
+import { WorkspaceModeDropdown } from '@/components/molecules/WorkspaceModeDropdown';
+import { CampusArenaViewer } from '@/components/arena/CampusArenaViewer';
 
 export default function AppHomePage() {
   const [activeTab, setActiveTab] = useState<NavTab>('hub');
@@ -52,7 +54,7 @@ export default function AppHomePage() {
       const params = new URLSearchParams(window.location.search);
       const urlTab = params.get('tab') as NavTab | null;
       const cachedTab = localStorage.getItem('cohart_active_tab') as NavTab | null;
-      const validTabs: NavTab[] = ['hub', 'reader', 'schedule', 'map', 'ai', 'profile'];
+      const validTabs: NavTab[] = ['hub', 'reader', 'schedule', 'map', 'ai', 'profile', 'arena'];
 
       let initialTab: NavTab = 'hub';
       if (urlTab && validTabs.includes(urlTab)) {
@@ -232,17 +234,27 @@ export default function AppHomePage() {
       {/* Desktop Sidebar (Spatial Navigation) */}
       <aside className="hidden md:flex flex-col w-[260px] border-r border-black/[0.06] dark:border-white/[0.08] bg-[#FAFAFA] dark:bg-[#131314] shrink-0">
         <div className="p-5">
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center gap-2 mb-4">
             <div className="h-8 w-8 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] flex items-center justify-center text-white">
               <GeminiIcon name="sparkle" size={16} />
             </div>
             <span className="font-bold tracking-tight text-lg">Cohart</span>
           </div>
 
+          {/* Desktop Workspace Mode Dropdown */}
+          <div className="mb-5">
+            <WorkspaceModeDropdown
+              currentMode={activeTab}
+              onSelectMode={(mode) => handleTabChange(mode as NavTab)}
+              className="w-full"
+            />
+          </div>
+
           <nav className="flex flex-col gap-1">
             {[
               { id: 'hub', label: 'Dashboard', icon: 'home' },
               { id: 'reader', label: 'Study Notes', icon: 'reader' },
+              { id: 'arena', label: 'Campus Arena', icon: 'zap' },
               { id: 'schedule', label: 'Timetable', icon: 'calendar' },
               { id: 'ai', label: 'Messages', icon: 'chat' },
               ...(isOouStudent(profile?.institution) ? [{ id: 'map', label: 'Campus Map', icon: 'map' }] : []),
@@ -250,7 +262,7 @@ export default function AppHomePage() {
               <button
                 key={item.id}
                 onClick={() => handleTabChange(item.id as NavTab)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-full transition-all font-medium text-sm text-left ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-full transition-all font-medium text-sm text-left cursor-pointer ${
                   activeTab === item.id
                     ? 'bg-black/[0.05] dark:bg-white/[0.1] text-[#0B57D0] dark:text-[#1A73E8] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
                     : 'text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] hover:text-neutral-900 dark:hover:text-white'
@@ -291,6 +303,8 @@ export default function AppHomePage() {
             profile={profile}
             onOpenProfile={() => handleTabChange('profile')}
             onSearch={setSearchFilter}
+            currentTab={activeTab}
+            onSelectTab={handleTabChange}
           />
         </div>
 
@@ -357,6 +371,16 @@ export default function AppHomePage() {
               onStartQuiz={(q) => setSharedQuiz(q)}
               onBack={() => changeTab(previousTab || 'hub')}
               onOpenPinnedAi={() => setIsLumenOpen(true)}
+            />
+          </div>
+        )}
+
+        {activeTab === 'arena' && (
+          <div className="w-full">
+            <CampusArenaViewer
+              onClose={() => changeTab('hub')}
+              userInstitution={profile?.institution}
+              userDepartment={profile?.department}
             />
           </div>
         )}
