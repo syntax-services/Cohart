@@ -11,15 +11,17 @@ import { ProfileView } from '@/components/organisms/ProfileView';
 import { CampusMapWrapper } from '@/components/map/CampusMapWrapper';
 import { CampusAiAssistant } from '@/components/organisms/CampusAiAssistant';
 import { CampusSocialHub } from '@/components/organisms/CampusSocialHub';
+import { QuizRunner } from '@/components/organisms/QuizRunner';
 import { Location, QuizData } from '@/lib/types';
 import { fetchLocations } from '@/lib/supabase';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { isOouStudent } from '@/lib/campusVerification';
-import { QuizRunner } from '@/components/organisms/QuizRunner';
 import { WorkspaceModeDropdown } from '@/components/molecules/WorkspaceModeDropdown';
 import { CampusArenaViewer } from '@/components/arena/CampusArenaViewer';
+import { BrandLogo } from '@/components/brand/BrandLogo';
+import { trackAuroraEvent } from '@/lib/telemetry';
 
 export default function AppHomePage() {
   const [activeTab, setActiveTab] = useState<NavTab>('hub');
@@ -166,6 +168,7 @@ export default function AppHomePage() {
 
   // Intercept navigation for unauthenticated guests
   const handleTabChange = (targetTab: NavTab) => {
+    trackAuroraEvent('tab_switched', 'navigation', { targetTab });
     if (isAiFullscreen && targetTab !== 'ai') {
       setIsAiFullscreen(false);
     }
@@ -233,23 +236,20 @@ export default function AppHomePage() {
     <div className="h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex font-sans transition-colors duration-200 relative overflow-hidden">
       {/* Desktop Sidebar (Spatial Navigation) */}
       <aside className="hidden md:flex flex-col w-[260px] border-r border-black/[0.06] dark:border-white/[0.08] bg-[#FAFAFA] dark:bg-[#131314] shrink-0">
-        <div className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-8 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] flex items-center justify-center text-white">
-              <GeminiIcon name="sparkle" size={16} />
-            </div>
-            <span className="font-bold tracking-tight text-lg">Cohart</span>
+        <div className="p-4 border-b border-black/[0.06] dark:border-white/[0.08]">
+          <div className="mb-3">
+            <BrandLogo size={28} subtitle="Intelligence" />
           </div>
 
-          {/* Desktop Workspace Mode Dropdown */}
-          <div className="mb-5">
-            <WorkspaceModeDropdown
-              currentMode={activeTab}
-              onSelectMode={(mode) => handleTabChange(mode as NavTab)}
-              className="w-full"
-            />
-          </div>
+          {/* Desktop Workspace Mode Switcher */}
+          <WorkspaceModeDropdown
+            currentMode={activeTab}
+            onSelectMode={(mode) => handleTabChange(mode as NavTab)}
+            className="w-full"
+          />
+        </div>
 
+        <div className="p-4 flex-1">
           <nav className="flex flex-col gap-1">
             {[
               { id: 'hub', label: 'Dashboard', icon: 'home' },
@@ -297,16 +297,14 @@ export default function AppHomePage() {
 
       {/* Main Content Column */}
       <div className="flex-1 flex flex-col h-full overflow-y-auto relative">
-        {/* Top Header - Mobile Only */}
-        <div className="md:hidden">
-          <TopHeader
-            profile={profile}
-            onOpenProfile={() => handleTabChange('profile')}
-            onSearch={setSearchFilter}
-            currentTab={activeTab}
-            onSelectTab={handleTabChange}
-          />
-        </div>
+        {/* Top Header */}
+        <TopHeader
+          profile={profile}
+          onOpenProfile={() => handleTabChange('profile')}
+          onSearch={setSearchFilter}
+          currentTab={activeTab}
+          onSelectTab={handleTabChange}
+        />
 
         {/* Main Stage */}
         <main className="flex-1 px-3 sm:px-6 lg:px-8 py-5 max-w-6xl mx-auto w-full pb-24 md:pb-8">

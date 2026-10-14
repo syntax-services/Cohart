@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'hub', label: 'Hub', icon: 'home' },
   { id: 'reader', label: 'Reader', icon: 'reader' },
   { id: 'schedule', label: 'Schedule', icon: 'calendar' },
-  { id: 'ai', label: 'Cohart AI', icon: 'chat' },
+  { id: 'ai', label: 'Messages', icon: 'chat' },
   { id: 'profile', label: 'Profile', icon: 'user' },
 ];
 

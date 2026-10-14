@@ -1,7 +1,7 @@
 {
-  "name": "Cohart - Student Lifecycle Platform",
-  "short_name": "Cohart",
-  "description": "The high-performance student lifecycle and campus navigation companion for OOU students.",
+  "name": "Aurora - Student Lifecycle Platform",
+  "short_name": "Aurora",
+  "description": "The high-performance student lifecycle and campus navigation companion for university students.",
   "start_url": "/",
   "id": "/",
   "display": "standalone",

@@ -66,8 +66,20 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
   // Scholar Profile Lookup Modal State
   const [inspectingPeer, setInspectingPeer] = useState<PeerUser | null>(null);
 
-  // Safety Disclaimer Dismiss State
-  const [isSafetyNoticeDismissed, setIsSafetyNoticeDismissed] = useState(false);
+  // Safety Disclaimer Dismiss State (persists to localStorage, can be reset in Account)
+  const [isSafetyNoticeDismissed, setIsSafetyNoticeDismissed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('aurora_safety_banner_dismissed') === 'true';
+    }
+    return false;
+  });
+
+  const handleDismissSafetyBanner = () => {
+    setIsSafetyNoticeDismissed(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('aurora_safety_banner_dismissed', 'true');
+    }
+  };
 
   // Chat message state
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -374,10 +386,19 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
           </button>
         </div>
 
-        {/* Compact Safety Banner */}
-        <div className="px-4 py-1.5 bg-amber-500/5 dark:bg-amber-500/5 border-b border-amber-500/15 text-[10px] text-amber-900 dark:text-amber-200/90 flex items-center justify-between shrink-0">
-          <span className="truncate">Cohart is for verified study sharing. Never send off-platform money.</span>
-        </div>
+        {/* Compact Dismissible Safety Banner */}
+        {!isSafetyNoticeDismissed && (
+          <div className="px-3.5 py-1.5 bg-amber-500/5 dark:bg-amber-500/5 border-b border-amber-500/15 text-[10px] text-amber-900 dark:text-amber-200/90 flex items-center justify-between shrink-0 animate-in fade-in">
+            <span className="truncate">Aurora is for verified academic collaboration. Never send off-platform money.</span>
+            <button
+              onClick={handleDismissSafetyBanner}
+              className="p-0.5 text-amber-800/60 hover:text-amber-900 dark:text-amber-200/60 dark:hover:text-amber-200 cursor-pointer"
+              title="Dismiss banner (accessible in your Account profile)"
+            >
+              <GeminiIcon name="close" size={11} />
+            </button>
+          </div>
+        )}
 
         {/* Compact Message Stream */}
         <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-2">
@@ -629,12 +650,12 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
       {!isSafetyNoticeDismissed && (
         <div className="p-3 rounded-2xl bg-amber-500/5 dark:bg-amber-500/5 border border-amber-500/15 text-xs text-amber-900 dark:text-amber-200/90 flex items-start justify-between gap-3 animate-in fade-in">
           <p className="text-[11px] leading-relaxed">
-            Cohart facilitates peer academic collaboration. We are not liable for off-platform financial transactions. Never send money or share bank PINs with anyone.
+            Aurora facilitates peer academic collaboration. We are not liable for off-platform financial transactions. Never send money or share bank PINs with anyone.
           </p>
           <button
-            onClick={() => setIsSafetyNoticeDismissed(true)}
+            onClick={handleDismissSafetyBanner}
             className="p-1 text-amber-700 dark:text-amber-300 hover:opacity-75 transition-opacity cursor-pointer shrink-0"
-            title="Dismiss notice"
+            title="Dismiss notice (accessible anytime in your Account profile)"
           >
             <GeminiIcon name="close" size={13} />
           </button>

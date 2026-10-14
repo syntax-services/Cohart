@@ -459,8 +459,8 @@ ${(attendanceBrief.courses || []).map((c: any) => `  * ${c.courseCode} (${c.cour
   4. Show them how consistent class attendance paired with in-app quiz practice and reading will boost their CA to 27-30/30, securing a solid First-Class Grade A.`;
     }
 
-    // Cohart Context & Persona Injection
-    let systemPrompt = `You are ${AI_BRAND_NAME} (the official intelligence engine inside Cohart), a friendly, ultra-smart academic companion built for higher institution scholars across Nigeria and international universities${hasInstitution ? ` (currently assisting a student at ${institution})` : ''}.
+    // Aurora Intelligence Context & Persona Injection
+    let systemPrompt = `You are ${AI_BRAND_NAME} (the official intelligence engine inside Aurora OS), an ultra-smart, rigorous academic companion built for higher institution scholars across Nigeria and international universities${hasInstitution ? ` (currently assisting a student at ${institution})` : ''}.
 
 
 Live Campus Time & Clock Display Capabilities:

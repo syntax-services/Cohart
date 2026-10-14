@@ -77,6 +77,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
 
+  // Safety Banner Reset & Terms State
+  const [isBannerReset, setIsBannerReset] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const isSafetyDismissed = typeof window !== 'undefined' ? localStorage.getItem('aurora_safety_banner_dismissed') === 'true' : false;
+
+  const handleResetSafetyBanner = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('aurora_safety_banner_dismissed');
+      setIsBannerReset(true);
+      setTimeout(() => setIsBannerReset(false), 2500);
+    }
+  };
+
   const initials = profile.full_name?.trim()
     ? profile.full_name
         .trim()
@@ -202,160 +215,144 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-5 pb-16 pt-2 animate-in fade-in duration-300">
-      {/* 1. Sleek String Profile Header Block */}
-      <div className="flex flex-col items-center text-center space-y-3.5">
-        <div className="relative group">
-          <input
-            type="file"
-            ref={avatarInputRef}
-            onChange={handleAvatarFileChange}
-            accept="image/*"
-            className="hidden"
-          />
-
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0B57D0] to-[#1A73E8] opacity-30 group-hover:opacity-60 transition duration-500 blur-[2px]" />
-          
-          <div
-            onClick={() => avatarInputRef.current?.click()}
-            className="relative h-28 w-28 rounded-full border-4 border-white dark:border-[#1E1F20] bg-neutral-100 dark:bg-[#1E1F20] flex items-center justify-center overflow-hidden shadow-xl cursor-pointer"
-            title="Click to change profile picture"
-          >
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.full_name || 'Profile'}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="font-mono text-2xl font-bold tracking-tight text-[#0B57D0] dark:text-[#1A73E8]">
-                {initials}
-              </span>
-            )}
-
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white p-1">
-              {isUploadingAvatar ? (
-                <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+    <div className="max-w-md mx-auto space-y-3.5 pb-16 pt-2 animate-in fade-in duration-300">
+      {/* 1. Ultra-Slim Profile Header Card */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] shadow-xs flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Avatar with click-to-upload */}
+          <div className="relative group shrink-0">
+            <input
+              type="file"
+              ref={avatarInputRef}
+              onChange={handleAvatarFileChange}
+              accept="image/*"
+              className="hidden"
+            />
+            <div
+              onClick={() => avatarInputRef.current?.click()}
+              className="relative h-12 w-12 rounded-full border border-black/[0.08] dark:border-white/[0.1] bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center overflow-hidden shadow-xs cursor-pointer group-hover:scale-105 transition-transform"
+              title="Change profile picture"
+            >
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.full_name || 'Profile'}
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                <>
-                  <GeminiIcon name="user" size={18} />
-                  <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5">Upload</span>
-                </>
+                <span className="font-mono text-sm font-bold text-[#0B57D0] dark:text-[#8AB4F8]">
+                  {initials}
+                </span>
+              )}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                {isUploadingAvatar ? (
+                  <div className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                ) : (
+                  <GeminiIcon name="user" size={13} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Student Info */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                {profile.full_name || profile.matric_number || 'Scholar'}
+              </h2>
+              {profile.subscription_tier && profile.subscription_tier !== 'free' && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[9px] font-mono font-bold uppercase">
+                  Pro
+                </span>
               )}
             </div>
-          </div>
-
-          {/* Quick Edit Pencil pill */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditName(profile.full_name || '');
-              setEditMatric(profile.matric_number || '');
-              setEditDepartment(profile.department || '');
-              setEditLevel(profile.level || '100L');
-              setEditEmail(profile.email || '');
-              setActiveModal('edit_profile');
-            }}
-            className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] text-neutral-700 dark:text-neutral-300 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title="Edit profile info"
-          >
-            <GeminiIcon name="user" size={13} />
-          </button>
-        </div>
-
-        {avatarError && (
-          <p className="text-[11px] font-medium text-rose-500 animate-in fade-in">
-            {avatarError}
-          </p>
-        )}
-
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center justify-center gap-1.5">
-            {profile.full_name || profile.matric_number || 'Scholar'}
-            {profile.subscription_tier && profile.subscription_tier !== 'free' && (
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[10px] font-mono font-bold uppercase tracking-wider">
-                Pro
-              </span>
-            )}
-            {profile.institution && (
-              <Badge variant="emerald" size="sm" className="rounded-full px-2 py-0.5">
-                Verified
-              </Badge>
-            )}
-          </h2>
-          <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 tracking-wide">
-            {profile.department
-              ? `${profile.department} • ${profile.level || '100L'}`
-              : 'Undergraduate Scholar'}
-          </p>
-          <div className="inline-flex items-center gap-1 bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/15 dark:border-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] text-[11px] font-semibold px-2.5 py-0.5 rounded-full mt-1">
-            <GeminiIcon name="compass" size={12} />
-            <span className="truncate max-w-[240px]">
-              {profile.institution || 'Select University'}
-            </span>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+              {profile.department ? `${profile.department} • ` : ''}{profile.level || '100L'}
+            </p>
+            <div className="flex items-center gap-1 text-[10px] text-[#0B57D0] dark:text-[#8AB4F8] font-medium truncate mt-0.5">
+              <GeminiIcon name="compass" size={10} />
+              <span className="truncate">{profile.institution || 'Select University'}</span>
+            </div>
           </div>
         </div>
+
+        {/* Quick Edit Pencil Button */}
+        <button
+          onClick={() => {
+            setEditName(profile.full_name || '');
+            setEditMatric(profile.matric_number || '');
+            setEditDepartment(profile.department || '');
+            setEditLevel(profile.level || '100L');
+            setEditEmail(profile.email || '');
+            setActiveModal('edit_profile');
+          }}
+          className="h-8 w-8 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-700 dark:text-neutral-300 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+          title="Edit profile info"
+        >
+          <GeminiIcon name="settings" size={13} />
+        </button>
       </div>
 
-      {/* 2. String 2x2 Bento Menu Grid */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.06] dark:border-white/[0.08] overflow-hidden shadow-lg shadow-black/[0.02]">
-        <div className="grid grid-cols-2 divide-x divide-black/[0.05] dark:divide-white/[0.06] border-b border-black/[0.05] dark:divide-white/[0.06]">
-          {/* Reader & Notes */}
-          <button
-            onClick={onOpenReader}
-            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
-          >
-            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
-              <GeminiIcon name="reader" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
-            </div>
-            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
-              Reader & Notes
-            </span>
-          </button>
+      {avatarError && (
+        <p className="text-[11px] font-medium text-rose-500 text-center animate-in fade-in">
+          {avatarError}
+        </p>
+      )}
 
-          {/* Exam Schedule */}
-          <button
-            onClick={onOpenSchedule}
-            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
-          >
-            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
-              <GeminiIcon name="calendar" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
-            </div>
-            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
-              Exam Schedule
-            </span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 divide-x divide-black/[0.05] dark:divide-white/[0.06]">
-          {/* AI Study Assistant */}
-          <button
-            onClick={() => onOpenAiChat?.()}
-            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-all group"
-          >
-            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:scale-110 transition-transform">
-              <GeminiIcon name="sparkle" size={20} className="text-[#0B57D0] dark:text-[#1A73E8]" />
-            </div>
-            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
-              Cohart Chat
-            </span>
-          </button>
-
-          {/* Wallet / Earnings */}
-          <div className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-all">
-            <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center">
-              <GeminiIcon name="wallet" size={20} className="text-emerald-500" />
-            </div>
-            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
-              ₦{(profile.wallet_balance || 0).toLocaleString()}
-            </span>
+      {/* 2. Ultra-Slim 4-Pill Bento Action Strip */}
+      <div className="grid grid-cols-4 gap-1.5 bg-white dark:bg-[#1E1F20] p-1.5 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] shadow-xs">
+        {/* Reader */}
+        <button
+          onClick={onOpenReader}
+          className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors cursor-pointer group"
+        >
+          <div className="h-7 w-7 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+            <GeminiIcon name="reader" size={14} />
           </div>
-        </div>
+          <span className="text-[10px] font-semibold text-neutral-700 dark:text-neutral-300">Reader</span>
+        </button>
+
+        {/* Schedule */}
+        <button
+          onClick={onOpenSchedule}
+          className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors cursor-pointer group"
+        >
+          <div className="h-7 w-7 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+            <GeminiIcon name="calendar" size={14} />
+          </div>
+          <span className="text-[10px] font-semibold text-neutral-700 dark:text-neutral-300">Exams</span>
+        </button>
+
+        {/* Chat / Messages */}
+        <button
+          onClick={() => onOpenAiChat?.()}
+          className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors cursor-pointer group"
+        >
+          <div className="h-7 w-7 rounded-full bg-violet-500/10 text-violet-500 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+            <GeminiIcon name="sparkle" size={14} />
+          </div>
+          <span className="text-[10px] font-semibold text-neutral-700 dark:text-neutral-300">Messages</span>
+        </button>
+
+        {/* Wallet */}
+        <button
+          onClick={() => {
+            setPaymentPlan('wallet');
+            setIsPaymentOpen(true);
+          }}
+          className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors cursor-pointer group"
+        >
+          <div className="h-7 w-7 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+            <GeminiIcon name="wallet" size={14} />
+          </div>
+          <span className="text-[10px] font-semibold text-neutral-700 dark:text-neutral-300 font-mono">
+            ₦{(profile.wallet_balance || 0).toLocaleString()}
+          </span>
+        </button>
       </div>
 
-      {/* 3. Sleek Single-Line Action Rows (String CustomerProfile Pattern) */}
-      <div className="bg-white dark:bg-[#1E1F20] rounded-[2rem] border border-black/[0.06] dark:border-white/[0.08] divide-y divide-black/[0.05] dark:divide-white/[0.06] shadow-lg shadow-black/[0.02] overflow-hidden">
+      {/* 3. Sleek Single-Line Action Rows */}
+      <div className="bg-white dark:bg-[#1E1F20] rounded-2xl border border-black/[0.06] dark:border-white/[0.08] divide-y divide-black/[0.05] dark:divide-white/[0.06] shadow-xs overflow-hidden">
         {/* Account Details & Level */}
         <button
           onClick={() => {
@@ -494,22 +491,109 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {onSignOut && (
           <button
             onClick={onSignOut}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-rose-500/[0.04] transition-all text-left group"
+            className="w-full flex items-center justify-between px-4 py-3 hover:bg-rose-500/[0.04] transition-all text-left group"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <GeminiIcon name="close" size={16} />
+              <div className="h-7 w-7 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <GeminiIcon name="close" size={14} />
               </div>
               <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
                 Sign Out
               </span>
             </div>
-            <GeminiIcon name="chevron-right" size={16} className="text-rose-400 group-hover:translate-x-0.5 transition-transform" />
+            <GeminiIcon name="chevron-right" size={14} className="text-rose-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
         )}
       </div>
 
-      {/* 4. MODALS & DRAWERS */}
+      {/* 4. Campus Safety & Terms Card (Persistent access to dismissed banner rules) */}
+      <div className="bg-white dark:bg-[#1E1F20] rounded-2xl border border-black/[0.06] dark:border-white/[0.08] p-3.5 space-y-2.5 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <GeminiIcon name="shield-check" size={13} />
+            </div>
+            <h4 className="text-xs font-bold text-neutral-900 dark:text-white">
+              Campus Interaction & Safety Rules
+            </h4>
+          </div>
+          <button
+            onClick={() => setIsTermsModalOpen(true)}
+            className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] hover:underline cursor-pointer"
+          >
+            Terms & Privacy
+          </button>
+        </div>
+
+        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+          Aurora is built strictly for verified peer learning and past questions. Off-platform financial exchanges are prohibited to safeguard scholars from scams.
+        </p>
+
+        {isSafetyDismissed && (
+          <div className="pt-2 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between">
+            <span className="text-[10px] text-neutral-400">
+              Safety banner hidden in Messages
+            </span>
+            <button
+              onClick={handleResetSafetyBanner}
+              className="text-[10px] font-mono font-semibold text-[#0B57D0] dark:text-[#8AB4F8] px-2.5 py-1 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/20 hover:opacity-80 transition-all cursor-pointer"
+            >
+              {isBannerReset ? 'Banner Restored to Messages!' : 'Show Banner in Chat Again'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 5. MODALS & DRAWERS */}
+
+      {/* MODAL: Terms of Service & Privacy Guidelines */}
+      {isTermsModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white dark:bg-[#1E1F20] rounded-2xl border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl space-y-3.5 max-h-[85vh] overflow-y-auto animate-in fade-in">
+            <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-2.5">
+              <div className="flex items-center gap-2">
+                <GeminiIcon name="shield-check" size={16} className="text-[#0B57D0] dark:text-[#8AB4F8]" />
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Terms & Campus Safety Policy</h3>
+              </div>
+              <button
+                onClick={() => setIsTermsModalOpen(false)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+              >
+                <GeminiIcon name="close" size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed font-sans">
+              <div className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15 text-amber-900 dark:text-amber-200">
+                <strong className="block font-semibold mb-0.5">Mandatory Campus Anti-Scam Notice:</strong>
+                Aurora is exclusively for peer study exchanges, lecture summaries, and past questions. Any user attempting off-platform payment solicitation, impersonation, or academic blackmail will be immediately barred and their student matric flagged.
+              </div>
+
+              <div>
+                <h5 className="font-bold text-neutral-900 dark:text-white mb-1">1. Academic Integrity & Publishing Rights</h5>
+                <p>Course notes, lecture summaries, and past questions uploaded to Aurora remain the property of respective departments. Copying is limited to personal study revision.</p>
+              </div>
+
+              <div>
+                <h5 className="font-bold text-neutral-900 dark:text-white mb-1">2. Privacy & Data Handling</h5>
+                <p>Your academic profile, matriculation data, and study progress are secured in accordance with NDPR guidelines. We never share student phone numbers or personal records with third parties.</p>
+              </div>
+
+              <div>
+                <h5 className="font-bold text-neutral-900 dark:text-white mb-1">3. Cookie & Telemetry Tracking</h5>
+                <p>We utilize session cookies to record study streaks, maintain offline PWA state, and analyze client errors to deliver instant app resilience.</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsTermsModalOpen(false)}
+              className="w-full py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              I Understand & Agree
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL A: Edit Academic Info */}
       {activeModal === 'edit_profile' && (

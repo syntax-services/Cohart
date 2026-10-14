@@ -11,14 +11,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Cohart | Student Lifecycle & Academic Intelligence Engine',
+  title: 'Aurora | Academic Intelligence & Campus OS',
   description:
-    'Minimalist student lifecycle companion, interactive personalized reader, schedule tracking, and campus navigation.',
+    'Ultra-minimalist higher institution operating system, exam pass revision, interactive reader, and campus arena.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Cohart',
+    title: 'Aurora',
   },
   icons: {
     icon: '/brand/logo.svg',

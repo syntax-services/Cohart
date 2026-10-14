@@ -14,14 +14,14 @@ export interface AiModelConfig {
   isDefault?: boolean;
 }
 
-export const AI_BRAND_NAME = 'Lumen';
+export const AI_BRAND_NAME = 'Aurora';
 
 export const AI_MODELS: Record<string, AiModelConfig> = {
   lyric: {
     id: 'lyric',
-    name: 'Lumen Lyric',
+    name: 'Aurora Lyric',
     badge: 'Lyric',
-    tagline: 'Instant speed & melodic conciseness',
+    tagline: 'Instant speed & crystalline conciseness',
     description: 'Sub-second answers for quick lookups, definitions, and rapid factual guidance.',
     speed: 'Ultra-Fast',
     orchestrationLevel: 1,
@@ -31,7 +31,7 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
   },
   prism: {
     id: 'prism',
-    name: 'Lumen Prism',
+    name: 'Aurora Prism',
     badge: 'Prism',
     tagline: 'Refracting complex topics into pure clarity',
     description: 'Multi-angle concept breakdowns and bite-sized explanations without clutter.',
@@ -43,7 +43,7 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
   },
   astral: {
     id: 'astral',
-    name: 'Lumen Astral',
+    name: 'Aurora Astral',
     badge: 'Astral',
     tagline: 'Comprehensive campus daily driver',
     description: 'Balanced daily driver attuned to university lecture notes, syllabi breakdowns, quizzes, and course outlines.',
@@ -56,7 +56,7 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
   },
   zenith: {
     id: 'zenith',
-    name: 'Lumen Zenith',
+    name: 'Aurora Zenith',
     badge: 'Zenith',
     tagline: 'Peak cognitive reasoning & forensics',
     description: 'Deep chain-of-thought orchestration for CGPA calculations, exam proofs, and long handout synthesis.',
@@ -68,7 +68,7 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
   },
   mythos: {
     id: 'mythos',
-    name: 'Lumen Mythos',
+    name: 'Aurora Mythos',
     badge: 'Mythos',
     tagline: 'Dynamic smart router & multi-source engine',
     description: 'Intelligently analyzes query weight: routes to Lyric/Prism for speed or scales to Zenith for deep proofs.',
