@@ -78,7 +78,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
             className="flex items-center gap-2 px-5 py-3 rounded-full bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/[0.08] text-neutral-800 dark:text-neutral-200 text-sm font-semibold hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all active:scale-95 cursor-pointer"
           >
             <GeminiIcon name="chat" size={18} />
-            <span>Ask Cohart</span>
+            <span>Ask Aurora</span>
           </button>
         </div>
       </div>

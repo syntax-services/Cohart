@@ -27,19 +27,22 @@
 
   html[data-font-size="compact"],
   html[data-font-size="compact"] body {
-    font-size: 14px;
+    font-size: 13.5px !important;
+    --font-scale-factor: 0.9;
   }
 
   html[data-font-size="normal"],
   html:not([data-font-size]),
   html[data-font-size="normal"] body,
   html:not([data-font-size]) body {
-    font-size: 15.5px;
+    font-size: 15.5px !important;
+    --font-scale-factor: 1.0;
   }
 
   html[data-font-size="comfortable"],
   html[data-font-size="comfortable"] body {
-    font-size: 17px;
+    font-size: 17.5px !important;
+    --font-scale-factor: 1.12;
   }
 
   body {

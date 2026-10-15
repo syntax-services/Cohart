@@ -55,6 +55,8 @@ import {
 import { QuizRunner } from './QuizRunner';
 import { CampusArenaViewer } from '@/components/arena/CampusArenaViewer';
 import { StudyKitWidget } from '@/components/study/StudyKitWidget';
+import { MobileCodePlayground } from '@/components/ide/MobileCodePlayground';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CampusAiAssistantProps {
   profile: StudentProfile;
@@ -154,6 +156,19 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       };
     }
   }, [isSidebarOpen]);
+
+  // Listen for code playground open requests from CodeCapsule in chat
+  useEffect(() => {
+    const handleOpenPlayground = (e: any) => {
+      if (e.detail) {
+        setChatIdeCode(e.detail.code || '');
+        setChatIdeLang(e.detail.language || 'python');
+        setIsChatIdeOpen(true);
+      }
+    };
+    window.addEventListener('aurora:open-code-playground', handleOpenPlayground);
+    return () => window.removeEventListener('aurora:open-code-playground', handleOpenPlayground);
+  }, []);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([defaultInitialMessage]);
@@ -202,6 +217,9 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   };
   const [streakHypeModal, setStreakHypeModal] = useState<{ count: number; title: string; praise: string } | null>(null);
   const [replyingTo, setReplyingTo] = useState<MessageReplyContext | null>(null);
+  const [isChatIdeOpen, setIsChatIdeOpen] = useState(false);
+  const [chatIdeCode, setChatIdeCode] = useState('');
+  const [chatIdeLang, setChatIdeLang] = useState<'javascript' | 'python' | 'html' | 'typescript'>('python');
 
   // Campus Arena Live Viewer & Pro Subscriptions State
   const [showArenaViewer, setShowArenaViewer] = useState(false);
@@ -518,16 +536,29 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
       } catch {}
 
       if (nextStreak === 3) {
+        const threeWinPraise = [
+          { title: "That's my scholar! 🔥", praise: "Three straight bullseyes! Your grasp of theoretical principles is razor-sharp. Keep that momentum alive!" },
+          { title: "3-IN-A-ROW! You're cooking with gas!", praise: "That's how distinction students move! Clear, confident understanding under exam pressure." },
+          { title: "Triple Streak! Lecturer can't confuse you!", praise: "3 out of 3 without flinching! Your conceptual clarity is locked in solid." },
+          { title: "Academic Flow State Activated! ⚡", praise: "Three consecutive correct hits! You are dominating this syllabus topic." },
+        ];
+        const picked = threeWinPraise[Math.floor(Math.random() * threeWinPraise.length)];
         setStreakHypeModal({
           count: 3,
-          title: "3-IN-A-ROW! You're cooking, scholar!",
-          praise: "Three straight bullseyes! Your grasp of theoretical principles is razor-sharp. Keep that momentum alive!",
+          title: picked.title,
+          praise: picked.praise,
         });
       } else if (nextStreak === 10) {
+        const tenWinPraise = [
+          { title: "10 WINNING STREAK! A book made it to 10! 🏆", praise: "Ten straight correct answers! You have achieved first-class exam mastery. Lecturer questions can't touch you!" },
+          { title: "UNTOUCHABLE! Senate Distinction Grade! 🌟", praise: "A flawless 10-win streak! Your exam readiness score is 100%. First Class Honours material right here!" },
+          { title: "Mastery Level 10! Exam-Proof Scholar! 🎓", praise: "Double-digit perfection! You've mastered all subtle distractors and tricky phrasing." },
+        ];
+        const picked = tenWinPraise[Math.floor(Math.random() * tenWinPraise.length)];
         setStreakHypeModal({
           count: 10,
-          title: "10-STREAK MILESTONE! Exam-Proof Genius!",
-          praise: "Ten straight correct answers! You have achieved first-class exam mastery. Lecturer questions can't touch you!",
+          title: picked.title,
+          praise: picked.praise,
         });
       }
     } else {
@@ -1543,6 +1574,148 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                     </div>
                   )}
 
+                  {/* In-Chat Single Interactive Question Card */}
+                  {m.interactiveQuestion && (
+                    <div className="mt-3.5 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] shadow-sm space-y-3 font-sans">
+                      {/* Question Header */}
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#8AB4F8] border border-[#0B57D0]/20">
+                            {m.interactiveQuestion.courseCode || 'Exam Practice'}
+                          </span>
+                          <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                            Active Knowledge Check
+                          </span>
+                        </div>
+                        {quizStreak > 0 && (
+                          <span className="flex items-center gap-1 text-[10.5px] font-mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                            <GeminiIcon name="flame" size={11} />
+                            <span>{quizStreak} Streak</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Question Text */}
+                      <p className="text-[13px] font-semibold text-neutral-900 dark:text-white leading-relaxed">
+                        {m.interactiveQuestion.question}
+                      </p>
+
+                      {/* Options List */}
+                      <div className="space-y-2 pt-1">
+                        {m.interactiveQuestion.options.map((opt, optIdx) => {
+                          const answerState = answeredQuestions[m.id];
+                          const hasAnswered = Boolean(answerState);
+                          const isUserPick = hasAnswered && answerState?.selectedIndex === optIdx;
+                          const isCorrectOption = optIdx === m.interactiveQuestion!.correctIndex;
+
+                          let btnStyle = 'border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02] text-neutral-800 dark:text-neutral-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]';
+
+                          if (hasAnswered) {
+                            if (isCorrectOption) {
+                              // Sharp Electric Green for Correct
+                              btnStyle = 'border-emerald-500 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold shadow-md shadow-emerald-500/10';
+                            } else if (isUserPick) {
+                              // Sharp Electric Red for Incorrect
+                              btnStyle = 'border-rose-500 bg-rose-500/15 text-rose-600 dark:text-rose-400 font-bold shadow-md shadow-rose-500/10';
+                            } else {
+                              btnStyle = 'border-black/[0.05] dark:border-white/[0.05] bg-black/[0.01] dark:bg-white/[0.01] text-neutral-400 opacity-60';
+                            }
+                          }
+
+                          return (
+                            <button
+                              key={optIdx}
+                              type="button"
+                              disabled={hasAnswered}
+                              onClick={() => handleAnswerQuestion(m.id, m.interactiveQuestion!, optIdx)}
+                              className={`w-full flex items-center justify-between p-3 rounded-xl text-xs text-left transition-all border cursor-pointer ${btnStyle} ${
+                                !hasAnswered ? 'active:scale-[0.99]' : 'cursor-default'
+                              }`}
+                            >
+                              <span className="pr-2">{opt}</span>
+                              {hasAnswered && isCorrectOption && (
+                                <span className="h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">
+                                  ✓
+                                </span>
+                              )}
+                              {hasAnswered && isUserPick && !isCorrectOption && (
+                                <span className="h-5 w-5 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">
+                                  ✕
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Post-Answer Detailed Forensic Breakdown & Memory Anchor */}
+                      {answeredQuestions[m.id] && (
+                        <div className="mt-3 p-3.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] space-y-2.5 animate-in fade-in duration-300">
+                          <div className="flex items-center gap-2">
+                            {answeredQuestions[m.id]?.isCorrect ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                CORRECT (+1 STREAK)
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                                INCORRECT (STREAK RESET)
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Core Solution */}
+                          <div>
+                            <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider font-semibold block mb-0.5">
+                              Why It's True:
+                            </span>
+                            <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed font-medium">
+                              {m.interactiveQuestion.explanation}
+                            </p>
+                          </div>
+
+                          {/* Why Chosen Is Wrong & Distractor Forensic Analysis */}
+                          {(!answeredQuestions[m.id]?.isCorrect || m.interactiveQuestion.whyLooksSimilar) && (
+                            <div className="pt-1.5 border-t border-black/[0.04] dark:border-white/[0.06]">
+                              <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider font-semibold block mb-0.5">
+                                Distractor Phrasing & Common Lecturer Trap:
+                              </span>
+                              <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                                {m.interactiveQuestion.whyChosenIsWrong || m.interactiveQuestion.whyLooksSimilar || 'Lecturers often pair subtle distractor variables to test precise definition recall.'}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Psychological Memory Hook */}
+                          {m.interactiveQuestion.psychologicalMemoryHook && (
+                            <div className="pt-1.5 border-t border-black/[0.04] dark:border-white/[0.06] flex items-start gap-2 bg-[#0B57D0]/[0.03] dark:bg-[#1A73E8]/[0.05] p-2 rounded-lg">
+                              <GeminiIcon name="sparkle" size={14} className="text-[#0B57D0] dark:text-[#8AB4F8] shrink-0 mt-0.5" />
+                              <div>
+                                <span className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] uppercase tracking-wider font-bold block mb-0.5">
+                                  Psychological Memory Hook:
+                                </span>
+                                <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed">
+                                  {m.interactiveQuestion.psychologicalMemoryHook}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Next Question Action Button */}
+                          <div className="pt-2 flex items-center justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleSend(`Give me another challenging single-question practice drill on ${m.interactiveQuestion?.courseCode || 'my course syllabus'}.`)}
+                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
+                            >
+                              <span>Next Question</span>
+                              <GeminiIcon name="arrow-right" size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Generated Quiz Action Card */}
                   {m.generatedQuiz && (
                     <div className="mt-3.5 p-4 rounded-2xl bg-gradient-to-br from-[#0B57D0]/10 to-[#1A73E8]/5 border border-[#0B57D0]/30 space-y-3">
@@ -2059,6 +2232,67 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 3-Win & 10-Win Streak Celebration Hype Modal */}
+      <AnimatePresence>
+        {streakHypeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.85, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+              className="w-full max-w-sm rounded-3xl bg-[#131314] border border-[#0B57D0]/40 p-6 text-center text-white shadow-2xl relative overflow-hidden font-sans"
+            >
+              {/* Radial Halo Glow */}
+              <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-gradient-to-b from-[#1A73E8]/30 via-emerald-500/20 to-transparent blur-2xl pointer-events-none" />
+
+              {/* Hype Trophy / Flame Icon */}
+              <div className="h-16 w-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#0B57D0]/30 to-emerald-500/20 border border-white/[0.1] flex items-center justify-center text-amber-400 shadow-lg">
+                {streakHypeModal.count >= 10 ? (
+                  <GeminiIcon name="trophy" size={32} />
+                ) : (
+                  <GeminiIcon name="flame" size={32} />
+                )}
+              </div>
+
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold mb-3">
+                <span>{streakHypeModal.count} CONSECUTIVE WINS</span>
+              </div>
+
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight mb-2">
+                {streakHypeModal.title}
+              </h3>
+
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed mb-6">
+                {streakHypeModal.praise}
+              </p>
+
+              <button
+                onClick={() => setStreakHypeModal(null)}
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#0B57D0] to-[#1A73E8] text-white text-xs font-bold hover:opacity-95 active:scale-95 transition-all cursor-pointer shadow-lg shadow-[#0B57D0]/25"
+              >
+                Keep Stacking Wins 🔥
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sandboxed Code Playground / IDE */}
+      {isChatIdeOpen && (
+        <MobileCodePlayground
+          isOpen={isChatIdeOpen}
+          onClose={() => setIsChatIdeOpen(false)}
+          initialCode={chatIdeCode}
+          initialLanguage={chatIdeLang}
+        />
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-export type ModelTierId = 'lyric' | 'prism' | 'astral' | 'zenith' | 'mythos' | 'spark' | 'core' | 'depth' | 'auto';
+export type ModelTierId = 'lyric' | 'prism' | 'lumen' | 'astral' | 'zenith' | 'mythos' | 'spark' | 'core' | 'depth' | 'auto';
 
 export interface AiModelConfig {
   id: ModelTierId;
@@ -41,11 +41,11 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
     temperature: 0.25,
     maxOutputTokens: 2500,
   },
-  astral: {
-    id: 'astral',
-    name: 'Aurora Astral',
-    badge: 'Astral',
-    tagline: 'Comprehensive campus daily driver',
+  lumen: {
+    id: 'lumen',
+    name: 'Aurora Lumen',
+    badge: 'Lumen',
+    tagline: 'Balanced campus daily driver',
     description: 'Balanced daily driver attuned to university lecture notes, syllabi breakdowns, quizzes, and course outlines.',
     speed: 'Balanced',
     orchestrationLevel: 2,
@@ -53,6 +53,18 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
     temperature: 0.35,
     maxOutputTokens: 4096,
     isDefault: true,
+  },
+  astral: {
+    id: 'astral',
+    name: 'Aurora Astral',
+    badge: 'Astral',
+    tagline: 'Comprehensive academic orchestration',
+    description: 'Advanced curriculum reasoning across multi-semester notes, theories, and essay breakdowns.',
+    speed: 'Balanced',
+    orchestrationLevel: 2,
+    geminiModel: 'gemini-3.5-flash-lite',
+    temperature: 0.3,
+    maxOutputTokens: 4096,
   },
   zenith: {
     id: 'zenith',
@@ -69,7 +81,7 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
   mythos: {
     id: 'mythos',
     name: 'Aurora Mythos',
-    badge: 'Mythos',
+    badge: 'Auto Router',
     tagline: 'Dynamic smart router & multi-source engine',
     description: 'Intelligently analyzes query weight: routes to Lyric/Prism for speed or scales to Zenith for deep proofs.',
     speed: 'Balanced',
@@ -82,7 +94,7 @@ export const AI_MODELS: Record<string, AiModelConfig> = {
 
 // Aliases for seamless backwards compatibility
 AI_MODELS.spark = AI_MODELS.lyric;
-AI_MODELS.core = AI_MODELS.astral;
+AI_MODELS.core = AI_MODELS.lumen;
 AI_MODELS.depth = AI_MODELS.zenith;
 AI_MODELS.auto = AI_MODELS.mythos;
 
@@ -94,10 +106,10 @@ export function resolveAutoModelTier(
   prompt: string,
   hasAttachment: boolean = false,
   context?: string
-): 'lyric' | 'prism' | 'astral' | 'zenith' {
+): 'lyric' | 'prism' | 'lumen' | 'astral' | 'zenith' {
   const p = prompt.toLowerCase();
 
-  // Tasks requiring heavy reasoning -> Depth
+  // Tasks requiring heavy reasoning -> Zenith
   const needsDeepReasoning =
     p.includes('cgpa') ||
     p.includes('calculate gpa') ||
@@ -130,8 +142,8 @@ export function resolveAutoModelTier(
     return 'lyric';
   }
 
-  // Default balanced -> Astral
-  return 'astral';
+  // Default balanced -> Lumen
+  return 'lumen';
 }
 
 /**
@@ -191,6 +203,7 @@ export function calculateToneCost(params: ToneCalculationParams): ToneConsumptio
   const tierBaseRate: Record<ModelTierId, number> = {
     lyric: 0.5,
     prism: 0.6,
+    lumen: 1.0,
     astral: 1.0,
     zenith: 1.8,
     mythos: 1.0,
@@ -204,6 +217,7 @@ export function calculateToneCost(params: ToneCalculationParams): ToneConsumptio
   const charRates: Record<ModelTierId, number> = {
     lyric: 0.2,
     prism: 0.25,
+    lumen: 0.5,
     astral: 0.5,
     zenith: 0.9,
     mythos: 0.5,

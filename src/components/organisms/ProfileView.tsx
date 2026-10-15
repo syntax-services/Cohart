@@ -15,6 +15,7 @@ import {
 } from '@/lib/campusVerification';
 import { ScholarModeIcon, ArenaModeIcon } from '@/components/molecules/WorkspaceModeDropdown';
 import { setWorkspaceModeCookie, getWorkspaceModeCookie } from '@/lib/telemetry';
+import { MobileCodePlayground } from '@/components/ide/MobileCodePlayground';
 
 interface ProfileViewProps {
   profile: StudentProfile;
@@ -48,6 +49,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   // Payment Modal State
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentPlan, setPaymentPlan] = useState<'monthly' | 'semester' | 'wallet'>('monthly');
+  const [isIdeOpen, setIsIdeOpen] = useState(false);
 
   // Profile Edit State
   const [editName, setEditName] = useState(profile.full_name || '');
@@ -513,6 +515,27 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
 
+          {/* Mobile Code Playground / IDE */}
+          <button
+            onClick={() => setIsIdeOpen(true)}
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 group text-left cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-mono font-bold text-xs group-hover:scale-105 transition-transform">
+                {'</>'}
+              </div>
+              <div>
+                <span className="font-medium text-neutral-800 dark:text-neutral-200 text-[13px] block leading-tight">
+                  Mobile Code Playground / IDE
+                </span>
+                <span className="text-[10px] text-neutral-500 font-mono">
+                  Python, JS, TS, HTML sandboxed runner
+                </span>
+              </div>
+            </div>
+            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
           {/* Submit Feedback */}
           <button
             onClick={() => setActiveModal('help')}
@@ -807,6 +830,46 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </div>
               </div>
 
+              {/* Font Size Scale Selector */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block">Dashboard Font Scale</label>
+                  <span className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] font-bold capitalize">
+                    {fontSize}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(['compact', 'normal', 'comfortable'] as const).map((scale) => {
+                    const isCurrent = fontSize === scale;
+                    const labels = {
+                      compact: 'Compact',
+                      normal: 'Standard',
+                      comfortable: 'Large',
+                    };
+                    const sampleTexts = {
+                      compact: '13.5px',
+                      normal: '15.5px',
+                      comfortable: '17.5px',
+                    };
+                    return (
+                      <button
+                        key={scale}
+                        type="button"
+                        onClick={() => setFontSize(scale)}
+                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          isCurrent
+                            ? 'border-[#0B57D0] bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#8AB4F8] font-bold shadow-2xs'
+                            : 'border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+                        }`}
+                      >
+                        <span className="text-xs block font-semibold">{labels[scale]}</span>
+                        <span className="text-[9.5px] font-mono text-neutral-400 block mt-0.5">{sampleTexts[scale]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Reader Voice */}
               <div>
                 <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block mb-1.5">AI Reader Voice</label>
@@ -941,6 +1004,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           onPaymentSuccess={() => {
             setIsPaymentOpen(false);
           }}
+        />
+      )}
+      {/* Mobile Code Playground / IDE */}
+      {isIdeOpen && (
+        <MobileCodePlayground
+          isOpen={isIdeOpen}
+          onClose={() => setIsIdeOpen(false)}
         />
       )}
     </div>

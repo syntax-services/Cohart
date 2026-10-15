@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
+import { CodeCapsule } from '@/components/atoms/CodeCapsule';
 
 interface MarkdownTextProps {
   content: string;
@@ -17,6 +18,7 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
 
   let inCodeBlock = false;
   let codeBuffer: string[] = [];
+  let currentCodeLang = 'code';
 
   const parseInline = (text: string, keyPrefix: string): React.ReactNode[] => {
     // Regex matches bold (**text**), italics (*text*), inline code (`code`), markdown links [text](url), bare URLs, and references
@@ -143,17 +145,18 @@ export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, className =
     if (trimmed.startsWith('```')) {
       if (inCodeBlock) {
         renderedElements.push(
-          <pre
+          <CodeCapsule
             key={`codeblock-${lineIdx}`}
-            className="my-2 p-3 rounded-xl bg-black/[0.06] dark:bg-black/50 border border-black/[0.08] dark:border-white/[0.08] font-mono text-xs overflow-x-auto text-neutral-900 dark:text-neutral-100"
-          >
-            <code>{codeBuffer.join('\n')}</code>
-          </pre>
+            code={codeBuffer.join('\n')}
+            language={currentCodeLang}
+          />
         );
         codeBuffer = [];
         inCodeBlock = false;
+        currentCodeLang = 'code';
       } else {
         inCodeBlock = true;
+        currentCodeLang = trimmed.slice(3).trim() || 'code';
       }
       return;
     }

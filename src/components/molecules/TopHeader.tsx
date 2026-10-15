@@ -7,6 +7,8 @@ import { StudentProfile } from '@/lib/types';
 import { WorkspaceModeDropdown } from './WorkspaceModeDropdown';
 import { NavTab } from './BottomNav';
 
+import { NotificationsPopover } from '@/components/notifications/NotificationsPopover';
+
 interface TopHeaderProps {
   profile: StudentProfile;
   onOpenProfile: () => void;
@@ -32,17 +34,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full border-b border-black/[0.05] dark:border-white/[0.06] bg-white/85 dark:bg-[#131314]/85 backdrop-blur-2xl transition-colors">
       <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
-        {/* Left: Monolithic Brand Logo + 2-Icon String-style Experience Switcher */}
+        {/* Left: Brand Logo */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           <BrandLogo size={23} subtitle="Intelligence" />
-
-          {/* 2-Icon Switcher Trigger */}
-          {onSelectTab && (
-            <WorkspaceModeDropdown
-              currentMode={currentTab}
-              onSelectMode={(target) => onSelectTab(target as NavTab)}
-            />
-          )}
         </div>
 
         {/* Center: Ultra-Compact Omnibox Search */}
@@ -64,19 +58,40 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Quick Scholar Profile Pill */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right: String-style Action Cluster: Mode Switcher + Notifications + Profile Avatar */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* 2-Icon Switcher Trigger */}
+          {onSelectTab && (
+            <WorkspaceModeDropdown
+              currentMode={currentTab}
+              onSelectMode={(target) => onSelectTab(target as NavTab)}
+            />
+          )}
+
+          {/* Campus Notifications Popover */}
+          <NotificationsPopover
+            institution={profile.institution}
+            onNavigateToTab={(tab) => onSelectTab?.(tab as NavTab)}
+          />
+
+          {/* Quick Scholar Profile Circular Avatar (No Name Text) */}
           <button
             onClick={onOpenProfile}
-            className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-800 dark:text-neutral-200 transition-all active:scale-95 text-xs font-medium cursor-pointer shadow-2xs"
+            className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs overflow-hidden"
             title="Open Scholar Account"
+            aria-label="Profile"
           >
-            <div className="h-5 w-5 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] flex items-center justify-center font-bold text-[10px] uppercase">
-              {profile.full_name?.charAt(0) || 'S'}
-            </div>
-            <span className="hidden sm:inline font-sans text-[11px] font-semibold text-neutral-800 dark:text-neutral-200">
-              {profile.full_name?.split(' ')[0] || 'Scholar'}
-            </span>
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.full_name || 'Scholar'}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] flex items-center justify-center font-bold text-[11px] uppercase">
+                {profile.full_name?.charAt(0) || 'S'}
+              </div>
+            )}
           </button>
         </div>
       </div>

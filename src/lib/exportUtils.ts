@@ -52,7 +52,7 @@ export function downloadAsDocx(filename: string, title: string, markdownContent:
 </head>
 <body>
   <div class="header-box">
-    <strong>COHART ACADEMIC AI — ARA</strong><br/>
+    <strong>AURORA OS — ACADEMIC INTELLIGENCE</strong><br/>
     Generated on: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}<br/>
     Topic: ${escapeXml(title)}
   </div>
@@ -91,7 +91,7 @@ export function downloadAsPdf(filename: string, title: string, markdownContent: 
 <html>
 <head>
   <meta charset="utf-8">
-  <title>${escapeXml(title)} - Cohart Ara</title>
+  <title>${escapeXml(title)} - Aurora OS</title>
   <style>
     @page { margin: 20mm; }
     body {
@@ -134,7 +134,7 @@ export function downloadAsPdf(filename: string, title: string, markdownContent: 
 </head>
 <body>
   <div class="header">
-    <div class="logo">COHART • ARA AI</div>
+    <div class="logo">AURORA OS • INTELLIGENCE</div>
     <div class="date">${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
   </div>
   <p>${htmlBody}</p>
