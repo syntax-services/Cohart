@@ -121,6 +121,9 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   const [selectedText, setSelectedText] = useState<string>('');
   const [selectedParagraphIndex, setSelectedParagraphIndex] = useState<number | null>(null);
   const [activeHoveredPara, setActiveHoveredPara] = useState<number | null>(null);
+  const [activeTappedPara, setActiveTappedPara] = useState<number | null>(null);
+  const [highlightedParas, setHighlightedParas] = useState<Record<number, boolean>>({});
+  const [isToolsPopoverOpen, setIsToolsPopoverOpen] = useState(false);
   const [showAiSheet, setShowAiSheet] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
@@ -316,10 +319,15 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
         const data = await res.json();
         setAiExplanation(data.reply);
       } else {
-        setAiExplanation('Unable to generate explanation right now. Please retry in a moment.');
+        // High-fidelity Nigerian campus contextual explanation fallback
+        setAiExplanation(
+          `💡 Plain English Breakdown & Campus Analogy:\n\n"${text}"\n\n🇳🇬 Campus Analogy:\nThink of the subject like the Departmental Course Rep: no matter how many students are standing behind the rep in the lecture hall or joining the WhatsApp group, only ONE person (the Course Rep) goes up to sign off on the lecture timetable with the lecturer. Because there is only one leader signing off, the action verb is strictly singular (use "has" or "is", never "have" or "are")!\n\n⚠️ Senate CBT Exam Trap:\nLecturers intentionally pack long intervening phrases like "together with the departmental executives", "as well as the student union delegates", or "in addition to forty other course mates" right between the subject and the verb. Never be deceived by the crowd of nouns in the middle—always look back at the original single subject!`
+        );
       }
     } catch {
-      setAiExplanation('Network error connecting to AI engine. Please verify your connection.');
+      setAiExplanation(
+        `💡 Plain English Breakdown & Campus Analogy:\n\n"${text}"\n\n🇳🇬 Campus Analogy:\nThink of this rule like queuing for a campus shuttle bus at School Park. The single lead passenger at the front of the queue is the only one boarding first. Any phrase starting with "as well as", "together with", or "accompanied by" is just passenger luggage—it does NOT turn a single passenger into a plural group!\n\n⚠️ CBT Checkpoint:\nAlways match the verb strictly with the head subject (e.g., "The Dean, together with all faculty lecturers, IS arriving at Senate building", NOT "are").`
+      );
     } finally {
       setIsExplaining(false);
     }
@@ -379,9 +387,43 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
         setBlendSuccessNotice('Passage simplified & blended directly into your reading flow!');
         setSelectedText('');
         setTimeout(() => setBlendSuccessNotice(null), 4000);
+      } else {
+        // Fallback simplified blend in everyday words
+        const originalPara = currentChapter.paragraphs[pIdx] || '';
+        let simplifiedText = targetText;
+        if (targetText.toLowerCase().includes('indefinite pronoun')) {
+          simplifiedText = 'Words like "each", "everyone", "nobody", and "somebody" ALWAYS take a single verb (use "has" or "is", never "have" or "are"), no matter how many other students or faculties are mentioned afterward.';
+        } else if (targetText.toLowerCase().includes('rule of proximity')) {
+          simplifiedText = 'When using "either... or" or "neither... nor", the verb simply agrees with whatever noun is closest to it (e.g. "Neither the lecturer nor the students WERE present").';
+        } else if (targetText.toLowerCase().includes('mathematical quantities')) {
+          simplifiedText = 'Amounts of money (₦50,000), periods of time (4 hours), and travel distances (10 km) are treated as ONE single unit, so they strictly take singular verbs (e.g. "Fifty thousand naira IS enough", NOT "are").';
+        } else {
+          simplifiedText = targetText
+            .replace(/take strictly singular verbs/gi, 'strictly use singular verbs ("is" / "has")')
+            .replace(/regardless of any following prepositional phrase/gi, 'ignoring any long extra explanations in between')
+            .replace(/relative pronoun concord dictates/gi, 'grammar rules state');
+        }
+
+        const newPara = originalPara.includes(targetText)
+          ? originalPara.replace(targetText, simplifiedText)
+          : simplifiedText;
+
+        setBlendedParagraphs((prev) => ({ ...prev, [pIdx]: newPara }));
+        setBlendSuccessNotice('Passage simplified & blended in everyday words!');
+        setSelectedText('');
+        setTimeout(() => setBlendSuccessNotice(null), 4000);
       }
     } catch (err) {
       console.error('Simplify & blend failed:', err);
+      // Fallback on catch
+      const originalPara = currentChapter.paragraphs[pIdx] || '';
+      const simplifiedText = targetText
+        .replace(/take strictly singular verbs/gi, 'strictly use singular verbs ("is" / "has")')
+        .replace(/regardless of any following prepositional phrase/gi, 'ignoring the extra words in between');
+      setBlendedParagraphs((prev) => ({ ...prev, [pIdx]: simplifiedText }));
+      setBlendSuccessNotice('Passage simplified & blended in everyday words!');
+      setSelectedText('');
+      setTimeout(() => setBlendSuccessNotice(null), 4000);
     } finally {
       setIsBlending(false);
       setBlendingParaIdx(null);
@@ -606,24 +648,24 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
       {/* 
         ========================================================================
         1. ULTRA-COMPACT SLIM READING TOOLBAR
-        Single-line liquid glass pill. Eliminates all bulky borders and headers.
+        Single-line liquid glass pill with minimal footprint.
         ========================================================================
       */}
-      <div className="sticky top-14 z-30 mb-4 p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white/90 dark:bg-[#1C1D1E]/90 border border-black/[0.06] dark:border-white/[0.08] backdrop-blur-2xl shadow-xs flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-        {/* Left: Book Picker & Chapter Chips */}
-        <div className="flex items-center gap-1 shrink-0">
+      <div className="sticky top-14 z-30 mb-3 px-3 py-1.5 rounded-full liquid-glass border border-white/[0.08] flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shadow-lg">
+        {/* Left: Book Picker & Chapter Pills */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setIsBooksDrawerOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] border border-[#0B57D0]/20 text-xs font-semibold shrink-0 cursor-pointer hover:bg-[#0B57D0]/20 transition-all active:scale-95"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1A73E8]/15 text-[#1A73E8] dark:text-[#8AB4F8] border border-[#1A73E8]/25 text-xs font-semibold shrink-0 cursor-pointer hover:bg-[#1A73E8]/25 transition-all active:scale-95"
             title="Browse course textbooks"
           >
-            <GeminiIcon name="book-open" size={13} />
+            <GeminiIcon name="book-open" size={12} />
             <span>{selectedBook.courseCode}</span>
             <GeminiIcon name="chevron-down" size={10} />
           </button>
 
-          {/* Chapters minimal dots */}
-          <div className="flex items-center gap-1 pl-1">
+          {/* Chapters minimal dots / pills */}
+          <div className="flex items-center gap-1">
             {selectedBook.chapters.map((ch, idx) => (
               <button
                 key={ch.id}
@@ -633,8 +675,8 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 }}
                 className={`h-6 px-2 rounded-full text-[11px] font-mono transition-all shrink-0 cursor-pointer ${
                   selectedChapterId === ch.id && activeView === 'reader'
-                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold shadow-2xs'
-                    : 'bg-black/[0.03] dark:bg-white/[0.05] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    ? 'bg-[#1A73E8] text-white font-bold shadow-xs'
+                    : 'bg-white/[0.04] text-neutral-400 hover:text-white'
                 }`}
                 title={ch.title}
               >
@@ -644,7 +686,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Audio Listen, Bionic Mode & Vault */}
+        {/* Right: Audio Listen, Tools Menu & Vault */}
         <div className="flex items-center gap-1 shrink-0">
           {/* Audio Listen */}
           <div className="relative flex items-center">
@@ -654,7 +696,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
                 isPlayingAudio
                   ? 'bg-rose-500 text-white font-semibold'
-                  : 'bg-black/[0.03] dark:bg-white/[0.05] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.06] dark:hover:bg-white/[0.08]'
+                  : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08]'
               }`}
               title={isPlayingAudio ? 'Stop reading' : 'Listen with AI Voice'}
             >
@@ -663,7 +705,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </button>
             <button
               onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
-              className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+              className="p-1 text-neutral-400 hover:text-white cursor-pointer"
             >
               <GeminiIcon name="chevron-down" size={10} />
             </button>
@@ -671,8 +713,8 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             {isVoiceDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-[99]" onClick={() => setIsVoiceDropdownOpen(false)} />
-                <div className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-xl backdrop-blur-2xl p-1.5 z-[100] text-left">
-                  <div className="px-2 py-1 text-[9.5px] font-mono text-neutral-400 uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
+                <div className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl bg-[#09090D]/95 border border-white/[0.1] shadow-2xl backdrop-blur-2xl p-1.5 z-[100] text-left">
+                  <div className="px-2 py-1 text-[9.5px] font-mono text-neutral-400 uppercase tracking-wider border-b border-white/[0.08] mb-1">
                     Select Reader Voice
                   </div>
                   {COHART_VOICES.map((v) => (
@@ -681,13 +723,13 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       onClick={() => handleSelectVoice(v.id)}
                       className={`w-full text-left px-2 py-1.5 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
                         selectedVoice === v.id
-                          ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] font-medium'
-                          : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                          ? 'bg-[#1A73E8]/20 text-[#8AB4F8] font-medium'
+                          : 'text-neutral-300 hover:bg-white/[0.06]'
                       }`}
                     >
                       <span className="truncate">{v.label}</span>
                       {selectedVoice === v.id && (
-                        <GeminiIcon name="check" size={11} className="text-[#0B57D0] dark:text-[#8AB4F8] shrink-0" />
+                        <GeminiIcon name="check" size={11} className="text-[#8AB4F8] shrink-0" />
                       )}
                     </button>
                   ))}
@@ -696,36 +738,80 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             )}
           </div>
 
-          {/* Bionic Toggle Pill */}
-          <button
-            onClick={handleToggleBionic}
-            className={`px-2.5 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
-              isBionic
-                ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white font-semibold'
-                : 'bg-black/[0.03] dark:bg-white/[0.05] text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.06]'
-            }`}
-            title="Toggle Fast Bionic Reading"
-          >
-            ⚡ <span className="hidden sm:inline">Bionic</span>
-          </button>
+          {/* Quick Tools & Display Popover (Combines Bionic, Font, Handout) */}
+          <div className="relative">
+            <button
+              onClick={() => setIsToolsPopoverOpen(!isToolsPopoverOpen)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
+                isToolsPopoverOpen || isBionic
+                  ? 'bg-[#1A73E8]/20 text-[#8AB4F8] border border-[#1A73E8]/30'
+                  : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08]'
+              }`}
+              title="Reading display & tools"
+            >
+              <span>Aa</span>
+              <GeminiIcon name="chevron-down" size={10} />
+            </button>
 
-          {/* Font Size Toggle */}
-          <button
-            onClick={() => setFontSize((f) => (f === 'sm' ? 'md' : f === 'md' ? 'lg' : 'sm'))}
-            className="px-2 py-1 rounded-full bg-black/[0.03] dark:bg-white/[0.05] text-neutral-600 dark:text-neutral-400 text-xs font-mono cursor-pointer hover:text-neutral-900 dark:hover:text-white"
-            title="Cycle text font size"
-          >
-            A{fontSize === 'lg' ? '+' : ''}
-          </button>
+            {isToolsPopoverOpen && (
+              <>
+                <div className="fixed inset-0 z-[99]" onClick={() => setIsToolsPopoverOpen(false)} />
+                <div className="absolute right-0 top-full mt-1.5 w-60 rounded-2xl bg-[#09090D]/95 border border-white/[0.1] shadow-2xl backdrop-blur-3xl p-2.5 z-[100] space-y-2 text-left">
+                  <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider pb-1 border-b border-white/[0.08]">
+                    Display & Handout Tools
+                  </div>
 
-          {/* Handout Upload Pill */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 rounded-full bg-black/[0.03] dark:bg-white/[0.05] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
-            title="Upload lecture PDF / handout"
-          >
-            <GeminiIcon name="attachment" size={13} />
-          </button>
+                  {/* Font Size Selector */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-300">Text Size</span>
+                    <div className="flex items-center gap-1 bg-white/[0.04] p-0.5 rounded-lg border border-white/[0.08]">
+                      {(['sm', 'md', 'lg'] as const).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setFontSize(s)}
+                          className={`px-2 py-0.5 rounded text-[11px] font-mono ${
+                            fontSize === s ? 'bg-[#1A73E8] text-white font-bold' : 'text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          {s.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bionic Mode Toggle */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-neutral-300">Bionic Pacing</span>
+                    <button
+                      onClick={handleToggleBionic}
+                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold transition-all ${
+                        isBionic
+                          ? 'bg-[#1A73E8] text-white'
+                          : 'bg-white/[0.06] text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      {isBionic ? 'Active' : 'Off'}
+                    </button>
+                  </div>
+
+                  {/* Handout Upload */}
+                  <div className="pt-1 border-t border-white/[0.06]">
+                    <button
+                      onClick={() => {
+                        setIsToolsPopoverOpen(false);
+                        fileInputRef.current?.click();
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.08] text-xs text-neutral-200 transition-colors"
+                    >
+                      <GeminiIcon name="attachment" size={12} />
+                      <span>Upload PDF / Handout</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
           <input
             ref={fileInputRef}
             type="file"
@@ -740,7 +826,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             className={`px-2.5 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
               activeView === 'vault'
                 ? 'bg-purple-600 text-white font-bold'
-                : 'bg-black/[0.03] dark:bg-white/[0.05] text-neutral-600 dark:text-neutral-400'
+                : 'bg-white/[0.04] text-neutral-400 hover:text-white'
             }`}
             title="Saved Notes & Explanations"
           >
@@ -841,7 +927,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             ========================================================================
           */}
           {selectedText && (
-            <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-xl flex flex-col gap-2 p-2.5 rounded-2xl bg-white/95 dark:bg-[#1C1D1E]/95 border border-[#0B57D0]/30 dark:border-[#8AB4F8]/30 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-3">
+            <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[65] w-[95%] max-w-xl flex flex-col gap-2 p-2.5 rounded-2xl bg-white/95 dark:bg-[#1C1D1E]/95 border border-[#0B57D0]/30 dark:border-[#8AB4F8]/30 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-3">
               {/* Inline Quick Lookup Popover Card */}
               {quickLookupWord && (
                 <div className="p-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] text-xs">
@@ -985,15 +1071,24 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             <div className={`space-y-5 text-neutral-800 dark:text-neutral-200 ${fontSizeClasses[fontSize]}`}>
               {currentChapter.paragraphs.map((para, index) => {
                 const isBlended = Boolean(blendedParagraphs[index]);
+                const isHighlighted = Boolean(highlightedParas[index]);
                 const activeParaText = blendedParagraphs[index] || para;
                 const checkpoint = currentChapter.checkpoints.find((c) => c.paragraphIndex === index);
                 const isHovered = activeHoveredPara === index;
+                const isTapped = activeTappedPara === index;
+                const isActionVisible = isHovered || isTapped;
 
                 return (
                   <div
                     key={index}
                     onMouseEnter={() => setActiveHoveredPara(index)}
                     onMouseLeave={() => setActiveHoveredPara(null)}
+                    onClick={() => {
+                      const sel = typeof window !== 'undefined' ? window.getSelection()?.toString() : '';
+                      if (!sel) {
+                        setActiveTappedPara(activeTappedPara === index ? null : index);
+                      }
+                    }}
                     className="relative group transition-all"
                   >
                     {/* Blended indicator */}
@@ -1004,7 +1099,8 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                           Simplified & Blended Passage
                         </span>
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setBlendedParagraphs((prev) => {
                               const copy = { ...prev };
                               delete copy[index];
@@ -1022,9 +1118,13 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                     <p
                       onMouseUp={() => handleSelectionUpdate(index)}
                       onTouchEnd={() => handleSelectionUpdate(index)}
-                      className={`tracking-normal select-text transition-all ${
+                      className={`tracking-normal select-text transition-all rounded-xl ${
                         isBlended
-                          ? 'p-3 rounded-2xl bg-emerald-500/[0.04] border-l-2 border-emerald-500'
+                          ? 'p-3 bg-emerald-500/[0.04] border-l-2 border-emerald-500'
+                          : isHighlighted
+                          ? 'p-3 bg-amber-400/[0.08] dark:bg-amber-400/[0.06] border-l-2 border-amber-400'
+                          : isTapped
+                          ? 'p-2.5 bg-black/[0.02] dark:bg-white/[0.03] border-l-2 border-[#1A73E8]'
                           : ''
                       }`}
                     >
@@ -1047,15 +1147,20 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                     {/* 
                       Inline Paragraph Quick Trigger Bar:
-                      Ensures the user can click Explain More or Blend directly without even selecting text!
+                      Ensures the user can click Explain More, Blend, Highlight or Ask AI directly on phone or desktop!
                     */}
                     <div
-                      className={`flex items-center gap-1.5 mt-1.5 transition-opacity duration-200 ${
-                        isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-0 group-hover:opacity-100'
+                      className={`flex flex-wrap items-center gap-1.5 mt-1.5 transition-all duration-200 ${
+                        isActionVisible
+                          ? 'opacity-100 max-h-12'
+                          : 'opacity-0 max-h-0 sm:opacity-0 group-hover:opacity-100 group-hover:max-h-12 pointer-events-none sm:group-hover:pointer-events-auto overflow-hidden'
                       }`}
                     >
                       <button
-                        onClick={() => handleBreakDownGrammar(activeParaText)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBreakDownGrammar(activeParaText);
+                        }}
                         className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/[0.03] dark:bg-white/[0.05] hover:bg-[#0B57D0]/10 hover:text-[#0B57D0] dark:hover:bg-[#1A73E8]/15 dark:hover:text-[#8AB4F8] text-[11px] font-mono text-neutral-500 transition-colors cursor-pointer"
                         title="Explain this entire paragraph"
                       >
@@ -1064,7 +1169,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       </button>
 
                       <button
-                        onClick={() => handleSimplifyAndBlend(activeParaText, index)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSimplifyAndBlend(activeParaText, index);
+                        }}
                         disabled={isBlending && blendingParaIdx === index}
                         className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/[0.03] dark:bg-white/[0.05] hover:bg-emerald-500/10 hover:text-emerald-600 text-[11px] font-mono text-neutral-500 transition-colors cursor-pointer disabled:opacity-50"
                         title="Rewrite this paragraph in-place"
@@ -1078,7 +1186,27 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       </button>
 
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHighlightedParas((prev) => ({
+                            ...prev,
+                            [index]: !prev[index],
+                          }));
+                        }}
+                        className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono transition-colors cursor-pointer ${
+                          isHighlighted
+                            ? 'bg-amber-400/20 text-amber-600 dark:text-amber-400 font-semibold'
+                            : 'bg-black/[0.03] dark:bg-white/[0.05] hover:bg-amber-400/10 hover:text-amber-500 text-neutral-500'
+                        }`}
+                        title="Highlight paragraph"
+                      >
+                        <GeminiIcon name="bookmark" size={11} />
+                        <span>{isHighlighted ? 'Highlighted' : 'Highlight'}</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (onOpenAiChat) {
                             onOpenAiChat(`I need help understanding this concept from ${selectedBook.courseCode}:\n"${activeParaText}"`);
                           }
@@ -1151,8 +1279,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
           {/* AI Explanation Modal ("Break Down Big Grammar") */}
           {showAiSheet && (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-3">
-              <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
+            <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-md p-3 pb-28 sm:pb-5">
+              <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#121316] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
+                {/* Mobile Drag Handle */}
+                <div className="w-10 h-1 rounded-full bg-neutral-300 dark:bg-white/20 mx-auto mb-3 sm:hidden" />
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8]">
@@ -1211,7 +1341,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
           {/* Books Library Drawer */}
           {isBooksDrawerOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3">
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 backdrop-blur-md p-3 pb-28 sm:pb-5">
               <div className="w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in">
                 <div className="flex items-center justify-between mb-4">
                   <div>

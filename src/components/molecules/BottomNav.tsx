@@ -66,7 +66,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
       <div className="max-w-sm mx-auto pointer-events-auto">
         <nav
           aria-label="Bottom Navigation"
-          className="relative flex items-center justify-between rounded-full bg-white/20 dark:bg-black/20 border border-black/[0.06] dark:border-white/[0.08] backdrop-blur-3xl backdrop-saturate-200 px-2 py-1.5 shadow-2xl shadow-black/5 dark:shadow-black/50"
+          className="relative flex items-center justify-between rounded-full liquid-glass px-2.5 py-1.5 shadow-2xl shadow-black/40"
         >
           {navItems.map((item, idx) => {
             const isActive = activeTab === item.id;
@@ -92,7 +92,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                   <motion.div
                     layoutId="activeNavBg"
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    className="absolute inset-0 rounded-full bg-white/70 dark:bg-white/10 border border-black/[0.06] dark:border-white/[0.15] shadow-xs"
+                    className="absolute inset-0 rounded-full bg-white/70 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.14] shadow-xs"
                   />
                 )}
 

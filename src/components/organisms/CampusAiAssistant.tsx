@@ -1178,35 +1178,29 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
       {/* Main Full-Screen AI Content Workstation */}
       <div className="flex-1 flex flex-col h-full min-w-0">
-        {/* Minimalist Top Bar matching site theme */}
-        <header className="h-14 px-4 shrink-0 flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-[#131314]">
-          <div className="flex items-center gap-3">
+        {/* Minimalist Liquid Glass Top Bar */}
+        <header className="h-14 px-3 sm:px-4 shrink-0 flex items-center justify-between border-b border-black/[0.05] dark:border-white/[0.06] bg-white/70 dark:bg-[#050507]/75 backdrop-blur-3xl relative z-20">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Custom 2-Sleek-Lines Menu Button */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-1 rounded-full text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer flex items-center justify-center"
+              className="w-9 h-9 rounded-full text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all cursor-pointer flex items-center justify-center shrink-0"
               title="Open Chat Sessions"
             >
-              <GeminiIcon name="two-lines" size={19} />
+              <GeminiIcon name="two-lines" size={17} />
             </button>
 
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white truncate max-w-[140px] sm:max-w-xs font-sans">
-                {activeConversation?.title || 'Lumen'}
-              </h2>
-            </div>
-
-            {/* Lumen Model Tier Selector Pill */}
+            {/* Aurora Model Tier Selector Pill */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/30 text-[#0B57D0] dark:text-[#1A73E8] text-xs font-semibold hover:bg-[#0B57D0]/20 transition-all cursor-pointer shadow-xs"
-                title="Choose Lumen Orchestration Engine"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] text-neutral-800 dark:text-neutral-200 text-xs font-semibold hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all cursor-pointer shadow-xs"
+                title="Choose Aurora Intelligence Engine"
               >
-                <GeminiIcon name="sparkle" size={12} />
-                <span className="hidden sm:inline">{AI_MODELS[selectedModelTier]?.name || 'Lumen Astral'}</span>
-                <span className="sm:hidden font-mono">{AI_MODELS[selectedModelTier]?.badge || 'Astral'}</span>
+                <GeminiIcon name="sparkle" size={12} className="text-[#0B57D0] dark:text-[#1A73E8]" />
+                <span className="hidden sm:inline">{AI_MODELS[selectedModelTier]?.name || 'Aurora Lumen'}</span>
+                <span className="sm:hidden font-mono text-[11px]">{AI_MODELS[selectedModelTier]?.badge || 'Lumen'}</span>
                 <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-black/10 dark:bg-white/10 uppercase hidden md:inline">
                   {AI_MODELS[selectedModelTier]?.speed}
                 </span>
@@ -1259,6 +1253,30 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   })}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Dynamic Floating AI Status Island (from Muse/Babe reference screen_093400/screen_093549) */}
+          <div className="hidden md:flex flex-col items-center justify-center select-none pointer-events-none">
+            <div className="px-3.5 py-1 rounded-full liquid-glass flex items-center gap-2 shadow-xs transition-all">
+              <div className="flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full ${isTyping ? 'bg-[#1A73E8] animate-ping' : isRecording ? 'bg-rose-500 animate-pulse' : 'bg-emerald-400'}`} />
+                <span className="text-xs font-bold tracking-tight text-neutral-900 dark:text-white font-sans">
+                  Aurora
+                </span>
+              </div>
+              <span className="text-neutral-400 dark:text-neutral-600 text-[10px]">•</span>
+              <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 truncate max-w-[160px] lg:max-w-[220px]">
+                {isTyping
+                  ? 'Researching syllabus...'
+                  : isRecording
+                  ? 'Listening (Deepgram)...'
+                  : isTranscribing
+                  ? 'Transcribing audio...'
+                  : currentMode === 'grill_mode'
+                  ? 'Exam Practice CBT'
+                  : 'Active • Ready'}
+              </span>
             </div>
           </div>
 
@@ -1320,17 +1338,36 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
             return (
               <div
                 key={m.id}
-                className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
+                className={`relative flex flex-col ${isUser ? 'items-end' : 'items-start'} group w-full`}
               >
-                <div
-                  className={`max-w-[90%] sm:max-w-[85%] rounded-[1.5rem] p-5 text-sm sm:text-base leading-relaxed transition-all shadow-sm ${
+                {/* Swipe Reply Gesture Indicator Backdrop */}
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-[#1A73E8] pointer-events-none opacity-0 group-hover:opacity-60 transition-opacity">
+                  <GeminiIcon name="arrow-left" size={14} className="rotate-180" />
+                  <span className="text-[10px] font-mono uppercase font-bold tracking-wider">Swipe to reply</span>
+                </div>
+
+                <motion.div
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 65 }}
+                  dragElastic={0.15}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.x > 38) {
+                      setReplyingTo({
+                        id: m.id,
+                        role: m.role,
+                        senderName: isUser ? 'You' : (m.modelName || 'Aurora'),
+                        snippet: m.content.slice(0, 100),
+                      });
+                    }
+                  }}
+                  className={`max-w-[88%] sm:max-w-[84%] rounded-[1.4rem] p-4 text-sm sm:text-[15px] leading-relaxed transition-all shadow-xs relative z-10 ${
                     isUser
-                      ? 'bg-[#0B57D0] text-white rounded-br-md'
-                      : 'bg-white dark:bg-[#1E1F20] shadow-[0_1px_2px_rgba(0,0,0,0.03)] ring-1 ring-black/[0.06] dark:ring-white/[0.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] text-neutral-900 dark:text-neutral-100 rounded-bl-md'
+                      ? 'bg-[#1A73E8] text-white rounded-br-sm shadow-md'
+                      : 'liquid-glass text-neutral-900 dark:text-neutral-100 rounded-bl-sm dark:bg-white/[0.035] dark:border-white/[0.07]'
                   }`}
                 >
                   <div className={`flex items-center justify-between text-xs font-semibold mb-2 ${isUser ? 'text-white/80' : 'text-neutral-500 dark:text-neutral-400'}`}>
-                    <span>{isUser ? 'You' : `Lumen (${m.modelTier ? (AI_MODELS[m.modelTier as ModelTierId]?.badge || 'Codex') : 'Codex'})`} • {m.timestamp}</span>
+                    <span>{isUser ? 'You' : `Aurora (${m.modelTier ? (AI_MODELS[m.modelTier as ModelTierId]?.badge || 'Lumen') : 'Lumen'})`} • {m.timestamp}</span>
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => {
@@ -1813,17 +1850,49 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                       </button>
                     </div>
                   )}
-                </div>
+                </motion.div>
               </div>
             );
           })}
 
+          {/* Real-time Agentic Research & Thinking Capsule (from screen_093400) */}
           {isTyping && (
-            <div className="flex items-center gap-1.5 p-3 rounded-2xl bg-white/80 dark:bg-[#181B24]/80 border border-black/[0.06] dark:border-white/[0.08] w-20 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] animate-bounce" />
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] animate-bounce [animation-delay:0.2s]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] animate-bounce [animation-delay:0.4s]" />
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 450, damping: 30 }}
+              className="flex flex-col items-start gap-2 max-w-[90%] sm:max-w-md w-full"
+            >
+              {/* Agentic Activity Card from reference */}
+              <div className="p-3 rounded-2xl liquid-glass flex items-center gap-3 w-full shadow-lg">
+                <div className="w-8 h-8 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/20 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8] shrink-0">
+                  <GeminiIcon name="sparkle" size={15} className="animate-spin text-[#1A73E8]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                      {currentMode === 'grill_mode' ? 'Exam CBT Engine' : 'Aurora Intelligence'}
+                    </span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#1A73E8]/15 text-[#1A73E8] border border-[#1A73E8]/25 font-semibold">
+                      Thinking
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5 font-mono">
+                    {attachedFiles.length > 0
+                      ? `Analyzing ${attachedFiles.length} attached document(s)...`
+                      : 'Cross-referencing NUC syllabus & campus context...'}
+                  </p>
+                </div>
+              </div>
+
+              {/* 3-pulse typing dots */}
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full liquid-glass w-fit">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1A73E8] animate-bounce" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1A73E8] animate-bounce [animation-delay:0.2s]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1A73E8] animate-bounce [animation-delay:0.4s]" />
+              </div>
+            </motion.div>
           )}
         </div>
 
@@ -1926,14 +1995,14 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
 
             {/* Active Quoted Message Reply Banner */}
             {replyingTo && (
-              <div className="flex items-center justify-between px-3.5 py-2 mb-2 rounded-2xl bg-white/95 dark:bg-[#1E1F20]/95 border border-[#0B57D0]/30 dark:border-[#1A73E8]/30 shadow-md backdrop-blur-md animate-in slide-in-from-bottom-2">
+              <div className="flex items-center justify-between px-3.5 py-2 mb-2 rounded-2xl liquid-glass border border-[#1A73E8]/30 shadow-md backdrop-blur-2xl animate-in slide-in-from-bottom-2">
                 <div className="flex items-center gap-2 overflow-hidden min-w-0">
                   <div className="h-6 w-6 rounded-lg bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8] shrink-0">
                     <GeminiIcon name="chat" size={13} />
                   </div>
                   <div className="truncate text-xs">
                     <span className="font-bold text-[#0B57D0] dark:text-[#1A73E8]">
-                      Replying to {replyingTo.senderName || (replyingTo.role === 'user' ? 'You' : 'Lumen')}:
+                      Replying to {replyingTo.senderName || (replyingTo.role === 'user' ? 'You' : 'Aurora')}:
                     </span>
                     <span className="text-neutral-600 dark:text-neutral-300 ml-1.5 italic truncate">
                       "{replyingTo.snippet}"
@@ -1946,13 +2015,14 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                   className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0 ml-2"
                   title="Cancel reply"
                 >
-                  
+                  <GeminiIcon name="close" size={13} />
                 </button>
               </div>
             )}
 
-            {/* Input Bar Form with Deepgram Nova-3 Voice Input */}
-              {/* Hidden file input for multi-file upload (up to 3 heavy / 5 text, 10MB total batch cap) */}
+            {/* Input Bar Form: Unified Liquid Glass Pill (Matching reference screen_093400) */}
+            <div className="flex items-center gap-1.5 p-1.5 pl-2 rounded-full liquid-glass border border-black/[0.08] dark:border-white/[0.1] focus-within:border-[#1A73E8] dark:focus-within:border-[#1A73E8] transition-all shadow-xl">
+              {/* Hidden file input */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1962,16 +2032,17 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                 className="hidden"
               />
 
+              {/* Leading Attachment Plus Button */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-xl text-neutral-500 hover:text-[#0B57D0] dark:hover:text-[#1A73E8] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
+                className="w-10 h-10 rounded-full text-neutral-500 hover:text-[#1A73E8] dark:hover:text-[#8AB4F8] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-all cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
                 title="Attach files: Up to 3 for PDFs/Images/Word or 5 for text files (Max 10MB total batch)"
               >
-                <GeminiIcon name="attachment" size={17} />
+                <GeminiIcon name="attachment" size={18} />
               </button>
 
-              <div className="flex items-center gap-2 p-2 rounded-[1.25rem] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] focus-within:border-[#0B57D0] dark:focus-within:border-[#1A73E8] transition-colors">
+              {/* Main Message Text Input */}
               <input
                 ref={inputRef}
                 type="text"
@@ -1990,48 +2061,48 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
                     ? 'Transcribing speech...'
                     : currentMode === 'grill_mode'
                     ? 'Type your answer or tap mic...'
-                    : 'Ask questions or tap mic...'
+                    : 'Message Aurora...'
                 }
-                className="flex-1 min-w-0 bg-transparent px-4 py-3 text-sm sm:text-base font-medium text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none font-sans"
+                className="flex-1 min-w-0 bg-transparent px-2 py-2 text-sm sm:text-base font-medium text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none font-sans"
               />
 
-              {/* Action Buttons Right: Mic & Send */}
-              <div className="flex items-center gap-2 shrink-0 pr-1">
+              {/* Action Buttons Right: Voice Mic & Solid Electric Blue Send Button */}
+              <div className="flex items-center gap-1.5 shrink-0 pr-1">
                 <button
                   type="button"
                   onClick={isRecording ? handleStopRecording : handleStartRecording}
                   disabled={isTranscribing}
-                  className={`flex h-11 w-11 items-center justify-center rounded-[0.85rem] transition-all active:scale-95 cursor-pointer shrink-0 ${
+                  className={`w-9 h-9 flex items-center justify-center rounded-full transition-all active:scale-95 cursor-pointer shrink-0 ${
                     isRecording
                       ? 'bg-rose-500 text-white animate-bounce shadow-md'
                       : isTranscribing
                       ? 'bg-amber-500/20 text-amber-500'
-                      : 'bg-black/[0.04] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.08] dark:hover:bg-white/[0.12]'
+                      : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.08]'
                   }`}
                   title={isRecording ? 'Stop Recording' : 'Voice Input (Deepgram Nova-3)'}
                 >
                   {isTranscribing ? (
-                    <GeminiIcon name="loader" size={20} />
+                    <GeminiIcon name="loader" size={17} />
                   ) : isRecording ? (
-                    <GeminiIcon name="mic-off" size={20} />
+                    <GeminiIcon name="mic-off" size={17} />
                   ) : (
-                    <GeminiIcon name="mic" size={20} />
+                    <GeminiIcon name="mic" size={17} />
                   )}
                 </button>
 
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim()}
-                  className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-sm shrink-0"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1A73E8] hover:bg-[#1A73E8]/90 text-white disabled:opacity-30 transition-all active:scale-95 cursor-pointer shadow-md shrink-0"
                   title="Send message"
                 >
-                  <GeminiIcon name="arrow-right" size={20} />
+                  <GeminiIcon name="arrow-right" size={18} />
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 px-1">
-              <span>{currentMode === 'grill_mode' ? 'Exam Practice Mode' : 'Cohart AI • Simple explanations for OOU students'}</span>
+            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 px-2 pt-0.5">
+              <span>{currentMode === 'grill_mode' ? 'Exam CBT Practice Mode' : 'Aurora OS • Intelligence Engine'}</span>
               <span>Press Enter to send</span>
             </div>
           </div>

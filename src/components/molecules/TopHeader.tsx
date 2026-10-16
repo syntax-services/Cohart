@@ -6,7 +6,6 @@ import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile } from '@/lib/types';
 import { WorkspaceModeDropdown } from './WorkspaceModeDropdown';
 import { NavTab } from './BottomNav';
-
 import { NotificationsPopover } from '@/components/notifications/NotificationsPopover';
 
 interface TopHeaderProps {
@@ -32,14 +31,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-black/[0.05] dark:border-white/[0.06] bg-white/85 dark:bg-[#131314]/85 backdrop-blur-2xl transition-colors">
+    <header className="sticky top-0 z-40 w-full border-b border-black/[0.05] dark:border-white/[0.06] bg-white/80 dark:bg-[#050507]/80 backdrop-blur-3xl transition-colors">
       <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
-        {/* Left: Brand Logo */}
+        {/* Left: Brand Logo with Extraterrestrial uncrossed Λ and OS pill */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-          <BrandLogo size={23} subtitle="Intelligence" />
+          <BrandLogo size={24} subtitle="Intelligence" />
         </div>
 
-        {/* Center: Ultra-Compact Omnibox Search */}
+        {/* Center: Ultra-Compact Omnibox Search (Desktop/Tablet) */}
         <div className="flex-1 max-w-sm mx-4 hidden md:block">
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500">
@@ -50,7 +49,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               value={searchQuery}
               onChange={handleSearchChange}
               placeholder="Search lectures, Senate past questions, halls..."
-              className="w-full rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] pl-8 pr-8 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-500/70 focus:outline-none focus:border-[#0B57D0]/60 dark:focus:border-[#8AB4F8]/60 transition-colors font-sans"
+              className="w-full rounded-full bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] pl-8 pr-8 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-500/70 focus:outline-none focus:border-[#1A73E8] dark:focus:border-[#1A73E8] transition-colors font-sans"
             />
             <div className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[9.5px] font-mono text-neutral-400 dark:text-neutral-500 border border-black/[0.06] dark:border-white/[0.06]">
               ⌘K
@@ -77,7 +76,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {/* Quick Scholar Profile Circular Avatar (No Name Text) */}
           <button
             onClick={onOpenProfile}
-            className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs overflow-hidden"
+            className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-black/[0.08] dark:border-white/[0.1] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs overflow-hidden relative"
             title="Open Scholar Account"
             aria-label="Profile"
           >
@@ -88,7 +87,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="h-full w-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] flex items-center justify-center font-bold text-[11px] uppercase">
+              <div className="h-full w-full bg-[#1A73E8]/15 text-[#1A73E8] flex items-center justify-center font-bold text-[11px] uppercase">
                 {profile.full_name?.charAt(0) || 'S'}
               </div>
             )}
