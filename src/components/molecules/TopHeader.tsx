@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile } from '@/lib/types';
-import { WorkspaceModeDropdown } from './WorkspaceModeDropdown';
 import { NavTab } from './BottomNav';
 import { NotificationsPopover } from '@/components/notifications/NotificationsPopover';
 
@@ -57,15 +56,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: String-style Action Cluster: Mode Switcher + Notifications + Profile Avatar */}
+        {/* Right: String-style Action Cluster: Notifications + Profile Avatar */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          {/* 2-Icon Switcher Trigger */}
-          {onSelectTab && (
-            <WorkspaceModeDropdown
-              currentMode={currentTab}
-              onSelectMode={(target) => onSelectTab(target as NavTab)}
-            />
-          )}
 
           {/* Campus Notifications Popover */}
           <NotificationsPopover

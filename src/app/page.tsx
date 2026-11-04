@@ -257,7 +257,7 @@ export default function AppHomePage() {
               { id: 'arena', label: 'Campus Arena', icon: 'zap' },
               { id: 'schedule', label: 'Timetable', icon: 'calendar' },
               { id: 'ai', label: 'Messages', icon: 'chat' },
-              ...(isOouStudent(profile?.institution) ? [{ id: 'map', label: 'Campus Map', icon: 'map' }] : []),
+              { id: 'map', label: 'Campus Map', icon: 'map' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -351,8 +351,13 @@ export default function AppHomePage() {
           <div className="h-[75vh] sm:h-[80vh] w-full">
             <CampusMapWrapper
               locations={displayedLocations}
+              profile={profile}
               selectedLocationId={selectedLocationId}
               onSelectLocation={(loc) => setSelectedLocationId(loc.id)}
+              onOpenAiChat={(prompt) => {
+                if (prompt) setAiInitialPrompt(prompt);
+                handleTabChange('ai');
+              }}
             />
           </div>
         )}

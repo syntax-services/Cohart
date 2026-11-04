@@ -87,6 +87,42 @@ async function extractAndFetchUrlContent(text: string): Promise<string> {
   }
 }
 
+// Self-hosted Ollama on VPS caller (free, unlimited local inference for Ogun Summit)
+async function queryOllama(
+  baseUrl: string,
+  model: string,
+  promptText: string,
+  systemPromptText: string
+): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+    const cleanUrl = baseUrl.replace(/\/$/, '');
+    const res = await fetch(`${cleanUrl}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: model || 'qwen2.5:3b',
+        prompt: promptText,
+        system: systemPromptText,
+        stream: false,
+        options: {
+          temperature: 0.3,
+          num_ctx: 4096,
+        },
+      }),
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.response || null;
+  } catch (err) {
+    console.warn('[Ollama VPS Provider notice - falling over to Gemini]:', err);
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -845,9 +881,30 @@ Question or extra help needed: ${prompt || 'Break this down in simple words.'}`;
     let targetGeminiModel = tierConfig.geminiModel;
     let usedModel = targetGeminiModel;
 
-    // Primary Call with resolved tier parameters
-    try {
-      const response = await fetch(
+    // 0. Free VPS Ollama Execution (if configured and no binary image attachments)
+    const ollamaBaseUrl = process.env.OLLAMA_BASE_URL;
+    const ollamaModel = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
+    const hasBinaryFiles = incomingFiles.some((f: any) => f.mimeType && !f.mimeType.startsWith('text/'));
+
+    if (ollamaBaseUrl && !hasBinaryFiles) {
+      try {
+        const ollamaReply = await queryOllama(
+          ollamaBaseUrl,
+          ollamaModel,
+          userContent || 'Hello',
+          systemPrompt
+        );
+        if (ollamaReply && ollamaReply.trim()) {
+          replyText = ollamaReply.trim();
+          usedModel = `ollama/${ollamaModel}`;
+        }
+      } catch {}
+    }
+
+    // Primary Call with resolved tier parameters (Gemini API smart engine)
+    if (!replyText) {
+      try {
+        const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${targetGeminiModel}:generateContent?key=${apiKey}`,
         {
           method: 'POST',
@@ -870,6 +927,7 @@ Question or extra help needed: ${prompt || 'Break this down in simple words.'}`;
     } catch {
       // Fallback below
     }
+  }
 
     // Secondary fallback model
     if (!replyText) {

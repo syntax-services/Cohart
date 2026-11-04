@@ -28,7 +28,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
   onOpenProfile,
   onOpenAi,
 }) => {
-  const { timetable, logs, getAttendanceAdvice } = useAttendanceTracker(profile.id);
+  const { timetable, logs, getAttendanceAdvice } = useAttendanceTracker(profile.id, profile);
   const advice = getAttendanceAdvice();
   const nextLecture = timetable.find((t) => t.isLiveNow) || timetable[0];
 

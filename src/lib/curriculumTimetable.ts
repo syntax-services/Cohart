@@ -1,4 +1,5 @@
 import { TimetableItem, AttendanceLog } from './types';
+import { getOgunInstitution } from './ogunInstitutionsCatalog';
 
 export interface CurriculumCourse {
   code: string;
@@ -34,52 +35,92 @@ export interface StudentAttendanceBrief {
   attendanceAdvice: string;
 }
 
-// Landmark venues per Nigerian University
+// Landmark venues per Ogun State & Nigerian University
 export const UNIVERSITY_VENUES: Record<string, { halls: string[]; labs: string[]; auditoriums: string[] }> = {
   OOU: {
     halls: ['SMS Lecture Theatre (SLR 1)', 'Law Lecture Theatre 1 (LLT 1)', 'Law Lecture Theatre 2 (LLT 2)', 'Law Lecture Theatre 3 (LLT 3 - Motion Ground)', 'Economics Hall (ECO-H1)'],
     labs: ['ETF Complex Science Lab', 'ICT Centre CBT Lab', 'Faculty of Science Lab 2'],
     auditoriums: ['Otunba Gbenga Daniel (OGD) Hall', 'Mass Communication Hall', 'New Motion Arena'],
   },
-  UNILAG: {
-    halls: ['Julius Berger Lecture Theatre', 'Faculty of Social Sciences (FSS) LT', 'Law Annexe Hall 3', 'Engineering Lecture Theatre (ELT)', 'Distance Learning Institute (DLI) LT'],
-    labs: ['Science Complex Chemistry Lab', 'CITS Computer Laboratory', 'Faculty of Engineering Central Workshop'],
-    auditoriums: ['Jelili Omotola (Multipurpose) Hall', 'Afe Babalola Auditorium', 'Main Auditorium (UNILAG Lagoon Front)'],
+  FUNAAB: {
+    halls: ['JAO 1 Lecture Theatre', 'JAO 2 Lecture Theatre', 'COLENG LT 1', 'COLAMRUD Lecture Hall A', 'COLPHYS Hall B'],
+    labs: ['Mahmood Yakubu CBT Centre', 'COLPHYS Chemistry Central Lab', 'COLENG Engineering Workshop'],
+    auditoriums: ['FUNAAB Ceremonial Building Auditorium', 'INCUBS Conference Arena'],
   },
-  UI: {
-    halls: ['Large Lecture Theatre (LLT Faculty of Science)', 'CBN Lecture Theatre', 'Faculty of Arts Lecture Room 32', 'Faculty of Social Sciences LT', 'Faculty of Education Large Hall'],
-    labs: ['Kenneth Dike Computing Centre', 'Chemistry Central Research Lab', 'Zoology Practical Lab'],
-    auditoriums: ['Trenchard Hall', 'International Conference Centre (ICC)', 'Gamaliel Onosode Auditorium'],
+  TASUED: {
+    halls: ['Academic Quadrangle Lecture Hall', 'CEPEP Complex Hall 2', 'COAEVOT Hall 1', 'COSPED Lecture Room A'],
+    labs: ['TETFUND Ultra-Modern CBT Hall', 'COSIT Physics & Computing Lab'],
+    auditoriums: ['Otunba Gbenga Daniel Multi-Purpose Hall', 'University Central Auditorium'],
   },
-  OAU: {
-    halls: ['Spider Building Lecture Hall', 'Biological Sciences (BOOC) Hall', 'Yellow House Lecture Room', 'White House LT', 'Chemical Engineering LT', 'FSS Lecture Theatre'],
-    labs: ['Computer Buildings Lab A', 'Physics Practical Laboratories', 'Natural History Museum Science Lab'],
-    auditoriums: ['Oduduwa Hall', 'Motion Ground Open Pavilion', 'Amphi-Theatre OAU'],
+  MAPOLY: {
+    halls: ['School of Business Lecture Hall A', 'School of Engineering LT 1', 'School of Environmental Studies LT', 'Mass Comm Production Room'],
+    labs: ['Otunba Subomi Balogun CBT Centre', 'Science Technology Practical Lab', 'Digital Broadcast Studio'],
+    auditoriums: ['MAPOLY Central Auditorium (Ojere)', 'School of Business Conference Hall'],
   },
-  LASU: {
-    halls: ['3-in-1 Lecture Theatre', 'MBA Complex Hall 1', 'Faculty of Science Lecture Theatre', 'Faculty of Arts LT', 'Faculty of Law Lecture Room B'],
-    labs: ['LASU ICT Centre CBT Hall', 'Biological Sciences Laboratory', 'Engineering Workshop Ojo'],
-    auditoriums: ['Buba Marwa Auditorium', 'FSS Central Auditorium', 'University Library Complex'],
+  FPI: {
+    halls: ['Twin Lecture Theatre A', 'Twin Lecture Theatre B', 'School of Management Hall 1', 'School of Engineering LT'],
+    labs: ['FPI Ultra-Modern CBT Complex', 'Civil & Mechanical Engineering Workshops', 'Applied Sciences Lab'],
+    auditoriums: ['International Conference Centre (ICC Ilaro)', 'West Gate Multi-Purpose Hall'],
   },
-  FUTA: {
-    halls: ['ETF Lecture Theatre', 'Obanla 2-in-1 Hall', 'School of Engineering & Engineering Tech (SEET) LT', 'School of Sciences (SOS) Lecture Theatre', 'School of Earth & Mineral Sciences LT'],
-    labs: ['Computer Resource Centre (CRC)', 'Mechanical Engineering CAD Lab', 'School of Agriculture Farm Lab'],
-    auditoriums: ['Hilltop Auditorium', 'Obakekere Multipurpose Hall', 'FUTA North Gate Arena'],
+  BABCOCK: {
+    halls: ['Benjamin Carson Medical LT', 'Computing & Engineering Hall A', 'Law & Security Studies Hall B', 'Management Sciences Hall 1'],
+    labs: ['Computing Complex CBT Centre', 'BUTH Medical Skills Simulation Lab', 'Anatomy Dissection Lab'],
+    auditoriums: ['Babcock Amphitheatre', 'Pioneer Hall Auditorium'],
   },
-  ABU: {
-    halls: ['Ribadu Lecture Hall', 'Social Science Lecture Theatre', 'Faculty of Science LT Samaru', 'Faculty of Arts Room 14', 'Engineering Complex Hall C'],
-    labs: ['Iya Abubakar Computer Centre', 'Agricultural Research Institute Lab', 'Civil Engineering Hydraulics Lab'],
-    auditoriums: ['Assembly Hall ABU Samaru', 'Kashim Ibrahim Library Auditorium', 'Gymnasium Sports Hall'],
+  COVENANT: {
+    halls: ['CST Lecture Complex Hall 1', 'College of Engineering LT 2', 'CMSS Lecture Hall A', 'Leadership Studies Room 1'],
+    labs: ['CU Central CBT & Innovation Centre', 'Engineering CAD/CAM Workshops', 'CUCRID Research Lab'],
+    auditoriums: ['Covenant University University Chapel & Hall', 'African Leadership Development Auditorium'],
   },
-  BUK: {
-    halls: ['Twin Lecture Theatre (New Campus)', 'Faculty of Computer Science & IT LT', 'SMS Lecture Complex New Campus', 'Faculty of Law LT', 'Faculty of Arts Old Campus'],
-    labs: ['Centre for Information Technology (CIT) Lab', 'Physical Sciences Lab', 'Biological Sciences Lab'],
-    auditoriums: ['Convocation Arena New Campus', 'Attahiru Jega Auditorium', 'Old Campus Theatre'],
+  BELLSTECH: {
+    halls: ['College of Engineering LT', 'Natural Sciences Lecture Room A', 'Environmental Studies Hall'],
+    labs: ['Biomedical & Engineering CAD Lab', 'BellsTech Computing CBT Centre'],
+    auditoriums: ['Bells Multi-Purpose Event Auditorium'],
   },
-  UNN: {
-    halls: ['Carver Building Lecture Hall', 'Faculty of Social Sciences Large LT', 'Faculty of Arts Room 1', 'Engineering Lecture Theatre Nsukka', 'Faculty of Physical Sciences LT'],
-    labs: ['Nnamdi Azikiwe Computing Centre', 'Science Practical Complex', 'Pharmaceutical Sciences Lab'],
-    auditoriums: ['Princess Alexandra Auditorium (PAA)', 'Nnamdi Azikiwe Library Amphitheatre', 'Margret Ekpo Refectory Hall'],
+  GAPOSA: {
+    halls: ['School of Science & Tech Hall 1', 'School of Financial Studies LT', 'Engineering Technology Hall'],
+    labs: ['Gateway ICT Park CBT Centre', 'Computer Hardware Workshop'],
+    auditoriums: ['Gateway Poly Multi-Purpose Auditorium (Saapade)'],
+  },
+  OSCOHTECH: {
+    halls: ['Community Health Hall A', 'Health Information Lecture Room 1', 'Environmental Health Hall'],
+    labs: ['OSCOHTECH CBT Examination Hall', 'Clinical Skills Simulation Laboratory'],
+    auditoriums: ['College Memorial Auditorium (Ilese-Ijebu)'],
+  },
+  CRESCENT: {
+    halls: ['Bola Ajibola College of Law LT', 'CICOT Lecture Hall 1', 'Environmental Sciences Hall A'],
+    labs: ['CICOT Information Technology Lab', 'Crescent CBT Centre'],
+    auditoriums: ['Bola Ajibola Memorial Auditorium (Abeokuta)'],
+  },
+  MTU: {
+    halls: ['CBAS Lecture Theatre 1', 'CHMS Management Lecture Hall', 'Basic Sciences Hall A'],
+    labs: ['Cyber Security & Computing Lab', 'CBAS Central Science Lab'],
+    auditoriums: ['Mountain Top University Multi-Purpose Hall'],
+  },
+  CRAWFORD: {
+    halls: ['Natural Sciences Hall 1', 'Business Studies Lecture Room A', 'Social Sciences Hall B'],
+    labs: ['Faith City Computing Laboratory', 'Science Practical Lab'],
+    auditoriums: ['Crawford University Convocation Arena'],
+  },
+  AAPOLY: {
+    halls: ['Atikori Lecture Hall 1', 'School of Management Hall A'],
+    labs: ['AAPOLY CBT Centre (Ijebu-Igbo)', 'Computer Science Lab'],
+    auditoriums: ['Abraham Adesanya Memorial Auditorium'],
+  },
+  DSAP: {
+    halls: ['ICT Complex Lecture Room 1', 'School of Engineering Hall A', 'Management Sciences Hall'],
+    labs: ['DS Adegbenro CBT Centre', 'Engineering Technology Lab'],
+    auditoriums: ['Itori Campus Multi-Purpose Pavilion'],
+  },
+  TASCE: {
+    halls: ['School of Education Lecture Hall 1', 'Vocational Tech Workshop Hall', 'School of Arts Room A'],
+    labs: ['TASCE Science Lab', 'Computer Education CBT Lab'],
+    auditoriums: ['College Central Auditorium (Omu-Ijebu)'],
+  },
+  CHRISLAND: {
+    halls: ['Natural Sciences Hall 1', 'Basic Medical Sciences Hall A', 'Management Hall B'],
+    labs: ['Chrisland Central Research Lab', 'Biochemistry Practical Lab'],
+    auditoriums: ['Chrisland University Auditorium (Ajebo Road)'],
   },
   DEFAULT: {
     halls: ['Campus Central Lecture Theatre (CLT 1)', 'Faculty Lecture Room A', 'Faculty Lecture Room B', 'Departmental Seminar Hall', 'Management Sciences Complex'],
@@ -423,15 +464,18 @@ export function generateAssumedTimetable(
     ];
   }
 
-  // Find curriculum for student's department or fuzzy match
-  const normalizedDept = Object.keys(NUC_DEPARTMENT_CURRICULA).find((k) =>
-    department.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(department.toLowerCase())
-  ) || 'Computer Science';
+  // Check Ogun State Catalog for exact institution, department and level
+  const ogunInst = getOgunInstitution(institution);
+  const ogunDept = ogunInst?.departments.find(
+    (d) =>
+      d.name.toLowerCase() === department.toLowerCase() ||
+      department.toLowerCase().includes(d.name.toLowerCase()) ||
+      d.name.toLowerCase().includes(department.toLowerCase())
+  );
 
-  const normalizedLevel = ['100L', '200L', '300L', '400L'].find((l) => level.includes(l.replace('L', ''))) || '200L';
-
-  const deptCourses = NUC_DEPARTMENT_CURRICULA[normalizedDept]?.[normalizedLevel] ||
-    NUC_DEPARTMENT_CURRICULA['Computer Science']['200L'];
+  const normalizedLevel = ['100L', '200L', '300L', '400L', '500L', '600L', 'ND 1', 'ND 2', 'HND 1', 'HND 2'].find((l) =>
+    level.toUpperCase().includes(l.toUpperCase())
+  ) || '100L';
 
   const venues = getUniversityVenues(institution);
 
@@ -442,8 +486,41 @@ export function generateAssumedTimetable(
     { day: 'Tuesday', time: '09:00 - 11:00' },
     { day: 'Wednesday', time: '10:00 - 12:00' },
     { day: 'Thursday', time: '12:00 - 14:00' },
-    { day: 'Friday', time: '09:00 - 11:00' }, // Leaves Friday 13:00 - 14:00 clear for Juma'ah
+    { day: 'Friday', time: '09:00 - 11:00' },
   ];
+
+  if (ogunDept && ogunDept.courses[normalizedLevel] && ogunDept.courses[normalizedLevel].length > 0) {
+    const rawCourses = ogunDept.courses[normalizedLevel];
+    return rawCourses.slice(0, 6).map((course, idx) => {
+      const slot = scheduleSlots[idx % scheduleSlots.length];
+      const isLab = course.title.toLowerCase().includes('lab') || course.title.toLowerCase().includes('practical') || course.title.toLowerCase().includes('programming');
+      const venueList = isLab ? venues.labs : venues.halls;
+      const venueName = venueList[idx % venueList.length] || venues.halls[0];
+      const lecturer = LECTURER_ROSTER[idx % LECTURER_ROSTER.length];
+
+      return {
+        id: `tt_${institution.toLowerCase()}_${course.code.replace(/\s+/g, '_').toLowerCase()}`,
+        courseCode: course.code,
+        courseTitle: course.title,
+        lecturer,
+        day: slot.day,
+        time: slot.time,
+        venueName,
+        locationId: `loc-${course.code.toLowerCase().replace(/\s+/g, '-')}`,
+        department: ogunDept.name,
+        level: normalizedLevel,
+        isLiveNow: idx === 0,
+      };
+    });
+  }
+
+  // Find curriculum for student's department or fuzzy match from NUC fallback
+  const normalizedDept = Object.keys(NUC_DEPARTMENT_CURRICULA).find((k) =>
+    department.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(department.toLowerCase())
+  ) || 'Computer Science';
+
+  const deptCourses = NUC_DEPARTMENT_CURRICULA[normalizedDept]?.[normalizedLevel as any] ||
+    NUC_DEPARTMENT_CURRICULA['Computer Science']['200L'];
 
   return deptCourses.slice(0, 6).map((course, idx) => {
     const slot = scheduleSlots[idx % scheduleSlots.length];

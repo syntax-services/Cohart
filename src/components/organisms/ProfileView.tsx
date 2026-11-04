@@ -15,7 +15,7 @@ import {
 } from '@/lib/campusVerification';
 import { ScholarModeIcon, ArenaModeIcon } from '@/components/molecules/WorkspaceModeDropdown';
 import { setWorkspaceModeCookie, getWorkspaceModeCookie } from '@/lib/telemetry';
-import { MobileCodePlayground } from '@/components/ide/MobileCodePlayground';
+import { OgunAcademicSelector, OgunAcademicSelection } from '@/components/ui/OgunAcademicSelector';
 
 interface ProfileViewProps {
   profile: StudentProfile;
@@ -38,7 +38,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   // Dialog & Modal States
   const [activeModal, setActiveModal] = useState<
-    'edit_profile' | 'university' | 'appearance' | 'help' | null
+    'edit_profile' | 'university' | 'appearance' | 'help' | 'academic_program' | null
   >(null);
 
   // Avatar Upload State
@@ -49,7 +49,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   // Payment Modal State
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentPlan, setPaymentPlan] = useState<'monthly' | 'semester' | 'wallet'>('monthly');
-  const [isIdeOpen, setIsIdeOpen] = useState(false);
 
   // Profile Edit State
   const [editName, setEditName] = useState(profile.full_name || '');
@@ -398,23 +397,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </span>
           </button>
 
-          {/* Tile 4: Student Wallet */}
-          <button
-            onClick={() => {
-              setPaymentPlan('wallet');
-              setIsPaymentOpen(true);
-            }}
-            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-[#0B57D0]/[0.02] active:bg-[#0B57D0]/[0.04] transition-all duration-200 group cursor-pointer"
-          >
+          {/* Tile 4: Summit Edition (Vs) Free Pass */}
+          <div className="flex flex-col items-center justify-center p-5 gap-2 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06]">
             <div className="relative">
-              <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:bg-emerald-500/10 group-hover:scale-105 transition-all duration-300">
-                <GeminiIcon name="wallet" size={18} className="text-emerald-600 dark:text-emerald-400 transition-colors" />
+              <div className="h-10 w-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center ring-2 ring-emerald-500/30">
+                <GeminiIcon name="zap" size={18} />
               </div>
+              <span className="absolute -top-1 -right-1 h-3.5 px-1 rounded-full bg-emerald-500 text-[8px] font-extrabold text-black uppercase tracking-wider flex items-center justify-center">
+                Vs
+              </span>
             </div>
-            <span className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors tracking-wide font-mono">
-              ₦{(profile.wallet_balance || 0).toLocaleString()}
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tracking-wide uppercase font-mono">
+              Summit Free Pass
             </span>
-          </button>
+          </div>
         </div>
 
         {/* Vertical Action List below (String-style divide-y) */}
@@ -515,25 +511,30 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
           </button>
 
-          {/* Mobile Code Playground / IDE */}
+          {/* Ogun State Academic Program Selector */}
           <button
-            onClick={() => setIsIdeOpen(true)}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 group text-left cursor-pointer"
+            onClick={() => setActiveModal('academic_program')}
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-[#0B57D0]/[0.03] dark:hover:bg-[#1A73E8]/[0.05] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-mono font-bold text-xs group-hover:scale-105 transition-transform">
-                {'</>'}
+              <div className="h-8 w-8 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] flex items-center justify-center font-bold text-xs group-hover:scale-105 transition-transform">
+                <GeminiIcon name="book-open" size={15} />
               </div>
               <div>
-                <span className="font-medium text-neutral-800 dark:text-neutral-200 text-[13px] block leading-tight">
-                  Mobile Code Playground / IDE
+                <span className="font-semibold text-neutral-900 dark:text-white text-[13px] block leading-tight">
+                  Ogun State Academic Program & Courses
                 </span>
                 <span className="text-[10px] text-neutral-500 font-mono">
-                  Python, JS, TS, HTML sandboxed runner
+                  {profile.institution || 'OOU'} • {profile.department || 'Select Department'} • {profile.level || '100L'}
                 </span>
               </div>
             </div>
-            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] font-bold hidden sm:inline">
+                Change
+              </span>
+              <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+            </div>
           </button>
 
           {/* Submit Feedback */}
@@ -656,7 +657,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
 
               <div>
-                <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">Department</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block">Department</label>
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal('academic_program')}
+                    className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] hover:underline font-bold"
+                  >
+                    Select from Catalog →
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={editDepartment}
@@ -1006,12 +1016,51 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           }}
         />
       )}
-      {/* Mobile Code Playground / IDE */}
-      {isIdeOpen && (
-        <MobileCodePlayground
-          isOpen={isIdeOpen}
-          onClose={() => setIsIdeOpen(false)}
-        />
+      {/* Ogun Academic Program Selector Modal */}
+      {activeModal === 'academic_program' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-hidden rounded-3xl bg-white dark:bg-[#121316] border border-black/[0.08] dark:border-white/[0.1] shadow-2xl animate-in fade-in flex flex-col">
+            <div className="p-4 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                  <span>Ogun State Institutions Catalog</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-mono font-bold">
+                    Summit Edition
+                  </span>
+                </h3>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  Select your school, campus, department, and level to load official courses & timetables.
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="p-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-white/[0.08] text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+              >
+                <GeminiIcon name="close" size={16} />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <OgunAcademicSelector
+                initialInstitution={profile.institution}
+                initialDepartment={profile.department}
+                initialLevel={profile.level}
+                onApply={async (selection: OgunAcademicSelection) => {
+                  await onUpdateProfile({
+                    institution: selection.institution,
+                    department: selection.department,
+                    level: selection.level,
+                  });
+                  setEditDepartment(selection.department);
+                  setEditLevel(selection.level);
+                  setSelectedUniv(selection.institutionCode.toUpperCase());
+                  setActiveModal(null);
+                }}
+                onCancel={() => setActiveModal(null)}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

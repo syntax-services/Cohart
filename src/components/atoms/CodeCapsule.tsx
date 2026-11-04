@@ -47,18 +47,6 @@ export const CodeCapsule: React.FC<CodeCapsuleProps> = ({
     downloadAsText(`aurora_snippet_${Date.now()}.${ext}`, code);
   };
 
-  const handleOpenSandbox = () => {
-    if (typeof window !== 'undefined') {
-      const event = new CustomEvent('aurora:open-code-playground', {
-        detail: {
-          code,
-          language: cleanLang === 'py' ? 'python' : cleanLang === 'js' ? 'javascript' : cleanLang === 'ts' ? 'typescript' : cleanLang,
-        },
-      });
-      window.dispatchEvent(event);
-    }
-  };
-
   return (
     <div className={`my-3 rounded-2xl bg-[#0D0E11] border border-black/[0.08] dark:border-white/[0.08] shadow-sm overflow-hidden font-sans ${className}`}>
       {/* Capsule Top Control Bar */}
@@ -71,17 +59,6 @@ export const CodeCapsule: React.FC<CodeCapsuleProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Run in Sandbox */}
-          <button
-            type="button"
-            onClick={handleOpenSandbox}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-mono text-[#8AB4F8] hover:bg-white/[0.06] border border-[#1A73E8]/30 transition-all cursor-pointer active:scale-95"
-            title="Open and run in Mobile Code Playground"
-          >
-            <GeminiIcon name="zap" size={11} />
-            <span>Run Sandbox</span>
-          </button>
-
           {/* Copy Snippet */}
           <button
             type="button"

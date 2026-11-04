@@ -4,24 +4,31 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Location } from '@/lib/types';
+import { Location, StudentProfile } from '@/lib/types';
 import { LocationSheet } from './LocationSheet';
 import { CampusRouteNavigator } from './CampusRouteNavigator';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { useTheme } from '@/components/ThemeProvider';
+import {
+  OGUN_INSTITUTIONS,
+  getOgunInstitution,
+  OgunCampus,
+} from '@/lib/ogunInstitutionsCatalog';
 
 interface CampusMapProps {
   locations: Location[];
+  profile?: StudentProfile;
   selectedLocationId?: string | null;
   onSelectLocation?: (location: Location) => void;
+  onOpenAiChat?: (initialPrompt?: string) => void;
   className?: string;
 }
 
-// Ago-Iwoye Main Campus default center (calibrated to Central Academic Quad)
-const DEFAULT_CENTER: [number, number] = [6.9205, 3.8714];
+// Default to OOU Ago-Iwoye Main Campus (PS) Central Academic Quad
+const DEFAULT_OOU_CENTER: [number, number] = [6.9185, 3.8728];
 const DEFAULT_ZOOM = 17;
 
-// Controller to smoothly fly/pan to selected location or user position
+// Controller to smoothly fly/pan to selected location or campus center
 function MapFocusController({
   target,
   zoom = 17,
@@ -73,14 +80,76 @@ function MapAntiDistortionController() {
 
 export const CampusMap: React.FC<CampusMapProps> = ({
   locations,
+  profile,
   selectedLocationId,
   onSelectLocation,
+  onOpenAiChat,
   className = '',
 }) => {
+  const { resolvedTheme } = useTheme();
+
+  // Match institution from user profile or default to OOU
+  const initialInst = useMemo(() => {
+    if (profile?.institution) {
+      const found = getOgunInstitution(profile.institution);
+      if (found) return found;
+    }
+    return OGUN_INSTITUTIONS[0]; // OOU
+  }, [profile?.institution]);
+
+  const [selectedInstId, setSelectedInstId] = useState<string>(initialInst.id || 'oou');
+  const currentInstitution = useMemo(() => {
+    return OGUN_INSTITUTIONS.find((i) => i.id === selectedInstId) || OGUN_INSTITUTIONS[0];
+  }, [selectedInstId]);
+
+  // Selected campus inside the chosen institution
+  const [selectedCampusId, setSelectedCampusId] = useState<string>(
+    currentInstitution.campuses[0]?.id || 'oou-ago-iwoye'
+  );
+
+  const currentCampus: OgunCampus = useMemo(() => {
+    return (
+      currentInstitution.campuses.find((c) => c.id === selectedCampusId) ||
+      currentInstitution.campuses[0]
+    );
+  }, [currentInstitution, selectedCampusId]);
+
+  // Synchronize campus when institution changes
+  const handleInstitutionChange = (instId: string) => {
+    setSelectedInstId(instId);
+    const inst = OGUN_INSTITUTIONS.find((i) => i.id === instId);
+    if (inst && inst.campuses.length > 0) {
+      const defaultCampus = inst.campuses[0];
+      setSelectedCampusId(defaultCampus.id);
+      setFocusTarget([defaultCampus.latitude, defaultCampus.longitude]);
+      setFocusZoom(inst.id === 'oou' ? 17 : 16);
+    }
+  };
+
+  const handleCampusChange = (campusId: string) => {
+    setSelectedCampusId(campusId);
+    const campus = currentInstitution.campuses.find((c) => c.id === campusId);
+    if (campus) {
+      setFocusTarget([campus.latitude, campus.longitude]);
+      setFocusZoom(17);
+    }
+  };
+
+  const isOOU = currentInstitution.id === 'oou';
+  const isOOUMain = isOOU && currentCampus.id === 'oou-ago-iwoye';
+
+  // Map state
   const [activeLocation, setActiveLocation] = useState<Location | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [mapLayer, setMapLayer] = useState<'satellite' | 'street'>('satellite');
-  const { resolvedTheme } = useTheme();
+  // Roadmap style: Google Roadmap vector by default, OpenStreetMap Roadmap as alternate
+  const [mapEngine, setMapEngine] = useState<'google_roadmap' | 'osm_roadmap'>('google_roadmap');
+
+  // Focus & Zoom Target
+  const [focusTarget, setFocusTarget] = useState<[number, number] | null>(() => [
+    currentCampus.latitude,
+    currentCampus.longitude,
+  ]);
+  const [focusZoom, setFocusZoom] = useState<number>(isOOU ? DEFAULT_ZOOM : 16);
 
   // Two-Finger Map Rotation State (Google Maps Style)
   const [rotationAngle, setRotationAngle] = useState(0);
@@ -92,9 +161,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [focusTarget, setFocusTarget] = useState<[number, number] | null>(null);
 
-  // Pedestrian Route State
+  // Pedestrian Route State (for OOU)
   const [navigatingTo, setNavigatingTo] = useState<Location | null>(null);
   const [routeCoordinates, setRouteCoordinates] = useState<[number, number][] | null>(null);
 
@@ -129,27 +197,29 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     setRotationAngle(0);
   };
 
-  // Filter locations
+  // Filter locations only when on OOU Main Campus
   const filteredLocations = useMemo(() => {
+    if (!isOOUMain) return [];
     if (activeCategory === 'all') return locations;
     if (activeCategory === 'library_lab') {
       return locations.filter((l) => l.category === 'library' || l.category === 'lab');
     }
     return locations.filter((l) => l.category === activeCategory);
-  }, [locations, activeCategory]);
+  }, [locations, activeCategory, isOOUMain]);
 
   // Handle external selection
   useEffect(() => {
-    if (selectedLocationId) {
+    if (selectedLocationId && isOOUMain) {
       const found = locations.find(
         (l) => l.id === selectedLocationId || l.code === selectedLocationId
       );
       if (found) {
         setActiveLocation(found);
         setFocusTarget([found.latitude, found.longitude]);
+        setFocusZoom(18);
       }
     }
-  }, [selectedLocationId, locations]);
+  }, [selectedLocationId, locations, isOOUMain]);
 
   // Handle Locate Me (Live HTML5 GPS Geolocation)
   const handleLocateMe = () => {
@@ -167,6 +237,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         setUserLocation([latitude, longitude]);
         setLocationAccuracy(accuracy);
         setFocusTarget([latitude, longitude]);
+        setFocusZoom(18);
         setIsLocating(false);
       },
       (error) => {
@@ -204,7 +275,6 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       [endLat, endLng],
     ];
 
-    // Query pedestrian routing engine for actual campus pathways
     fetch(
       `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`
     )
@@ -237,15 +307,15 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     setRouteCoordinates(null);
   };
 
-  // Custom User Location Blue Dot Marker (Google Maps style pulsating dot)
+  // Custom User Location Blue Dot Marker
   const createUserMarker = () => {
     return L.divIcon({
       className: 'custom-user-marker',
       html: `
         <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style="width: 24px; height: 24px; transform: rotate(${-rotationAngle}deg);">
-          <div class="absolute inset-0 rounded-full bg-[#0B57D0]/25 dark:bg-[#1A73E8]/30 animate-ping"></div>
-          <div class="relative h-4 w-4 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] border-2 border-white shadow-lg flex items-center justify-center">
-            <div class="h-1.5 w-1.5 rounded-full bg-white dark:bg-neutral-950"></div>
+          <div class="absolute inset-0 rounded-full bg-[#1A73E8]/30 animate-ping"></div>
+          <div class="relative h-4 w-4 rounded-full bg-[#1A73E8] border-2 border-white shadow-lg flex items-center justify-center">
+            <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
           </div>
         </div>
       `,
@@ -254,53 +324,39 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     });
   };
 
-  // Create clean, high-contrast Gemini-style pins calibrated precisely to satellite coordinates
+  // Clean, high-contrast pins for verified OOU Ago-Iwoye landmarks
   const createCustomMarker = (location: Location, isSelected: boolean) => {
-    const isEco = location.department === 'Economics';
-    const isSatellite = mapLayer === 'satellite';
     const code = location.code || location.name.slice(0, 4);
 
     return L.divIcon({
       className: 'custom-map-marker',
       html: `
         <div class="relative flex flex-col items-center cursor-pointer group" style="width: 30px; height: 38px; transform: rotate(${-rotationAngle}deg); transform-origin: 15px 38px;">
-          <!-- Floating Label Badge on hover or when selected -->
+          <!-- Floating Label Badge -->
           <div class="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-150 z-20 ${
             isSelected ? 'opacity-100 scale-100' : 'opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100'
           }">
-            <div class="px-2 py-0.5 rounded-md bg-neutral-950/90 text-white text-[10px] font-mono tracking-tight whitespace-nowrap shadow-md border border-white/10 backdrop-blur-sm">
+            <div class="px-2 py-0.5 rounded-md bg-[#0c0d10]/95 text-white text-[10px] font-mono tracking-tight whitespace-nowrap shadow-md border border-white/10 backdrop-blur-sm">
               ${location.name}
             </div>
           </div>
 
-          <!-- Precision Teardrop / Circular Pin -->
-          <div class="relative flex items-center justify-center w-[30px] h-[30px] rounded-full shadow-lg transition-transform duration-150 ${
+          <!-- Circular Pin Badge -->
+          <div class="relative flex items-center justify-center w-[30px] h-[30px] rounded-full shadow-md transition-transform duration-150 ${
             isSelected
-              ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white scale-110 ring-2 ring-white'
-              : isEco
-              ? isSatellite
-                ? 'bg-[#0B57D0] text-white border border-[#1A73E8]'
-                : 'bg-white dark:bg-[#1E1F20] text-[#0B57D0] dark:text-[#1A73E8] border border-[#0B57D0]'
-              : isSatellite
-              ? 'bg-neutral-900/90 text-white border border-white/70'
-              : 'bg-white dark:bg-[#1E1F20] text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700'
+              ? 'bg-[#1A73E8] text-white scale-110 ring-2 ring-white'
+              : 'bg-white dark:bg-[#1E1F20] text-[#1A73E8] dark:text-[#8AB4F8] border-2 border-[#1A73E8]'
           }">
-            <span class="text-[10px] font-mono font-bold tracking-tighter uppercase leading-none">
+            <span class="text-[9.5px] font-mono font-bold tracking-tighter uppercase leading-none">
               ${code.slice(0, 3)}
             </span>
           </div>
 
-          <!-- Pin Stem pointing directly to coordinate -->
+          <!-- Pin Stem -->
           <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] -mt-[1px] ${
             isSelected
-              ? 'border-t-[#0B57D0] dark:border-t-[#1A73E8]'
-              : isEco
-              ? isSatellite
-                ? 'border-t-[#0B57D0]'
-                : 'border-t-[#0B57D0] dark:border-t-[#1A73E8]'
-              : isSatellite
-              ? 'border-t-neutral-900'
-              : 'border-t-white dark:border-t-[#1E1F20]'
+              ? 'border-t-[#1A73E8]'
+              : 'border-t-[#1A73E8]'
           }"></div>
         </div>
       `,
@@ -314,62 +370,114 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     if (onSelectLocation) onSelectLocation(loc);
   };
 
-  // Satellite tile: Google Hybrid Satellite (crisp aerial imagery with road and building labels, zero watermark)
-  // Street tile: Vector map depending on dark/light
+  // Google Roadmap vs OpenStreetMap Roadmap vector tiles
   const activeTileUrl = useMemo(() => {
-    if (mapLayer === 'satellite') {
-      return 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+    if (mapEngine === 'osm_roadmap') {
+      return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     }
-    return resolvedTheme === 'dark'
-      ? 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
-      : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
-  }, [mapLayer, resolvedTheme]);
+    // Google Maps Roadmap: crisp roads, street names, campus boundaries
+    return 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+  }, [mapEngine]);
+
+  const handleAskAuroraForRoom = () => {
+    const prompt = `I'm at ${currentInstitution.name} (${currentCampus.name}). Can you guide me to my lecture room, faculty building, and give me the best walking route and tips from the school gate?`;
+    if (onOpenAiChat) {
+      onOpenAiChat(prompt);
+    } else {
+      window.location.search = `?tab=ai&prompt=${encodeURIComponent(prompt)}`;
+    }
+  };
 
   return (
     <div
-      className={`relative h-full w-full overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-neutral-950 ${className}`}
+      className={`relative h-full w-full overflow-hidden rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-[#0c0d10] font-sans ${className}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Top Floating Controls Bar */}
-      <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 pointer-events-none">
-        {/* Left: Sleek Filter Icon Selector for Building Types */}
-        <div
-          className="relative pointer-events-auto flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-sm backdrop-blur-md text-neutral-800 dark:text-neutral-200 hover:border-[#0B57D0] dark:hover:border-[#1A73E8] transition-all"
-          title={activeCategory === 'all' ? 'Filter by building type' : `Filter: ${activeCategory}`}
-        >
-          <GeminiIcon
-            name="filter"
-            size={13}
-            className={activeCategory !== 'all' ? 'text-[#0B57D0] dark:text-[#1A73E8]' : 'text-neutral-700 dark:text-neutral-300'}
-          />
-          {activeCategory !== 'all' && (
-            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8]" />
+      {/* 
+        ========================================================================
+        TOP FLOATING NAV CONTROLS
+        Campus selector, layer switch, rotation reset, and GPS locate
+        ========================================================================
+      */}
+      <div className="absolute top-3 left-3 right-3 z-30 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        {/* Left: Ogun Institution & Campus Selectors */}
+        <div className="flex items-center gap-1.5 pointer-events-auto flex-wrap">
+          {/* Institution Dropdown */}
+          <div className="flex items-center bg-white/95 dark:bg-[#121316]/95 px-2.5 py-1.5 rounded-xl backdrop-blur-md border border-black/[0.08] dark:border-white/[0.1] shadow-md">
+            <GeminiIcon name="compass" size={13} className="text-[#1A73E8] mr-1.5 shrink-0" />
+            <select
+              value={selectedInstId}
+              onChange={(e) => handleInstitutionChange(e.target.value)}
+              aria-label="Select Ogun State Institution"
+              className="bg-transparent text-xs font-semibold text-neutral-900 dark:text-white focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[180px] truncate"
+            >
+              {OGUN_INSTITUTIONS.map((inst) => (
+                <option key={inst.id} value={inst.id} className="dark:bg-[#121316] dark:text-white">
+                  {inst.shortName} - {inst.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Campus Switcher (if institution has multiple campuses, e.g. OOU, Fed Poly Ilaro, TASUED) */}
+          {currentInstitution.campuses.length > 1 && (
+            <div className="flex items-center bg-white/95 dark:bg-[#121316]/95 px-2 py-1.5 rounded-xl backdrop-blur-md border border-black/[0.08] dark:border-white/[0.1] shadow-md">
+              <select
+                value={selectedCampusId}
+                onChange={(e) => handleCampusChange(e.target.value)}
+                aria-label="Select Campus Branch"
+                className="bg-transparent text-[11px] font-mono text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer max-w-[120px] sm:max-w-[150px] truncate"
+              >
+                {currentInstitution.campuses.map((c) => (
+                  <option key={c.id} value={c.id} className="dark:bg-[#121316] dark:text-white">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
-          <select
-            value={activeCategory}
-            onChange={(e) => setActiveCategory(e.target.value)}
-            aria-label="Filter locations by building type"
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full rounded-full"
-          >
-            <option value="all" className="dark:bg-[#1E1F20]">All Buildings ({locations.length})</option>
-            <option value="lecture_hall" className="dark:bg-[#1E1F20]">Lecture Halls & Complexes</option>
-            <option value="faculty" className="dark:bg-[#1E1F20]">Faculties & Departments</option>
-            <option value="library_lab" className="dark:bg-[#1E1F20]">Libraries & CBT Labs</option>
-            <option value="amenity" className="dark:bg-[#1E1F20]">Commercial, Hubs & Transit</option>
-            <option value="admin" className="dark:bg-[#1E1F20]">Administrative Buildings</option>
-          </select>
+
+          {/* Category Filter for OOU Main Campus */}
+          {isOOUMain && (
+            <div
+              className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-white/95 dark:bg-[#121316]/95 border border-black/[0.08] dark:border-white/[0.1] shadow-md backdrop-blur-md text-neutral-800 dark:text-neutral-200"
+              title={activeCategory === 'all' ? 'Filter building types' : `Filter: ${activeCategory}`}
+            >
+              <GeminiIcon
+                name="filter"
+                size={13}
+                className={activeCategory !== 'all' ? 'text-[#1A73E8]' : 'text-neutral-500'}
+              />
+              {activeCategory !== 'all' && (
+                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[#1A73E8]" />
+              )}
+              <select
+                value={activeCategory}
+                onChange={(e) => setActiveCategory(e.target.value)}
+                aria-label="Filter locations by building type"
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full rounded-xl"
+              >
+                <option value="all" className="dark:bg-[#121316]">All Buildings ({locations.length})</option>
+                <option value="lecture_hall" className="dark:bg-[#121316]">Lecture Halls & Complexes</option>
+                <option value="faculty" className="dark:bg-[#121316]">Faculties & Departments</option>
+                <option value="library_lab" className="dark:bg-[#121316]">Libraries & CBT Labs</option>
+                <option value="amenity" className="dark:bg-[#121316]">Commercial, Hubs & Transit</option>
+                <option value="admin" className="dark:bg-[#121316]">Administrative Buildings</option>
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Right: Map Layer Dropdown, Compass North Reset, and Locate Me */}
-        <div className="flex items-center gap-1.5 pointer-events-auto">
-          {/* Compass Bearing Indicator & Reset North Button (active when rotated) */}
+        {/* Right: Map Provider (Google Roadmap vs OSM Roadmap), Reset North, and Locate GPS */}
+        <div className="flex items-center gap-1.5 pointer-events-auto shrink-0">
+          {/* Compass Bearing Reset */}
           {Math.abs(rotationAngle) > 1 && (
             <button
               onClick={handleResetNorth}
               title="Reset to North"
-              className="flex items-center justify-center h-7 w-7 rounded-full bg-white/95 dark:bg-[#1E1F20]/95 border border-black/[0.08] dark:border-white/[0.08] shadow-sm transition-transform active:scale-95"
+              className="flex items-center justify-center h-8 w-8 rounded-xl bg-white/95 dark:bg-[#121316]/95 border border-black/[0.08] dark:border-white/[0.1] shadow-md transition-transform active:scale-95 cursor-pointer"
             >
               <div
                 style={{ transform: `rotate(${-rotationAngle}deg)` }}
@@ -381,16 +489,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </button>
           )}
 
-          {/* Compact Map Layer Dropdown (Satellite / Street) */}
-          <div className="flex items-center gap-1 bg-white/95 dark:bg-[#1E1F20]/95 px-2.5 py-1.5 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-sm">
+          {/* Roadmap Provider Toggle (Google Roadmap / OSM Roadmap) */}
+          <div className="flex items-center bg-white/95 dark:bg-[#121316]/95 px-2 py-1 rounded-xl backdrop-blur-md border border-black/[0.08] dark:border-white/[0.1] shadow-md">
             <select
-              value={mapLayer}
-              onChange={(e) => setMapLayer(e.target.value as 'satellite' | 'street')}
-              aria-label="Select Map Layer"
-              className="bg-transparent text-[11px] font-mono text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer capitalize"
+              value={mapEngine}
+              onChange={(e) => setMapEngine(e.target.value as 'google_roadmap' | 'osm_roadmap')}
+              aria-label="Select Roadmap Provider"
+              className="bg-transparent text-[11px] font-mono text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer"
             >
-              <option value="satellite" className="dark:bg-[#1E1F20]">Satellite (Sharp)</option>
-              <option value="street" className="dark:bg-[#1E1F20]">Street Vector</option>
+              <option value="google_roadmap" className="dark:bg-[#121316]">Google Roadmap</option>
+              <option value="osm_roadmap" className="dark:bg-[#121316]">OpenStreetMap</option>
             </select>
           </div>
 
@@ -399,14 +507,14 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             onClick={handleLocateMe}
             disabled={isLocating}
             title="Locate me on campus"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-full bg-white/95 dark:bg-[#1E1F20]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.08] backdrop-blur-md hover:border-[#0B57D0] dark:hover:border-[#1A73E8] transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-xl bg-white/95 dark:bg-[#121316]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md hover:border-[#1A73E8] transition-all shadow-md active:scale-95 cursor-pointer"
           >
             {isLocating ? (
-              <div className="h-3 w-3 rounded-full border-2 border-[#0B57D0] dark:border-[#1A73E8] border-t-transparent animate-spin" />
+              <div className="h-3 w-3 rounded-full border-2 border-[#1A73E8] border-t-transparent animate-spin" />
             ) : (
-              <GeminiIcon name="compass" size={13} className="text-[#0B57D0] dark:text-[#1A73E8]" />
+              <GeminiIcon name="compass" size={13} className="text-[#1A73E8]" />
             )}
-            <span className="hidden sm:inline font-sans">Locate</span>
+            <span className="hidden sm:inline font-sans font-semibold">GPS</span>
           </button>
         </div>
       </div>
@@ -424,7 +532,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         </div>
       )}
 
-      {/* Rotatable Map Container - Oversized to guarantee full coverage during rotation without distortion */}
+      {/* 
+        ========================================================================
+        ROTATABLE MAP CONTAINER (Roadmap Vector Tile Layer)
+        ========================================================================
+      */}
       <div
         style={{
           transform: `rotate(${rotationAngle}deg)`,
@@ -434,9 +546,9 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         className="absolute inset-[-35%] w-[170%] h-[170%]"
       >
         <MapContainer
-          key={`${mapLayer}-${resolvedTheme}`}
-          center={DEFAULT_CENTER}
-          zoom={DEFAULT_ZOOM}
+          key={`${mapEngine}-${selectedCampusId}`}
+          center={[currentCampus.latitude, currentCampus.longitude]}
+          zoom={focusZoom}
           scrollWheelZoom={true}
           attributionControl={false}
           className="h-full w-full"
@@ -444,42 +556,38 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <TileLayer
             url={activeTileUrl}
             maxZoom={20}
-            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+            subdomains={mapEngine === 'google_roadmap' ? ['mt0', 'mt1', 'mt2', 'mt3'] : ['a', 'b', 'c']}
           />
 
-          {/* Anti-distortion size calibration controller */}
           <MapAntiDistortionController />
 
-          {/* Dynamic Focus Controller */}
           <MapFocusController
-            target={focusTarget || (activeLocation ? [activeLocation.latitude, activeLocation.longitude] : null)}
+            target={focusTarget || [currentCampus.latitude, currentCampus.longitude]}
+            zoom={focusZoom}
           />
 
-          {/* Route Bounds Controller */}
           <RouteBoundsController
             userLocation={userLocation}
             destination={navigatingTo}
           />
 
-          {/* Render Walking Route Polylines */}
+          {/* Walking Route Polylines (for OOU) */}
           {routeCoordinates && (
             <>
-              {/* Outer white casing for high contrast against satellite and dark terrain */}
               <Polyline
                 positions={routeCoordinates}
                 pathOptions={{
                   color: '#ffffff',
                   weight: 7,
-                  opacity: 0.7,
+                  opacity: 0.8,
                   lineCap: 'round',
                   lineJoin: 'round',
                 }}
               />
-              {/* Core active walking route line */}
               <Polyline
                 positions={routeCoordinates}
                 pathOptions={{
-                  color: '#0B57D0',
+                  color: '#1A73E8',
                   weight: 4,
                   opacity: 0.95,
                   dashArray: '8, 8',
@@ -490,7 +598,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </>
           )}
 
-          {/* Render Live User Location Marker */}
+          {/* Render User GPS Blue Dot */}
           {userLocation && (
             <Marker
               position={userLocation}
@@ -498,33 +606,84 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             />
           )}
 
-          {/* Render Location Markers */}
-          {filteredLocations.map((loc) => (
-            <Marker
-              key={loc.id}
-              position={[loc.latitude, loc.longitude]}
-              icon={createCustomMarker(loc, activeLocation?.id === loc.id || navigatingTo?.id === loc.id)}
-              eventHandlers={{
-                click: () => handleMarkerClick(loc),
-              }}
-            />
-          ))}
+          {/* 
+            Render Location Markers: ONLY for OOU Main Campus (Ago-Iwoye PS).
+            For other institutions in Ogun State, we do NOT clutter or fabricate names,
+            showing their pristine roadmap cartography and providing the AI guide card instead.
+          */}
+          {isOOUMain &&
+            filteredLocations.map((loc) => (
+              <Marker
+                key={loc.id}
+                position={[loc.latitude, loc.longitude]}
+                icon={createCustomMarker(loc, activeLocation?.id === loc.id || navigatingTo?.id === loc.id)}
+                eventHandlers={{
+                  click: () => handleMarkerClick(loc),
+                }}
+              />
+            ))}
         </MapContainer>
       </div>
 
-      {/* Campus Map Bottom Sheet Details */}
-      <LocationSheet
-        location={activeLocation}
-        onClose={() => setActiveLocation(null)}
-        onNavigate={handleStartNavigation}
-      />
+      {/* 
+        ========================================================================
+        NON-OOU INSTITUTIONS: FLOATING AI CAMPUS NAVIGATOR CARD
+        Clean, uncluttered roadmap view with instant AI lecture room assistance
+        ========================================================================
+      */}
+      {!isOOUMain && (
+        <div className="absolute bottom-4 left-3 right-3 z-30 mx-auto max-w-lg">
+          <div className="rounded-2xl bg-white/95 dark:bg-[#121316]/95 backdrop-blur-xl border border-black/[0.08] dark:border-white/[0.1] p-4 shadow-2xl flex flex-col gap-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1A73E8]/10 text-[#1A73E8] font-bold uppercase">
+                    {currentInstitution.shortName}
+                  </span>
+                  <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                    {currentCampus.name}
+                  </span>
+                </div>
+                <p className="text-[11.5px] text-neutral-600 dark:text-neutral-300 leading-snug">
+                  {currentCampus.transitTips || currentInstitution.aiCampusKnowledge.overview}
+                </p>
+              </div>
 
-      {/* Pedestrian Route Navigation HUD */}
-      <CampusRouteNavigator
-        userLocation={userLocation}
-        destination={navigatingTo}
-        onClose={handleCloseNavigation}
-      />
+              <div className="h-9 w-9 rounded-xl bg-[#1A73E8]/10 text-[#1A73E8] flex items-center justify-center shrink-0">
+                <GeminiIcon name="sparkle" size={17} />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1 border-t border-black/[0.05] dark:border-white/[0.06]">
+              <button
+                onClick={handleAskAuroraForRoom}
+                className="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-[#1A73E8] hover:bg-[#1A73E8]/90 text-white text-xs font-bold shadow-md shadow-[#1A73E8]/20 transition-all active:scale-95 cursor-pointer"
+              >
+                <GeminiIcon name="chat" size={14} />
+                <span>Ask Aurora: Find My Lecture Room</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OOU Details Bottom Sheet */}
+      {isOOUMain && (
+        <LocationSheet
+          location={activeLocation}
+          onClose={() => setActiveLocation(null)}
+          onNavigate={handleStartNavigation}
+        />
+      )}
+
+      {/* Pedestrian Route Navigation HUD (for OOU) */}
+      {isOOUMain && (
+        <CampusRouteNavigator
+          userLocation={userLocation}
+          destination={navigatingTo}
+          onClose={handleCloseNavigation}
+        />
+      )}
     </div>
   );
 };

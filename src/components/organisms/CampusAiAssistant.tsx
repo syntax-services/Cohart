@@ -55,7 +55,6 @@ import {
 import { QuizRunner } from './QuizRunner';
 import { CampusArenaViewer } from '@/components/arena/CampusArenaViewer';
 import { StudyKitWidget } from '@/components/study/StudyKitWidget';
-import { MobileCodePlayground } from '@/components/ide/MobileCodePlayground';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CampusAiAssistantProps {
@@ -157,18 +156,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
     }
   }, [isSidebarOpen]);
 
-  // Listen for code playground open requests from CodeCapsule in chat
-  useEffect(() => {
-    const handleOpenPlayground = (e: any) => {
-      if (e.detail) {
-        setChatIdeCode(e.detail.code || '');
-        setChatIdeLang(e.detail.language || 'python');
-        setIsChatIdeOpen(true);
-      }
-    };
-    window.addEventListener('aurora:open-code-playground', handleOpenPlayground);
-    return () => window.removeEventListener('aurora:open-code-playground', handleOpenPlayground);
-  }, []);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([defaultInitialMessage]);
@@ -217,9 +204,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
   };
   const [streakHypeModal, setStreakHypeModal] = useState<{ count: number; title: string; praise: string } | null>(null);
   const [replyingTo, setReplyingTo] = useState<MessageReplyContext | null>(null);
-  const [isChatIdeOpen, setIsChatIdeOpen] = useState(false);
-  const [chatIdeCode, setChatIdeCode] = useState('');
-  const [chatIdeLang, setChatIdeLang] = useState<'javascript' | 'python' | 'html' | 'typescript'>('python');
 
   // Campus Arena Live Viewer & Pro Subscriptions State
   const [showArenaViewer, setShowArenaViewer] = useState(false);
@@ -2355,16 +2339,6 @@ export const CampusAiAssistant: React.FC<CampusAiAssistantProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Sandboxed Code Playground / IDE */}
-      {isChatIdeOpen && (
-        <MobileCodePlayground
-          isOpen={isChatIdeOpen}
-          onClose={() => setIsChatIdeOpen(false)}
-          initialCode={chatIdeCode}
-          initialLanguage={chatIdeLang}
-        />
-      )}
     </div>
   );
 };

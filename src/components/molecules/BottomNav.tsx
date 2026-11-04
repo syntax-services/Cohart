@@ -27,17 +27,8 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, institution = '' }) => {
-  // Check if student's school has an interactive campus map (e.g. OOU or configured hasMap schools)
-  const isSchoolWithMap = React.useMemo(() => {
-    if (!institution) return false;
-    const lower = institution.toLowerCase();
-    return (
-      lower === 'oou' ||
-      lower.includes('oou') ||
-      lower.includes('onabanjo') ||
-      lower.includes('ago-iwoye')
-    );
-  }, [institution]);
+  // Ogun State Summit Edition (Vs): All 17 Ogun State institutions have interactive Roadmap cartography
+  const isSchoolWithMap = true;
 
   const navItems = React.useMemo(() => {
     if (isSchoolWithMap) {
