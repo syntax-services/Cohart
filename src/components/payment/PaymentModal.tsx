@@ -243,7 +243,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] flex items-center justify-center">
+            <div className="h-9 w-9 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 flex items-center justify-center">
               <GeminiIcon name="sparkle" size={18} />
             </div>
             <div>
@@ -288,12 +288,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 onClick={() => setSelectedPlan(p.id)}
                 className={`relative p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
                   isSelected
-                    ? 'border-[#0B57D0] dark:border-[#1A73E8] bg-[#0B57D0]/[0.05] dark:bg-[#1A73E8]/[0.1] shadow-xs'
+                    ? 'border-amber-500 bg-amber-500/10 shadow-xs'
                     : 'border-black/[0.08] dark:border-white/[0.08] hover:border-black/[0.15] dark:hover:border-white/[0.15] bg-neutral-50/50 dark:bg-white/[0.02]'
                 }`}
               >
                 {p.popular && (
-                  <span className="absolute -top-2 left-3 bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-amber-400 text-neutral-950 text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
                     Best Value
                   </span>
                 )}
@@ -301,7 +301,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   <p className="text-[11px] font-bold text-neutral-900 dark:text-white truncate">
                     {p.name.replace('Cohart ', '')}
                   </p>
-                  <p className="text-xs font-extrabold text-[#0B57D0] dark:text-[#1A73E8] mt-1">
+                  <p className="text-xs font-extrabold text-amber-500 dark:text-amber-400 mt-1">
                     {p.priceLabel}
                   </p>
                 </div>
@@ -319,7 +319,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
               {currentPlan.name}
             </span>
-            <span className="text-xs font-mono font-bold text-[#0B57D0] dark:text-[#1A73E8]">
+            <span className="text-xs font-mono font-bold text-amber-500 dark:text-amber-400">
               ₦{payableAmount.toLocaleString()}
             </span>
           </div>
@@ -337,7 +337,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     onClick={() => setWalletAmount(amt)}
                     className={`py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                       walletAmount === amt
-                        ? 'border-[#0B57D0] dark:border-[#1A73E8] bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8]'
+                        ? 'border-amber-500 bg-amber-500/15 text-amber-500 dark:text-amber-400 font-bold'
                         : 'border-black/[0.08] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
                     }`}
                   >
@@ -375,7 +375,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               placeholder="e.g. yourname@gmail.com"
-              className="w-full p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
+              className="w-full p-2.5 rounded-xl bg-neutral-50 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.1] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400"
             />
           </div>
 
@@ -389,17 +389,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full py-3 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-bold hover:opacity-95 active:scale-[0.98] transition-all shadow-lg shadow-[#0B57D0]/20 dark:shadow-[#1A73E8]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold active:scale-[0.98] transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isProcessing ? (
               <>
-                <GeminiIcon name="sparkle" size={14} className="animate-spin text-white" />
+                <GeminiIcon name="sparkle" size={14} className="animate-spin text-neutral-950" />
                 <span>Processing Payment...</span>
               </>
             ) : (
               <>
                 <span>Pay ₦{payableAmount.toLocaleString()}</span>
-                <GeminiIcon name="chevron-right" size={14} className="text-white" />
+                <GeminiIcon name="chevron-right" size={14} className="text-neutral-950" />
               </>
             )}
           </button>

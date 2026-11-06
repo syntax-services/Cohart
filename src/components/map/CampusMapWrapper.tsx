@@ -17,11 +17,11 @@ interface CampusMapWrapperProps {
 const MapSkeleton = () => (
   <div className="relative flex h-full w-full flex-col items-center justify-center rounded-2xl border border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-[#121316] p-6 overflow-hidden">
     <div className="relative z-10 flex flex-col items-center text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] mb-3">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 mb-3">
         <GeminiIcon name="compass" size={22} />
       </div>
       <div className="flex items-center gap-2 text-sm font-medium text-neutral-800 dark:text-neutral-200 font-sans">
-        <div className="h-3.5 w-3.5 rounded-full border-2 border-[#0B57D0] dark:border-[#1A73E8] border-t-transparent animate-spin" />
+        <div className="h-3.5 w-3.5 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
         <span>Loading Ogun Campus Cartography...</span>
       </div>
       <p className="mt-1 font-mono text-[11px] text-neutral-500 dark:text-neutral-400">

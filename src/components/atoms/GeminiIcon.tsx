@@ -51,7 +51,8 @@ export type IconName =
   | 'lock'
   | 'trophy'
   | 'flame'
-  | 'blend';
+  | 'blend'
+  | 'plus';
 
 interface GeminiIconProps {
   name: IconName;
@@ -521,6 +522,14 @@ export const GeminiIcon: React.FC<GeminiIconProps> = ({
           <circle cx="18" cy="19" r="3" />
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
           <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+      );
+
+    case 'plus':
+      return (
+        <svg {...commonProps}>
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
       );
 

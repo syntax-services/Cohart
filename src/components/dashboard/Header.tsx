@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
 
           {/* Academic Countdown Tag */}
           <div className="hidden md:flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1 border border-white/[0.07]">
-            <GeminiIcon name="calendar" size={14} className="text-[#387BFF]" />
+            <GeminiIcon name="calendar" size={14} className="text-amber-400" />
             <span className="text-xs font-mono text-slate-300">
               Resumption: <span className="text-white font-semibold">Oct 5</span>
             </span>
@@ -58,8 +58,14 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  onSearch?.(searchQuery);
+                }
+              }}
               placeholder="Search courses, lecture venues, topics..."
-              className="w-full rounded-full bg-white/[0.04] border border-white/[0.08] pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#387BFF]/50 focus:ring-1 focus:ring-[#387BFF]/30 transition-all font-sans"
+              className="w-full rounded-full bg-white/[0.04] border border-white/[0.08] pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/30 transition-all font-sans"
             />
           </div>
         </div>
@@ -69,8 +75,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
           {/* Network Health Indicator */}
           <div className="flex items-center gap-1.5">
             {isOnline ? (
-              <Badge variant="blue" className="text-[11px] py-0.5 px-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#387BFF]" />
+              <Badge variant="emerald" className="text-[11px] py-0.5 px-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 <span className="hidden sm:inline">PWA Active</span>
               </Badge>
             ) : (
@@ -86,12 +92,12 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
             aria-label="Alerts"
           >
             <GeminiIcon name="bell" size={16} />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-[#387BFF] shadow-[0_0_8px_#387BFF]" />
+            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
           </button>
 
           {/* Student Avatar Tag */}
           <div className="flex items-center gap-2 pl-2 border-l border-white/[0.08]">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#1A73E8] to-[#387BFF] font-mono text-xs font-bold text-white shadow-[0_0_12px_rgba(56,123,255,0.3)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 font-mono text-xs font-bold">
               ST
             </div>
             <div className="hidden lg:flex flex-col text-left">

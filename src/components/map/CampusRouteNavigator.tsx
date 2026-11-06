@@ -83,7 +83,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
           {/* Header Row */}
           <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] dark:border-white/[0.06]">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#0B57D0] dark:text-[#1A73E8]">
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-amber-500 dark:text-amber-400">
                 Walking Route
               </span>
             </div>
@@ -106,7 +106,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
                 ({formattedDistance})
               </span>
             </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-medium">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-500 dark:text-amber-400 font-medium">
               On Foot
             </span>
           </div>
@@ -114,7 +114,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
           {/* Destination Details */}
           <div className="mt-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.03] p-2.5 border border-black/[0.04] dark:border-white/[0.04]">
             <div className="flex items-start gap-2">
-              <div className="mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-[#0B57D0] text-white text-[10px] font-mono font-bold">
+              <div className="mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-neutral-950 text-[10px] font-mono font-bold">
                 {destination.code?.slice(0, 3) || 'GO'}
               </div>
               <div className="min-w-0 flex-1">
@@ -129,7 +129,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
 
             {destination.orientation_tips && (
               <p className="mt-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.04] text-[11px] text-neutral-600 dark:text-neutral-300 leading-snug">
-                <span className="font-medium text-[#0B57D0] dark:text-[#1A73E8]">Directions: </span>
+                <span className="font-medium text-amber-500 dark:text-amber-400">Directions: </span>
                 {destination.orientation_tips}
               </p>
             )}
@@ -145,7 +145,7 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
             </button>
             <button
               onClick={openGoogleMaps}
-              className="flex-1 py-2 px-3 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-mono font-semibold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
+              className="flex-1 py-2 px-3 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-mono font-bold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
             >
               <span>Open in Maps</span>
               <GeminiIcon name="pin" size={12} />

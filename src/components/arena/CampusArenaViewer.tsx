@@ -97,7 +97,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             onClick={() => setActiveTab('stream')}
             className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               activeTab === 'stream'
-                ? 'bg-[#0B57D0] text-white font-bold shadow-sm'
+                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
                 : 'text-neutral-400 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
@@ -107,7 +107,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             onClick={() => setActiveTab('payouts')}
             className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               activeTab === 'payouts'
-                ? 'bg-[#0B57D0] text-white font-bold shadow-sm'
+                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
                 : 'text-neutral-400 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
@@ -117,7 +117,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             onClick={() => setActiveTab('leagues')}
             className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               activeTab === 'leagues'
-                ? 'bg-[#0B57D0] text-white font-bold shadow-sm'
+                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
                 : 'text-neutral-400 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
@@ -147,11 +147,11 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
               {/* Team A */}
               <div className={`p-4 rounded-2xl border transition-all ${
                 activeMatch.teamA.score > activeMatch.teamB.score
-                  ? 'bg-gradient-to-br from-[#0B57D0]/20 to-transparent border-[#0B57D0]/50 shadow-lg shadow-[#0B57D0]/10'
+                  ? 'bg-amber-400/10 border-amber-400/30 shadow-lg shadow-amber-500/10'
                   : 'bg-white/[0.02] border-white/10'
               }`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="px-2 py-0.5 rounded-full bg-[#0B57D0]/20 text-[#0B57D0] dark:text-[#1A73E8] font-mono text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/20 font-mono text-[10px] font-bold">
                     {activeMatch.teamA.institution}
                   </span>
                   <span className="text-3xl font-extrabold font-mono text-white">
@@ -168,7 +168,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
                     disabled={Boolean(hasCheered)}
                     className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all active:scale-95 cursor-pointer ${
                       hasCheered === 'A'
-                        ? 'bg-[#0B57D0] text-white'
+                        ? 'bg-amber-400 text-neutral-950 font-bold'
                         : 'bg-white/10 hover:bg-white/15 text-neutral-200'
                     }`}
                   >
@@ -226,7 +226,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
               {/* Progress bar */}
               <div className="mt-4 w-full h-1 bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#0B57D0] via-purple-500 to-rose-500 transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-300 transition-all duration-1000"
                   style={{ width: `${(secondsLeft / 30) * 100}%` }}
                 />
               </div>
@@ -290,7 +290,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
         {activeTab === 'leagues' && (
           <div className="p-4 sm:p-6 space-y-4 flex-1">
             <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 text-xs text-neutral-300">
-              <span className="font-bold text-blue-400 font-mono uppercase text-[10px]">
+              <span className="font-bold text-amber-400 font-mono uppercase text-[10px]">
                 Categorized Collegiate Consortiums
               </span>
               <p className="leading-relaxed mt-1">
@@ -311,7 +311,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
                   
                   <div className="pt-2 flex flex-wrap gap-1.5">
                     {league.schools.map((s) => (
-                      <span key={s.code} className="px-2 py-0.5 rounded-lg bg-[#0B57D0]/15 text-[#0B57D0] dark:text-[#1A73E8] font-mono text-[10px] font-bold" title={s.name}>
+                      <span key={s.code} className="px-2 py-0.5 rounded-lg bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 font-mono text-[10px] font-bold" title={s.name}>
                         {s.code}
                       </span>
                     ))}

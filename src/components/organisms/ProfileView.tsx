@@ -247,13 +247,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             accept="image/*"
             className="hidden"
           />
-          {/* Glowing Ambient Gradient Ring from String */}
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0B57D0] via-[#1A73E8] to-[#8AB4F8] opacity-35 group-hover:opacity-75 transition duration-500 blur-xs" />
+          {/* Glowing Ambient Gradient Ring from Aurora */}
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-300 opacity-25 group-hover:opacity-60 transition duration-500 blur-xs" />
 
           <div className="relative h-28 w-28 rounded-full border-4 border-white dark:border-[#131314] bg-neutral-100 dark:bg-[#1E1F20] flex items-center justify-center overflow-hidden shadow-2xl">
             {isUploadingAvatar ? (
               <div className="flex flex-col items-center justify-center gap-1">
-                <GeminiIcon name="loader" size={20} className="text-[#0B57D0] dark:text-[#8AB4F8]" />
+                <GeminiIcon name="loader" size={20} className="text-amber-500 dark:text-amber-400" />
                 <span className="text-[9px] font-bold text-neutral-400">Uploading...</span>
               </div>
             ) : profile.avatar_url ? (
@@ -263,7 +263,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
-              <span className="text-2xl font-bold font-mono text-[#0B57D0] dark:text-[#8AB4F8]">
+              <span className="text-2xl font-bold font-mono text-amber-500 dark:text-amber-400">
                 {initials}
               </span>
             )}
@@ -284,7 +284,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <div className="space-y-1">
           <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center justify-center gap-1.5">
             {profile.full_name || profile.matric_number || 'Scholar Profile'}
-            <span className="inline-flex items-center gap-1 bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0B57D0]/20">
+            <span className="inline-flex items-center gap-1 bg-amber-400/10 text-amber-500 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-400/20">
               <GeminiIcon name="shield-check" size={10} />
               Verified
             </span>
@@ -301,16 +301,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* 
         ========================================================================
-        2. STRING-STYLE CAMPUS TOURNAMENT / ARENA CARD
-        Directly modelled on String's IDIC Tournament Card with watermark icon.
+        2. AURORA CAMPUS TOURNAMENT / ARENA CARD (Ultra-minimal Dark Liquid Glass)
         ========================================================================
       */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B57D0]/12 via-purple-500/8 to-transparent border border-[#0B57D0]/25 p-5 shadow-xl shadow-black/5">
-        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-          <GeminiIcon name="trophy" size={96} className="text-[#0B57D0] dark:text-[#8AB4F8]" />
+      <div className="relative overflow-hidden rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] p-5 shadow-xl shadow-black/5">
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+          <GeminiIcon name="trophy" size={96} className="text-amber-400" />
         </div>
         <div className="relative z-10 space-y-3">
-          <div className="flex items-center gap-2 text-[#0B57D0] dark:text-[#8AB4F8]">
+          <div className="flex items-center gap-2 text-amber-500 dark:text-amber-400">
             <GeminiIcon name="zap" size={14} />
             <span className="text-[10px] font-black uppercase tracking-wider">Campus Competition</span>
           </div>
@@ -327,7 +326,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               setWorkspaceModeCookie('arena');
               window.location.search = '?tab=arena';
             }}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#0B57D0] hover:bg-[#0B57D0]/90 dark:bg-[#1A73E8] dark:hover:bg-[#1A73E8]/90 text-white px-4 text-xs font-bold shadow-md shadow-[#0B57D0]/20 active:scale-95 transition-all w-full max-w-[200px] cursor-pointer"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 px-4 text-xs font-bold shadow-md shadow-amber-500/20 active:scale-95 transition-all w-full max-w-[200px] cursor-pointer"
           >
             <GeminiIcon name="trophy" size={13} />
             <span>Enter Arena Now</span>
@@ -337,7 +336,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* 
         ========================================================================
-        3. STRING-STYLE BENTO MENU GRID & ACTION LIST
+        3. AURORA BENTO MENU GRID & ACTION LIST
         2x2 grid with divide-x and border-b, followed by clean vertical rows.
         ========================================================================
       */}
@@ -347,13 +346,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Tile 1: Course Textbooks */}
           <button
             onClick={onOpenReader}
-            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-[#0B57D0]/[0.02] active:bg-[#0B57D0]/[0.04] transition-all duration-200 group cursor-pointer"
+            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-all duration-200 group cursor-pointer"
           >
             <div className="relative">
-              <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:bg-[#0B57D0]/10 dark:group-hover:bg-[#1A73E8]/15 group-hover:scale-105 transition-all duration-300">
-                <GeminiIcon name="book-open" size={18} className="text-neutral-500 dark:text-neutral-400 group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors" />
+              <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:bg-amber-400/10 group-hover:scale-105 transition-all duration-300">
+                <GeminiIcon name="book-open" size={18} className="text-neutral-500 dark:text-neutral-400 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors" />
               </div>
-              <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] flex items-center justify-center px-1 text-[9px] font-bold text-white shadow-xs ring-2 ring-white dark:ring-[#1E1F20]">
+              <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-amber-400 flex items-center justify-center px-1 text-[9px] font-bold text-neutral-950 shadow-xs ring-2 ring-white dark:ring-[#1E1F20]">
                 4
               </span>
             </div>
@@ -365,11 +364,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Tile 2: Senate Timetable */}
           <button
             onClick={onOpenSchedule}
-            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-[#0B57D0]/[0.02] active:bg-[#0B57D0]/[0.04] transition-all duration-200 group cursor-pointer"
+            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-amber-400/[0.04] active:bg-amber-400/[0.08] transition-all duration-200 group cursor-pointer"
           >
             <div className="relative">
-              <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:bg-[#0B57D0]/10 dark:group-hover:bg-[#1A73E8]/15 group-hover:scale-105 transition-all duration-300">
-                <GeminiIcon name="calendar" size={18} className="text-neutral-500 dark:text-neutral-400 group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors" />
+              <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:bg-amber-400/15 group-hover:scale-105 transition-all duration-300">
+                <GeminiIcon name="calendar" size={18} className="text-neutral-500 dark:text-neutral-400 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors" />
               </div>
             </div>
             <span className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors tracking-wide">
@@ -380,11 +379,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Tile 3: Personal Vault Notes */}
           <button
             onClick={onOpenReader}
-            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-[#0B57D0]/[0.02] active:bg-[#0B57D0]/[0.04] transition-all duration-200 group cursor-pointer"
+            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-amber-400/[0.04] active:bg-amber-400/[0.08] transition-all duration-200 group cursor-pointer"
           >
             <div className="relative">
-              <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:bg-[#0B57D0]/10 dark:group-hover:bg-[#1A73E8]/15 group-hover:scale-105 transition-all duration-300">
-                <GeminiIcon name="bookmark" size={18} className="text-neutral-500 dark:text-neutral-400 group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors" />
+              <div className="h-10 w-10 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] flex items-center justify-center group-hover:bg-amber-400/15 group-hover:scale-105 transition-all duration-300">
+                <GeminiIcon name="bookmark" size={18} className="text-neutral-500 dark:text-neutral-400 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors" />
               </div>
               {savedVaultNotes.length > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-purple-600 flex items-center justify-center px-1 text-[9px] font-bold text-white shadow-xs ring-2 ring-white dark:ring-[#1E1F20]">
@@ -422,10 +421,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               setWorkspaceModeCookie(next);
               window.location.search = `?tab=${next === 'arena' ? 'arena' : 'hub'}`;
             }}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-[#0B57D0]/[0.02] active:bg-[#0B57D0]/[0.04] transition-all duration-200 group text-left bg-gradient-to-r from-[#0B57D0]/[0.04] to-transparent cursor-pointer"
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-amber-400/[0.04] active:bg-amber-400/[0.08] transition-all duration-200 group text-left bg-gradient-to-r from-amber-400/[0.04] to-transparent cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="h-8 w-8 rounded-xl bg-amber-400/15 text-amber-500 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                 {currentMode === 'arena' ? <ArenaModeIcon bold active /> : <ScholarModeIcon bold active />}
               </div>
               <div>
@@ -446,7 +445,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors">
+              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                 <GeminiIcon name="compass" size={15} />
               </div>
               <span className="font-medium text-neutral-800 dark:text-neutral-200 text-[13px]">
@@ -469,7 +468,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors">
+              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                 <GeminiIcon name="settings" size={15} />
               </div>
               <span className="font-medium text-neutral-800 dark:text-neutral-200 text-[13px]">
@@ -485,7 +484,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors">
+              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                 <GeminiIcon name="sun" size={15} />
               </div>
               <span className="font-medium text-neutral-800 dark:text-neutral-200 text-[13px]">
@@ -501,7 +500,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors">
+              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                 <GeminiIcon name="shield" size={15} />
               </div>
               <span className="font-medium text-neutral-800 dark:text-neutral-200 text-[13px]">
@@ -514,10 +513,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Ogun State Academic Program Selector */}
           <button
             onClick={() => setActiveModal('academic_program')}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-[#0B57D0]/[0.03] dark:hover:bg-[#1A73E8]/[0.05] transition-all duration-200 group text-left cursor-pointer"
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-amber-400/[0.04] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] flex items-center justify-center font-bold text-xs group-hover:scale-105 transition-transform">
+              <div className="h-8 w-8 rounded-xl bg-amber-400/15 text-amber-500 dark:text-amber-400 flex items-center justify-center font-bold text-xs group-hover:scale-105 transition-transform">
                 <GeminiIcon name="book-open" size={15} />
               </div>
               <div>
@@ -530,7 +529,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] font-bold hidden sm:inline">
+              <span className="text-[10px] font-mono text-amber-500 dark:text-amber-400 font-bold hidden sm:inline">
                 Change
               </span>
               <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
@@ -543,7 +542,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-[#0B57D0] dark:group-hover:text-[#8AB4F8] transition-colors">
+              <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400 flex items-center justify-center group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                 <GeminiIcon name="chat" size={15} />
               </div>
               <span className="font-medium text-neutral-800 dark:text-neutral-200 text-[13px]">
@@ -584,7 +583,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-all duration-200 text-left cursor-pointer"
         >
           <div className="flex items-center gap-3">
-            <GeminiIcon name="sparkle" size={15} className="text-[#0B57D0] dark:text-[#8AB4F8]" />
+            <GeminiIcon name="sparkle" size={15} className="text-amber-500 dark:text-amber-400" />
             <span className="font-semibold text-neutral-800 dark:text-neutral-200 text-[11px] uppercase tracking-wider">
               String & Aurora Ecosystem Synergy
             </span>
@@ -607,7 +606,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </span>
               <button
                 onClick={handleResetSafetyBanner}
-                className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] hover:underline cursor-pointer"
+                className="text-[10px] font-mono text-amber-500 dark:text-amber-400 hover:underline cursor-pointer"
               >
                 {isBannerReset ? 'Banner Restored!' : 'Reset Chat Banner'}
               </button>
@@ -640,7 +639,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0]"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400/60"
                   placeholder="e.g. Morenikeji Adetunji"
                 />
               </div>
@@ -651,7 +650,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   type="text"
                   value={editMatric}
                   onChange={(e) => setEditMatric(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0]"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400/60"
                   placeholder="e.g. SMS/2021/0045"
                 />
               </div>
@@ -662,7 +661,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setActiveModal('academic_program')}
-                    className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] hover:underline font-bold"
+                    className="text-[10px] font-mono text-amber-500 dark:text-amber-400 hover:underline font-bold"
                   >
                     Select from Catalog →
                   </button>
@@ -671,7 +670,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   type="text"
                   value={editDepartment}
                   onChange={(e) => setEditDepartment(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0]"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400/60"
                   placeholder="e.g. Economics"
                 />
               </div>
@@ -681,7 +680,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <select
                   value={editLevel}
                   onChange={(e) => setEditLevel(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0]"
+                  className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400/60"
                 >
                   <option value="100L">100L</option>
                   <option value="200L">200L</option>
@@ -702,7 +701,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 >
                   {savingProfile ? 'Saving...' : saveSuccess ? 'Saved!' : 'Save Changes'}
                 </button>
@@ -730,7 +729,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {currentInsiderQuestion && (
               <div className="space-y-3">
                 <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] text-xs">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#0B57D0] dark:text-[#8AB4F8] font-bold block mb-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-amber-500 dark:text-amber-400 font-bold block mb-1">
                     Campus Insider Check
                   </span>
                   <p className="text-neutral-800 dark:text-neutral-200 font-medium">
@@ -745,11 +744,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       value={campusUserAnswer}
                       onChange={(e) => setCampusUserAnswer(e.target.value)}
                       placeholder="Type your campus answer..."
-                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0]"
+                      className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400/60"
                     />
                     <button
                       onClick={handleSubmitCampusAnswer}
-                      className="w-full py-2 rounded-xl bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold cursor-pointer shadow-xs active:scale-95 transition-all"
+                      className="w-full py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold cursor-pointer shadow-xs active:scale-95 transition-all"
                     >
                       Verify Campus Identity
                     </button>
@@ -789,7 +788,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     <p className="text-xs text-rose-500 font-medium">{campusNudge}</p>
                     <button
                       onClick={handleOpenUnivModal}
-                      className="text-xs font-semibold text-[#0B57D0] dark:text-[#8AB4F8] underline cursor-pointer"
+                      className="text-xs font-semibold text-amber-500 dark:text-amber-400 underline cursor-pointer"
                     >
                       Try another question
                     </button>
@@ -821,7 +820,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     onClick={() => setTheme('dark')}
                     className={`p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
                       theme === 'dark'
-                        ? 'border-[#0B57D0] bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#8AB4F8]'
+                        ? 'border-amber-400 bg-amber-400/10 text-amber-500 dark:text-amber-400'
                         : 'border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
                     }`}
                   >
@@ -831,7 +830,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     onClick={() => setTheme('light')}
                     className={`p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
                       theme === 'light'
-                        ? 'border-[#0B57D0] bg-[#0B57D0]/10 text-[#0B57D0]'
+                        ? 'border-amber-400 bg-amber-400/10 text-amber-500 dark:text-amber-400'
                         : 'border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400'
                     }`}
                   >
@@ -844,7 +843,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block">Dashboard Font Scale</label>
-                  <span className="text-[10px] font-mono text-[#0B57D0] dark:text-[#8AB4F8] font-bold capitalize">
+                  <span className="text-[10px] font-mono text-amber-500 dark:text-amber-400 font-bold capitalize">
                     {fontSize}
                   </span>
                 </div>
@@ -868,7 +867,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         onClick={() => setFontSize(scale)}
                         className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                           isCurrent
-                            ? 'border-[#0B57D0] bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#8AB4F8] font-bold shadow-2xs'
+                            ? 'border-amber-400 bg-amber-400/10 text-amber-500 dark:text-amber-400 font-bold shadow-2xs'
                             : 'border-black/[0.06] dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
                         }`}
                       >
@@ -895,13 +894,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       }}
                       className={`w-full text-left p-2 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
                         selectedVoice === v.id
-                          ? 'bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#8AB4F8] font-bold'
+                          ? 'bg-amber-400/15 text-amber-500 dark:text-amber-400 font-bold'
                           : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-neutral-700 dark:text-neutral-300'
                       }`}
                     >
                       <span>{v.label}</span>
                       {selectedVoice === v.id && (
-                        <GeminiIcon name="check" size={12} className="text-[#0B57D0] dark:text-[#8AB4F8]" />
+                        <GeminiIcon name="check" size={12} className="text-amber-400" />
                       )}
                     </button>
                   ))}
@@ -938,7 +937,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   onChange={(e) => setFeedbackText(e.target.value)}
                   placeholder="Share ideas, course requests, or bug reports..."
                   rows={4}
-                  className="w-full p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-[#0B57D0]"
+                  className="w-full p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400"
                 />
                 <button
                   onClick={() => {
@@ -951,7 +950,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       }, 1800);
                     }
                   }}
-                  className="w-full py-2 rounded-xl bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold cursor-pointer shadow-xs active:scale-95 transition-all"
+                  className="w-full py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold cursor-pointer shadow-xs active:scale-95 transition-all"
                 >
                   Send Feedback
                 </button>
@@ -990,13 +989,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
               <button
                 onClick={handleResetSafetyBanner}
-                className="text-xs font-mono text-[#0B57D0] dark:text-[#8AB4F8] hover:underline cursor-pointer"
+                className="text-xs font-mono text-amber-500 dark:text-amber-400 hover:underline cursor-pointer"
               >
                 {isBannerReset ? 'Banner Restored to Messages!' : 'Show Banner in Messages Again'}
               </button>
               <button
                 onClick={() => setIsTermsModalOpen(false)}
-                className="px-4 py-1.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold cursor-pointer"
+                className="px-4 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold cursor-pointer"
               >
                 Understood
               </button>

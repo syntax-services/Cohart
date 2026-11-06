@@ -389,6 +389,27 @@ export const DEFAULT_OOU_LOCATIONS: Location[] = [
     "is_active": true
   },
   {
+    "id": "loc-sms-lt1",
+    "name": "SMS Lecture Theatre (SLR 1)",
+    "code": "SMS-LT1",
+    "category": "lecture_hall",
+    "description": "SMS Tiered Lecture Auditorium (SLR 1), Faculty of Social & Management Sciences main lecture theatre.",
+    "faculty": "Faculty of Social & Management Sciences",
+    "department": "Economics & Social Sciences",
+    "latitude": 6.918650,
+    "longitude": 3.872200,
+    "capacity": 800,
+    "orientation_tips": "Main lecture theatre opposite the SMS Dean's Complex and Rasheed Raji Hall.",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80",
+        "caption": "SMS Lecture Theatre 1 Exterior",
+        "year": "2024"
+      }
+    ],
+    "is_active": true
+  },
+  {
     "id": "loc-geography",
     "name": "Department of Geography",
     "code": "GEOG-DEPT",

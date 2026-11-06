@@ -181,7 +181,7 @@ Keep the explanation under 3 short sentences so the student grasps the fundament
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#1A73E8]">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400">
                 Quiz Complete • {quiz.courseCode}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold font-sans">{quiz.title}</h2>
@@ -196,7 +196,7 @@ Keep the explanation under 3 short sentences so the student grasps the fundament
 
           {/* Score Banner */}
           <GeminiCard className="p-6 rounded-[2rem] bg-white/[0.04] border border-white/[0.08] text-center space-y-3">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0B57D0]/20 text-[#1A73E8] text-2xl font-mono font-bold">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 text-2xl font-mono font-bold">
               {percentage}%
             </div>
             <div>
@@ -277,7 +277,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
                 onReviewWithAi(debriefPrompt);
                 onClose();
               }}
-              className="w-full sm:flex-1 py-3 px-4 rounded-full bg-[#1A73E8] hover:bg-white text-neutral-950 font-bold text-xs font-mono transition-all active:scale-95 cursor-pointer shadow-lg shadow-[#0B57D0]/20 flex items-center justify-center gap-2"
+              className="w-full sm:flex-1 py-3 px-4 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold text-xs font-mono transition-all active:scale-95 cursor-pointer shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
             >
               <GeminiIcon name="zap" size={16} />
               <span>Review Result with Cohart AI &rarr;</span>
@@ -301,7 +301,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
     return (
       <div className="fixed inset-0 z-[100] bg-neutral-950 text-white flex items-center justify-center p-4">
         <p className="text-xs font-mono text-neutral-400">No questions loaded in this quiz.</p>
-        <button onClick={onClose} className="ml-4 text-xs font-mono text-[#1A73E8] underline">
+        <button onClick={onClose} className="ml-4 text-xs font-mono text-amber-400 underline">
           Close
         </button>
       </div>
@@ -317,7 +317,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
       {/* Top Progress & Control Bar */}
       <div className="h-14 px-4 sm:px-8 border-b border-white/[0.08] flex items-center justify-between bg-black/40 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold font-mono px-2.5 py-0.5 rounded-md bg-[#0B57D0]/20 text-[#1A73E8] border border-[#0B57D0]/30">
+          <span className="text-xs font-bold font-mono px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30">
             {quiz.courseCode}
           </span>
           <span className="text-xs font-mono text-neutral-400">
@@ -352,7 +352,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
       {/* Progress Line */}
       <div className="w-full h-1 bg-white/[0.04]">
         <div
-          className="h-full bg-gradient-to-r from-[#0B57D0] to-[#1A73E8] transition-all duration-300"
+          className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-300"
           style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
         />
       </div>
@@ -453,8 +453,8 @@ Please review my results, tell me what made those concepts tricky, and test me u
 
           {/* Mini Assistant Slide-in */}
           {miniAiExplanation && miniAiExplanation.index === currentIndex && (
-            <div className="p-4 rounded-2xl bg-[#0B57D0]/10 border border-[#0B57D0]/30 space-y-2 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between text-xs text-[#1A73E8] font-mono">
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between text-xs text-amber-400 font-mono">
                 <span className="flex items-center gap-1 font-bold">
                   <GeminiIcon name="zap" size={13} /> Cohart Mini AI Explanation
                 </span>
@@ -464,7 +464,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
               </div>
               {miniAiExplanation.isLoading ? (
                 <p className="text-xs font-mono text-neutral-400 flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#1A73E8] animate-ping" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
                   Breaking down concept in simple everyday English...
                 </p>
               ) : (
@@ -503,7 +503,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
               {currentIndex < totalQuestions - 1 ? (
                 <button
                   onClick={() => setCurrentIndex((prev) => Math.min(totalQuestions - 1, prev + 1))}
-                  className="px-4 py-2 rounded-full bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white font-mono text-xs font-medium transition-all active:scale-95 cursor-pointer shadow-xs"
+                  className="px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 font-mono text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
                 >
                   Next &rarr;
                 </button>
@@ -526,7 +526,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
           <div className="w-full max-w-sm rounded-[2rem] bg-[#161822] border border-white/10 p-5 space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <GeminiIcon name="share" size={16} className="text-[#1A73E8]" />
+                <GeminiIcon name="share" size={16} className="text-amber-400" />
                 <h3 className="text-sm font-bold text-white">Share Quiz with Peers</h3>
               </div>
               <button
@@ -543,7 +543,7 @@ Please review my results, tell me what made those concepts tricky, and test me u
 
             <button
               onClick={handleShareQuiz}
-              className="w-full py-2.5 rounded-full bg-[#1A73E8] hover:bg-white text-neutral-950 font-bold text-xs font-mono transition-all cursor-pointer shadow-xs"
+              className="w-full py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold text-xs font-mono transition-all cursor-pointer shadow-xs"
             >
               {copiedShareLink ? 'Link Copied to Clipboard!' : 'Copy Shareable Link'}
             </button>

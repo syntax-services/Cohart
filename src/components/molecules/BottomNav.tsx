@@ -70,11 +70,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                 aria-label={item.label}
                 className={`relative flex items-center justify-center rounded-full transition-all duration-200 active:scale-95 group ${
                   isCenterMap
-                    ? 'w-11 h-11 bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 border border-[#0B57D0]/20 dark:border-[#1A73E8]/30 shadow-sm'
+                    ? 'w-11 h-11 bg-amber-500/10 border border-amber-500/30 shadow-sm'
                     : 'w-10 h-10'
                 } ${
                   isActive
-                    ? 'text-[#0B57D0] dark:text-[#1A73E8]'
+                    ? 'text-amber-400 dark:text-amber-400 font-bold'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
@@ -94,9 +94,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                     strokeWidth={isActive ? 2.5 : 2}
                     className={`transition-colors duration-200 ${
                       isActive
-                        ? 'text-[#0B57D0] dark:text-[#1A73E8]'
+                        ? 'text-amber-400 dark:text-amber-400'
                         : isCenterMap
-                          ? 'text-[#0B57D0] dark:text-[#1A73E8]'
+                          ? 'text-amber-400/90 dark:text-amber-400/90'
                           : 'text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white'
                     }`}
                   />

@@ -111,14 +111,14 @@ export const INITIAL_STUDY_SQUADS: CampusStudySquad[] = [
   },
   {
     id: 'squad_2',
-    name: 'Macroeconomics 200L Peer Roundtable',
-    topic: 'IS-LM Curve shifts, monetary aggregates & central bank policy',
+    name: 'Microeconomics 200L Peer Roundtable',
+    topic: 'Consumer theory, indifference curves, market structures & elasticity',
     courseCode: 'ECO 201',
     institutionCode: 'OOU',
     memberCount: 58,
     lastActive: '12m ago',
     isPublic: true,
-    tags: ['Economics', 'Past Questions', 'Lectures'],
+    tags: ['Economics', 'Microeconomics', 'Past Questions', 'Lectures'],
   },
   {
     id: 'squad_3',

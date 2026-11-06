@@ -40,13 +40,13 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           className="overflow-visible"
         >
           <defs>
-            {/* Extraterrestrial Liquid Glass Body */}
+            {/* Extraterrestrial Liquid Glass Body: Space Grey Chrome / Platinum Sheen (NO BLUE) */}
             <linearGradient id="auroraExtraterrestrialBody" x1="30" y1="20" x2="170" y2="180" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#A8C7FA" stopOpacity="0.95" />
-              <stop offset="25%" stopColor="#8AB4F8" stopOpacity="0.9" />
-              <stop offset="55%" stopColor="#1A73E8" stopOpacity="0.85" />
-              <stop offset="85%" stopColor="#0B57D0" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="#0842A0" stopOpacity="1" />
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
+              <stop offset="25%" stopColor="#E5E7EB" stopOpacity="0.9" />
+              <stop offset="55%" stopColor="#9CA3AF" stopOpacity="0.85" />
+              <stop offset="85%" stopColor="#374151" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#1C202B" stopOpacity="1" />
             </linearGradient>
 
             {/* Specular Refractive Surface Sheen (Liquid Glass) */}
@@ -56,11 +56,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
               <stop offset="80%" stopColor="#FFFFFF" stopOpacity="0" />
             </linearGradient>
 
-            {/* Inner Bioluminescent Caustic Glow */}
+            {/* Inner Bioluminescent Caustic Glow: Amber Core Singularity */}
             <radialGradient id="auroraCoreHalo" cx="100" cy="65" r="85" fx="100" fy="50" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#D2E3FC" stopOpacity="0.85" />
-              <stop offset="40%" stopColor="#1A73E8" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#0B57D0" stopOpacity="0" />
+              <stop offset="0%" stopColor="#FDE047" stopOpacity="0.75" />
+              <stop offset="40%" stopColor="#EAB308" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#111318" stopOpacity="0" />
             </radialGradient>
 
             {/* Extraterrestrial Halo Diffuser */}
@@ -120,7 +120,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
           {/* Extraterrestrial Apex Singularity Orb */}
           <circle cx="100" cy="52" r="4" fill="#FFFFFF" opacity="0.95" />
-          <circle cx="100" cy="52" r="9" fill="#A8C7FA" opacity="0.4" />
+          <circle cx="100" cy="52" r="9" fill="#FACC15" opacity="0.45" />
         </svg>
       </div>
 
@@ -154,7 +154,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             </svg>
 
             {/* Liquid Glass OS Badge */}
-            <span className="px-1.5 py-0.2 text-[8.5px] font-mono tracking-wider text-[#0B57D0] dark:text-[#8AB4F8] bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 rounded-full border border-[#0B57D0]/20 dark:border-[#1A73E8]/25 font-bold shadow-xs">
+            <span className="px-1.5 py-0.2 text-[8.5px] font-mono tracking-wider text-amber-400 bg-amber-400/10 rounded-full border border-amber-400/25 font-bold shadow-xs">
               OS
             </span>
           </div>

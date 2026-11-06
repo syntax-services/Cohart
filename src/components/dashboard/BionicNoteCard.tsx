@@ -29,7 +29,7 @@ export const BionicNoteCard: React.FC = () => {
         {/* Header with Bionic Switch */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#387BFF]/15 text-[#387BFF]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
               <GeminiIcon name="reader" size={16} />
             </div>
             <div>
@@ -43,7 +43,7 @@ export const BionicNoteCard: React.FC = () => {
             onClick={() => setIsBionicEnabled(!isBionicEnabled)}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-medium transition-all ${
               isBionicEnabled
-                ? 'bg-gradient-to-r from-[#1A73E8] to-[#387BFF] text-white shadow-[0_0_15px_rgba(56,123,255,0.35)]'
+                ? 'bg-amber-400 text-neutral-950 font-bold shadow-[0_0_15px_rgba(245,158,11,0.35)]'
                 : 'bg-white/[0.05] text-slate-400 border border-white/[0.08] hover:text-white'
             }`}
           >
@@ -86,7 +86,7 @@ export const BionicNoteCard: React.FC = () => {
       {/* Footer info bar */}
       <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
         <div className="flex items-center gap-1.5 text-slate-400">
-          <GeminiIcon name="zap" size={14} className="text-[#387BFF]" />
+          <GeminiIcon name="zap" size={14} className="text-amber-400" />
           <span>Fixation guided reading active</span>
         </div>
         <button

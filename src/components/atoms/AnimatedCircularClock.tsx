@@ -60,7 +60,7 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
                 <div
                   className={`w-0.5 rounded-full ${
                     i % 3 === 0
-                      ? 'h-3 bg-[#0B57D0] dark:bg-[#1A73E8]'
+                      ? 'h-3 bg-amber-400'
                       : 'h-1.5 bg-neutral-300 dark:bg-neutral-700'
                   }`}
                 />
@@ -70,7 +70,7 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
 
           {/* Hour Hand */}
           <div
-            className="absolute w-1 rounded-full bg-neutral-800 dark:text-white origin-bottom transition-transform duration-200"
+            className="absolute w-1 rounded-full bg-neutral-800 dark:bg-neutral-100 origin-bottom transition-transform duration-200"
             style={{
               height: '32px',
               bottom: '50%',
@@ -90,9 +90,9 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
             }}
           />
 
-          {/* Second Hand (Electric Blue Sweep) */}
+          {/* Second Hand (Warm Amber Sweep) */}
           <div
-            className="absolute w-[1.5px] rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] origin-bottom shadow-sm"
+            className="absolute w-[1.5px] rounded-full bg-amber-400 origin-bottom shadow-sm"
             style={{
               height: '54px',
               bottom: '50%',
@@ -102,7 +102,7 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
           />
 
           {/* Centre Pin */}
-          <div className="absolute w-2.5 h-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] border-2 border-white dark:border-[#181B24] shadow-xs z-10" />
+          <div className="absolute w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white dark:border-[#181B24] shadow-xs z-10" />
         </div>
       </div>
 
@@ -112,7 +112,7 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
           <span className="font-mono text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
             {formattedDigital}
           </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] font-bold">
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 font-bold">
             {timezone}
           </span>
         </div>

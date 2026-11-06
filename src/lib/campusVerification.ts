@@ -26,12 +26,12 @@ export interface CampusInsiderQuestion {
 }
 
 const BADGE_COLORS: Record<string, string> = {
-  OOU: '#0B57D0',
+  OOU: '#EAB308',
   UNILAG: '#9333EA',
   UI: '#D97706',
-  OAU: '#2563EB',
+  OAU: '#6B7280',
   FUTA: '#059669',
-  LASU: '#0284C7',
+  LASU: '#4B5563',
   UNILORIN: '#4F46E5',
   UNIBEN: '#7C3AED',
   UNN: '#10B981',
@@ -45,7 +45,7 @@ export const NIGERIAN_UNIVERSITIES: NigerianUniversity[] = SUPPORTED_INSTITUTION
   state: inst.locationState,
   category: inst.category,
   mainCampus: inst.city ? `${inst.city} Campus` : `${inst.name} Main Campus`,
-  badgeColor: BADGE_COLORS[inst.id] || (inst.category === 'Federal' ? '#0B57D0' : '#059669'),
+  badgeColor: BADGE_COLORS[inst.id] || (inst.category === 'Federal' ? '#EAB308' : '#059669'),
 }));
 
 export const CAMPUS_INSIDER_QUESTIONS: Record<string, CampusInsiderQuestion[]> = {

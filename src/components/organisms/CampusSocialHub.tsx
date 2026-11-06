@@ -326,7 +326,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
       return { label: 'Coursemate', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' };
     }
     if (mySchool && pSchool === mySchool) {
-      return { label: 'Same Campus', color: 'bg-[#0B57D0]/10 text-[#0B57D0] dark:text-[#1A73E8] border-[#0B57D0]/20' };
+      return { label: 'Same Campus', color: 'bg-amber-400/10 text-amber-500 dark:text-amber-400 border-amber-400/20' };
     }
     return { label: 'National Scholar', color: 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-500 dark:text-neutral-400 border-black/[0.04] dark:border-white/[0.06]' };
   };
@@ -356,7 +356,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
               className="flex items-center gap-2.5 text-left group min-w-0 cursor-pointer"
               title="Click to view Scholar Profile"
             >
-              <div className="h-8 w-8 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 dark:border-[#1A73E8]/20 flex items-center justify-center font-bold text-xs text-[#0B57D0] dark:text-[#1A73E8] uppercase shrink-0 group-hover:scale-105 transition-transform">
+              <div className="h-8 w-8 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center font-bold text-xs text-amber-500 dark:text-amber-400 uppercase shrink-0 group-hover:scale-105 transition-transform">
                 {getInitials(selectedUser.full_name)}
               </div>
 
@@ -426,7 +426,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                   <div
                     className={`max-w-[82%] sm:max-w-[75%] px-3.5 py-2 rounded-2xl text-xs leading-relaxed ${
                       isMe
-                        ? 'bg-[#0B57D0] dark:bg-[#1A73E8] text-white rounded-br-xs shadow-xs'
+                        ? 'bg-amber-400 text-neutral-950 font-medium rounded-br-xs shadow-xs'
                         : 'bg-black/[0.03] dark:bg-white/[0.05] text-neutral-900 dark:text-neutral-100 rounded-bl-xs border border-black/[0.04] dark:border-white/[0.06]'
                     }`}
                   >
@@ -434,8 +434,8 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                     {m.reply_to_snippet && (
                       <div className={`mb-1.5 p-1.5 rounded-lg border-l-2 text-[10px] ${
                         isMe
-                          ? 'bg-black/20 border-white/60 text-white/90'
-                          : 'bg-black/[0.04] dark:bg-white/[0.06] border-[#0B57D0] text-neutral-600 dark:text-neutral-300'
+                          ? 'bg-black/10 border-neutral-950/60 text-neutral-950'
+                          : 'bg-black/[0.04] dark:bg-white/[0.06] border-amber-400 text-neutral-600 dark:text-neutral-300'
                       }`}>
                         <span className="font-bold block uppercase tracking-wider text-[8px] opacity-80">
                           Replying to {m.reply_to_sender || 'Peer'}:
@@ -485,9 +485,9 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
         <div className="p-2.5 sm:p-3 border-t border-black/[0.06] dark:border-white/[0.08] bg-white/95 dark:bg-[#1E1F20]/95 backdrop-blur-md shrink-0">
           {/* Active Reply Banner */}
           {replyingTo && (
-            <div className="flex items-center justify-between px-3 py-1 mb-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border-l-2 border-[#0B57D0] dark:border-[#1A73E8] text-xs">
+            <div className="flex items-center justify-between px-3 py-1 mb-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border-l-2 border-amber-400 text-xs">
               <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
-                <span className="font-semibold text-[#0B57D0] dark:text-[#1A73E8] text-[11px]">
+                <span className="font-semibold text-amber-500 dark:text-amber-400 text-[11px]">
                   Replying to {replyingTo.sender}:
                 </span>
                 <span className="text-neutral-500 italic text-[11px] truncate">
@@ -506,9 +506,9 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
 
           {/* Attached File Preview */}
           {attachedFile && (
-            <div className="flex items-center justify-between px-3 py-1 mb-2 rounded-xl bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 text-xs">
+            <div className="flex items-center justify-between px-3 py-1 mb-2 rounded-xl bg-amber-400/10 border border-amber-400/20 text-xs">
               <div className="flex items-center gap-2 overflow-hidden">
-                <GeminiIcon name="attachment" size={13} className="text-[#0B57D0] dark:text-[#1A73E8]" />
+                <GeminiIcon name="attachment" size={13} className="text-amber-500 dark:text-amber-400" />
                 <span className="font-medium text-neutral-800 dark:text-white truncate text-[11px]">
                   {attachedFile.name} ({attachedFile.sizeKb} KB)
                 </span>
@@ -535,7 +535,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-full bg-black/[0.03] dark:bg-white/[0.05] text-neutral-500 hover:text-[#0B57D0] dark:hover:text-[#1A73E8] transition-colors cursor-pointer shrink-0"
+              className="p-2 rounded-full bg-black/[0.03] dark:bg-white/[0.05] text-neutral-500 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
               title="Attach study note or past question"
             >
               <GeminiIcon name="attachment" size={15} />
@@ -546,13 +546,13 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
               placeholder="Type a message or share course notes..."
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
-              className="flex-1 px-4 py-2 rounded-full bg-neutral-100/90 dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8]"
+              className="flex-1 px-4 py-2 rounded-full bg-neutral-100/90 dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-amber-400/60"
             />
 
             <button
               type="submit"
               disabled={(!messageInput.trim() && !attachedFile) || sending}
-              className="h-8 px-4 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 active:scale-95 disabled:opacity-40 transition-all cursor-pointer shrink-0"
+              className="h-8 px-4 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold active:scale-95 disabled:opacity-40 transition-all cursor-pointer shrink-0"
             >
               Send
             </button>
@@ -571,7 +571,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
               </button>
 
               <div className="flex flex-col items-center text-center">
-                <div className="h-16 w-16 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 flex items-center justify-center text-xl font-bold text-[#0B57D0] dark:text-[#1A73E8] uppercase mb-3">
+                <div className="h-16 w-16 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-xl font-bold text-amber-500 dark:text-amber-400 uppercase mb-3">
                   {getInitials(inspectingPeer.full_name)}
                 </div>
 
@@ -584,7 +584,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
                     {getPeerBadge(inspectingPeer).label}
                   </span>
                   {inspectingPeer.level && (
-                    <Badge variant="blue" size="sm" className="rounded-full px-2 font-mono text-[10px]">
+                    <Badge variant="amber" size="sm" className="rounded-full px-2 font-mono text-[10px]">
                       {inspectingPeer.level}
                     </Badge>
                   )}
@@ -609,7 +609,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
 
                 <button
                   onClick={() => setInspectingPeer(null)}
-                  className="w-full mt-5 py-2.5 rounded-full bg-[#0B57D0] dark:bg-[#1A73E8] text-white text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  className="w-full mt-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold transition-opacity cursor-pointer"
                 >
                   Return to Chat
                 </button>
@@ -672,7 +672,7 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
           placeholder="Search coursemates, departments, or other schools..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-9 pr-3.5 py-2 rounded-full bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-[#0B57D0] dark:focus:border-[#1A73E8] transition-all shadow-xs"
+          className="w-full pl-9 pr-3.5 py-2 rounded-full bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-amber-400/60 transition-all shadow-xs"
         />
       </div>
 
@@ -686,16 +686,16 @@ export const CampusSocialHub: React.FC<CampusSocialHubProps> = ({
           className="w-full p-3.5 flex items-center justify-between hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors text-left group cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-9 w-9 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 border border-[#0B57D0]/20 dark:border-[#1A73E8]/20 flex items-center justify-center text-[#0B57D0] dark:text-[#1A73E8] shrink-0">
+            <div className="h-9 w-9 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0">
               <GeminiIcon name="sparkle" size={17} />
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-semibold text-neutral-900 dark:text-white">
-                  Cohart Assistant
+                  Aurora AI
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#0B57D0]/10 dark:bg-[#1A73E8]/10 text-[#0B57D0] dark:text-[#1A73E8] font-semibold">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 font-semibold">
                   Pinned Assistant
                 </span>
               </div>

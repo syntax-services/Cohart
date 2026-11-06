@@ -114,11 +114,11 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       case 'exam':
         return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
       case 'academic':
-        return 'text-[#1A73E8] bg-[#1A73E8]/10 border-[#1A73E8]/20';
+        return 'text-amber-500 dark:text-amber-400 bg-amber-500/10 border-amber-500/20';
       case 'system':
         return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
       case 'campus':
-        return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+        return 'text-neutral-300 bg-white/[0.06] border-white/[0.1]';
       default:
         return 'text-neutral-400 bg-neutral-400/10 border-neutral-400/20';
     }
@@ -135,7 +135,7 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       >
         <GeminiIcon name="bell" size={16} />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#1A73E8] ring-2 ring-white dark:ring-[#050507] animate-pulse" />
+          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-white dark:ring-[#050507] animate-pulse" />
         )}
       </button>
 
@@ -153,20 +153,20 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
               className="absolute inset-0 bg-black/60 backdrop-blur-xs cursor-pointer"
             />
 
-            {/* Slideover Panel (Slides in from right to left: x: '100%' -> x: 0) */}
-            <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            {/* Slideover Panel (Slides in from right to left smoothly within viewport) */}
+            <div className="fixed inset-y-0 right-0 max-w-full flex z-50">
               <motion.div
                 ref={drawerRef}
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="w-screen max-w-md bg-white/95 dark:bg-[#0c0d10]/95 backdrop-blur-2xl border-l border-black/[0.08] dark:border-white/[0.08] shadow-2xl flex flex-col h-full"
+                className="w-full sm:w-[420px] max-w-full bg-white/95 dark:bg-[#0c0d12]/95 backdrop-blur-2xl border-l border-black/[0.08] dark:border-white/[0.08] shadow-2xl flex flex-col h-full"
               >
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between bg-black/[0.01] dark:bg-white/[0.02]">
                   <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-xl bg-[#1A73E8]/10 text-[#1A73E8] flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-400/20">
                       <GeminiIcon name="bell" size={16} />
                     </div>
                     <div>
@@ -175,7 +175,7 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                           Campus Alerts
                         </h2>
                         {unreadCount > 0 && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#1A73E8]/10 text-[#1A73E8] border border-[#1A73E8]/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
                             {unreadCount} new
                           </span>
                         )}
@@ -190,7 +190,7 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                     {unreadCount > 0 && (
                       <button
                         onClick={markAllAsRead}
-                        className="text-[11px] text-[#1A73E8] hover:underline cursor-pointer font-medium px-2 py-1 rounded-lg hover:bg-[#1A73E8]/10 transition-colors"
+                        className="text-[11px] text-amber-500 dark:text-amber-400 hover:underline cursor-pointer font-medium px-2 py-1 rounded-lg hover:bg-amber-400/10 transition-colors"
                       >
                         Mark all read
                       </button>
@@ -224,14 +224,14 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                         onClick={() => markAsRead(n.id)}
                         className={`p-3.5 rounded-2xl transition-all cursor-pointer text-left relative group ${
                           !n.read
-                            ? 'bg-[#1A73E8]/[0.05] dark:bg-[#1A73E8]/[0.08] border border-[#1A73E8]/15 hover:bg-[#1A73E8]/[0.08]'
+                            ? 'bg-amber-400/[0.06] dark:bg-amber-400/[0.08] border border-amber-400/20 hover:bg-amber-400/[0.1]'
                             : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.03] border border-transparent'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2">
                             {!n.read && (
-                              <span className="h-2 w-2 rounded-full bg-[#1A73E8] shrink-0 animate-pulse" />
+                              <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
                             )}
                             <span className="text-xs font-bold text-neutral-900 dark:text-white leading-snug">
                               {n.title}
@@ -247,7 +247,7 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                         <div className="flex items-center justify-between mt-2 pt-1 text-[10px] font-mono text-neutral-400 pl-0.5">
                           <span>{n.timestamp}</span>
                           {!n.read && (
-                            <span className="text-[#1A73E8] opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-amber-500 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
                               Click to mark read
                             </span>
                           )}

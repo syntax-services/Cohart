@@ -54,7 +54,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
   return (
     <div className="w-full my-3 rounded-2xl bg-white/90 dark:bg-[#121620]/90 border border-black/[0.08] dark:border-white/[0.1] shadow-xl overflow-hidden backdrop-blur-xl">
       {/* Kit Header Banner */}
-      <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-purple-500/10 border-b border-black/[0.06] dark:border-white/[0.08]">
+      <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-500/10 via-amber-500/10 to-purple-500/10 border-b border-black/[0.06] dark:border-white/[0.08]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -133,7 +133,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                       key={idx}
                       className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.06]"
                     >
-                      <span className="block font-bold text-xs text-[#0B57D0] dark:text-[#1A73E8] mb-0.5 font-mono">
+                      <span className="block font-bold text-xs text-amber-500 dark:text-amber-400 mb-0.5 font-mono">
                         {def.term}
                       </span>
                       <span className="text-xs text-neutral-600 dark:text-neutral-300 leading-snug">
@@ -179,7 +179,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
 
             <div
               onClick={() => setIsFlipped(!isFlipped)}
-              className="min-h-[170px] sm:min-h-[200px] p-6 rounded-2xl bg-gradient-to-br from-black/[0.03] to-black/[0.01] dark:from-white/[0.05] dark:to-white/[0.02] border border-black/[0.08] dark:border-white/[0.1] shadow-inner flex flex-col justify-between cursor-pointer transition-all hover:border-[#0B57D0]/40 group"
+              className="min-h-[170px] sm:min-h-[200px] p-6 rounded-2xl bg-gradient-to-br from-black/[0.03] to-black/[0.01] dark:from-white/[0.05] dark:to-white/[0.02] border border-black/[0.08] dark:border-white/[0.1] shadow-inner flex flex-col justify-between cursor-pointer transition-all hover:border-amber-500/40 group"
             >
               <div>
                 <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-neutral-400 block mb-2">
@@ -196,7 +196,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                 </div>
               )}
 
-              <div className="text-right text-[10px] font-mono text-neutral-400 group-hover:text-[#0B57D0] transition-colors mt-2">
+              <div className="text-right text-[10px] font-mono text-neutral-400 group-hover:text-amber-400 transition-colors mt-2">
                 {isFlipped ? 'Tap to see Question' : 'Tap to Flip'}
               </div>
             </div>
@@ -213,7 +213,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
               <button
                 type="button"
                 onClick={handleNextFlashcard}
-                className="px-4 py-2 rounded-full bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
+                className="px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold transition-all cursor-pointer shadow-sm"
               >
                 Next Card
               </button>
@@ -259,7 +259,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                               btnStyle = 'bg-rose-500/15 border border-rose-500/40 text-rose-600 dark:text-rose-400';
                             }
                           } else if (isOptionSelected) {
-                            btnStyle = 'bg-[#0B57D0]/15 border border-[#0B57D0]/40 text-[#0B57D0] dark:text-[#1A73E8] font-bold';
+                            btnStyle = 'bg-amber-500/15 border border-amber-500/40 text-amber-500 dark:text-amber-400 font-bold';
                           }
 
                           return (
@@ -313,7 +313,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                         })),
                       })
                     }
-                    className="w-full py-2.5 rounded-full bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white font-bold text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold text-xs transition-all cursor-pointer shadow-md shadow-amber-500/20 flex items-center justify-center gap-2"
                   >
                     <span>Launch Full Screen CBT Exam Mode</span>
                   </button>

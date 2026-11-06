@@ -39,7 +39,7 @@ export const AnimatedRectangularClock: React.FC<AnimatedRectangularClockProps> =
         <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
           {paddedHours}
         </span>
-        <span className="font-mono text-base sm:text-lg font-bold text-[#0B57D0] dark:text-[#1A73E8] animate-pulse">
+        <span className="font-mono text-base sm:text-lg font-bold text-amber-500 dark:text-amber-400 animate-pulse">
           :
         </span>
         <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
@@ -55,7 +55,7 @@ export const AnimatedRectangularClock: React.FC<AnimatedRectangularClockProps> =
       {/* Timezone & Date Badge */}
       <div className="flex items-center gap-1.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
         <span className="font-semibold text-neutral-700 dark:text-neutral-300">{formattedDate}</span>
-        <span className="px-1.5 py-0.2 rounded bg-[#0B57D0]/10 dark:bg-[#1A73E8]/15 text-[#0B57D0] dark:text-[#1A73E8] text-[9px] font-bold">
+        <span className="px-1.5 py-0.2 rounded bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 text-[9px] font-bold">
           {timezone}
         </span>
       </div>

@@ -6,8 +6,36 @@ import { DEFAULT_STUDENT_PROFILE, fetchProfile, updateProfile, supabase } from '
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 export function useStudentProfile() {
-  const [profile, setProfile] = useState<StudentProfile>(DEFAULT_STUDENT_PROFILE);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<StudentProfile>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cohart_saved_profile');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.id && parsed.id !== 'usr_guest_scholar') {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return DEFAULT_STUDENT_PROFILE;
+  });
+
+  const [userId, setUserId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('cohart_saved_profile');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.id && parsed.id !== 'usr_guest_scholar') {
+            return parsed.id;
+          }
+        }
+      } catch {}
+    }
+    return null;
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -23,12 +51,25 @@ export function useStudentProfile() {
           if (isMounted) setUserId(session.user.id);
           const userProfile = await fetchProfile(session.user.id);
           if (isMounted) {
-            setProfile({
+            const resolvedProfile: StudentProfile = {
               ...userProfile,
               email: session.user.email?.endsWith('@student.cohart.ng') ? (userProfile.email || '') : (session.user.email || userProfile.email),
               full_name: session.user.user_metadata?.full_name || userProfile.full_name,
               institution: session.user.user_metadata?.institution || userProfile.institution || '',
-            });
+            };
+            setProfile(resolvedProfile);
+            try {
+              localStorage.setItem('cohart_saved_profile', JSON.stringify(resolvedProfile));
+            } catch {}
+          }
+        } else {
+          // If no session, reset to default if not logged in
+          if (isMounted && (!userId || userId === 'usr_guest_scholar')) {
+            setProfile(DEFAULT_STUDENT_PROFILE);
+            setUserId(null);
+            try {
+              localStorage.removeItem('cohart_saved_profile');
+            } catch {}
           }
         }
       } catch (e) {
@@ -46,15 +87,22 @@ export function useStudentProfile() {
         if (session?.user) {
           setUserId(session.user.id);
           const userProfile = await fetchProfile(session.user.id);
-          setProfile({
+          const resolvedProfile: StudentProfile = {
             ...userProfile,
             email: session.user.email?.endsWith('@student.cohart.ng') ? (userProfile.email || '') : (session.user.email || userProfile.email),
             full_name: session.user.user_metadata?.full_name || userProfile.full_name,
             institution: session.user.user_metadata?.institution || userProfile.institution || '',
-          });
+          };
+          setProfile(resolvedProfile);
+          try {
+            localStorage.setItem('cohart_saved_profile', JSON.stringify(resolvedProfile));
+          } catch {}
         } else if (event === 'SIGNED_OUT') {
           setUserId(null);
           setProfile(DEFAULT_STUDENT_PROFILE);
+          try {
+            localStorage.removeItem('cohart_saved_profile');
+          } catch {}
         }
       }
     );
@@ -71,8 +119,14 @@ export function useStudentProfile() {
       const targetId = userId || profile.id || 'usr_demo_student_01';
       const merged = { ...profile, ...updated, id: targetId };
       setProfile(merged);
+      try {
+        localStorage.setItem('cohart_saved_profile', JSON.stringify(merged));
+      } catch {}
       const saved = await updateProfile(merged);
       setProfile(saved);
+      try {
+        localStorage.setItem('cohart_saved_profile', JSON.stringify(saved));
+      } catch {}
     } catch (err) {
       console.error('Failed to update profile', err);
     } finally {
@@ -94,6 +148,9 @@ export function useStudentProfile() {
       await supabase.auth.signOut();
       setUserId(null);
       setProfile(DEFAULT_STUDENT_PROFILE);
+      try {
+        localStorage.removeItem('cohart_saved_profile');
+      } catch {}
     } catch (e) {
       console.error('Failed to sign out', e);
     }

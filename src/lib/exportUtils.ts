@@ -17,7 +17,7 @@ export function downloadAsDocx(filename: string, title: string, markdownContent:
   const htmlBody = markdownContent
     .replace(/^### (.*$)/gim, '<h3 style="font-family: Arial, sans-serif; color: #111; margin-top: 16px;">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 style="font-family: Arial, sans-serif; color: #111; margin-top: 20px;">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 style="font-family: Arial, sans-serif; color: #0B57D0; margin-top: 24px;">$1</h1>')
+    .replace(/^# (.*$)/gim, '<h1 style="font-family: Arial, sans-serif; color: #111827; margin-top: 24px;">$1</h1>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code style="background-color: #f1f3f4; padding: 2px 4px; border-radius: 4px; font-family: monospace;">$1</code>')
@@ -42,12 +42,12 @@ export function downloadAsDocx(filename: string, title: string, markdownContent:
   <![endif]-->
   <style>
     body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #1f1f1f; margin: 40px; }
-    h1 { color: #0B57D0; font-size: 18pt; border-bottom: 2px solid #E2E8F0; padding-bottom: 6px; }
+    h1 { color: #111827; font-size: 18pt; border-bottom: 2px solid #E2E8F0; padding-bottom: 6px; }
     h2 { color: #1e293b; font-size: 14pt; margin-top: 20px; }
     h3 { color: #334155; font-size: 12pt; }
     p { margin: 8px 0; }
     li { margin: 4px 0 4px 24px; }
-    .header-box { border-left: 4px solid #0B57D0; padding-left: 12px; margin-bottom: 24px; color: #64748b; font-size: 9pt; }
+    .header-box { border-left: 4px solid #EAB308; padding-left: 12px; margin-bottom: 24px; color: #64748b; font-size: 9pt; }
   </style>
 </head>
 <body>
@@ -103,7 +103,7 @@ export function downloadAsPdf(filename: string, title: string, markdownContent: 
       padding: 24px;
     }
     .header {
-      border-bottom: 2px solid #0B57D0;
+      border-bottom: 2px solid #EAB308;
       padding-bottom: 12px;
       margin-bottom: 24px;
       display: flex;
@@ -114,7 +114,7 @@ export function downloadAsPdf(filename: string, title: string, markdownContent: 
       font-size: 18px;
       font-weight: 800;
       letter-spacing: -0.5px;
-      color: #0B57D0;
+      color: #111827;
     }
     .date {
       font-size: 11px;

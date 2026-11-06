@@ -307,15 +307,15 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     setRouteCoordinates(null);
   };
 
-  // Custom User Location Blue Dot Marker
+  // Custom User Location Amber Marker
   const createUserMarker = () => {
     return L.divIcon({
       className: 'custom-user-marker',
       html: `
         <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style="width: 24px; height: 24px; transform: rotate(${-rotationAngle}deg);">
-          <div class="absolute inset-0 rounded-full bg-[#1A73E8]/30 animate-ping"></div>
-          <div class="relative h-4 w-4 rounded-full bg-[#1A73E8] border-2 border-white shadow-lg flex items-center justify-center">
-            <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
+          <div class="absolute inset-0 rounded-full bg-amber-400/30 animate-ping"></div>
+          <div class="relative h-4 w-4 rounded-full bg-amber-400 border-2 border-neutral-950 shadow-lg flex items-center justify-center">
+            <div class="h-1.5 w-1.5 rounded-full bg-neutral-950"></div>
           </div>
         </div>
       `,
@@ -344,8 +344,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <!-- Circular Pin Badge -->
           <div class="relative flex items-center justify-center w-[30px] h-[30px] rounded-full shadow-md transition-transform duration-150 ${
             isSelected
-              ? 'bg-[#1A73E8] text-white scale-110 ring-2 ring-white'
-              : 'bg-white dark:bg-[#1E1F20] text-[#1A73E8] dark:text-[#8AB4F8] border-2 border-[#1A73E8]'
+              ? 'bg-amber-400 text-neutral-950 scale-110 ring-2 ring-amber-400/50'
+              : 'bg-[#121316] text-amber-400 border-2 border-amber-400/60'
           }">
             <span class="text-[9.5px] font-mono font-bold tracking-tighter uppercase leading-none">
               ${code.slice(0, 3)}
@@ -355,8 +355,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <!-- Pin Stem -->
           <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] -mt-[1px] ${
             isSelected
-              ? 'border-t-[#1A73E8]'
-              : 'border-t-[#1A73E8]'
+              ? 'border-t-amber-400'
+              : 'border-t-amber-400/60'
           }"></div>
         </div>
       `,
@@ -406,7 +406,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         <div className="flex items-center gap-1.5 pointer-events-auto flex-wrap">
           {/* Institution Dropdown */}
           <div className="flex items-center bg-white/95 dark:bg-[#121316]/95 px-2.5 py-1.5 rounded-xl backdrop-blur-md border border-black/[0.08] dark:border-white/[0.1] shadow-md">
-            <GeminiIcon name="compass" size={13} className="text-[#1A73E8] mr-1.5 shrink-0" />
+            <GeminiIcon name="compass" size={13} className="text-amber-500 dark:text-amber-400 mr-1.5 shrink-0" />
             <select
               value={selectedInstId}
               onChange={(e) => handleInstitutionChange(e.target.value)}
@@ -448,10 +448,10 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               <GeminiIcon
                 name="filter"
                 size={13}
-                className={activeCategory !== 'all' ? 'text-[#1A73E8]' : 'text-neutral-500'}
+                className={activeCategory !== 'all' ? 'text-amber-500 dark:text-amber-400' : 'text-neutral-500'}
               />
               {activeCategory !== 'all' && (
-                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[#1A73E8]" />
+                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400" />
               )}
               <select
                 value={activeCategory}
@@ -507,12 +507,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             onClick={handleLocateMe}
             disabled={isLocating}
             title="Locate me on campus"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-xl bg-white/95 dark:bg-[#121316]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md hover:border-[#1A73E8] transition-all shadow-md active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-xl bg-white/95 dark:bg-[#121316]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md hover:border-amber-400/50 transition-all shadow-md active:scale-95 cursor-pointer"
           >
             {isLocating ? (
-              <div className="h-3 w-3 rounded-full border-2 border-[#1A73E8] border-t-transparent animate-spin" />
+              <div className="h-3 w-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
             ) : (
-              <GeminiIcon name="compass" size={13} className="text-[#1A73E8]" />
+              <GeminiIcon name="compass" size={13} className="text-amber-500 dark:text-amber-400" />
             )}
             <span className="hidden sm:inline font-sans font-semibold">GPS</span>
           </button>
@@ -587,7 +587,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               <Polyline
                 positions={routeCoordinates}
                 pathOptions={{
-                  color: '#1A73E8',
+                  color: '#F59E0B',
                   weight: 4,
                   opacity: 0.95,
                   dashArray: '8, 8',
@@ -598,7 +598,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </>
           )}
 
-          {/* Render User GPS Blue Dot */}
+          {/* Render User GPS Amber Marker */}
           {userLocation && (
             <Marker
               position={userLocation}
@@ -637,7 +637,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1A73E8]/10 text-[#1A73E8] font-bold uppercase">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-500 dark:text-amber-400 font-bold uppercase">
                     {currentInstitution.shortName}
                   </span>
                   <span className="text-xs font-bold text-neutral-900 dark:text-white">
@@ -649,7 +649,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 </p>
               </div>
 
-              <div className="h-9 w-9 rounded-xl bg-[#1A73E8]/10 text-[#1A73E8] flex items-center justify-center shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
                 <GeminiIcon name="sparkle" size={17} />
               </div>
             </div>
@@ -657,7 +657,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             <div className="flex items-center gap-2 pt-1 border-t border-black/[0.05] dark:border-white/[0.06]">
               <button
                 onClick={handleAskAuroraForRoom}
-                className="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-[#1A73E8] hover:bg-[#1A73E8]/90 text-white text-xs font-bold shadow-md shadow-[#1A73E8]/20 transition-all active:scale-95 cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold shadow-md shadow-amber-500/10 transition-all active:scale-95 cursor-pointer"
               >
                 <GeminiIcon name="chat" size={14} />
                 <span>Ask Aurora: Find My Lecture Room</span>
