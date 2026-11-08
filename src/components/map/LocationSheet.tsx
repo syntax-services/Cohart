@@ -88,20 +88,20 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="absolute inset-x-0 bottom-0 z-50 max-h-[85vh] flex flex-col rounded-t-3xl border-t border-black/[0.08] dark:border-white/[0.12] bg-white/95 dark:bg-[#1E1F20]/95 backdrop-blur-xl shadow-2xl text-neutral-900 dark:text-neutral-100 overflow-hidden"
+            className="absolute inset-x-0 bottom-0 z-50 max-h-[85vh] flex flex-col rounded-t-3xl border-t border-white/[0.12] bg-[#121316]/98 backdrop-blur-xl shadow-2xl text-neutral-100 overflow-hidden"
           >
             {/* Sticky Header - Grab Handle, Title & Always Visible Exit Button */}
-            <div className="sticky top-0 z-20 shrink-0 bg-white/95 dark:bg-[#1E1F20]/95 backdrop-blur-xl pt-3 px-5 pb-3 border-b border-black/[0.05] dark:border-white/[0.05]">
+            <div className="sticky top-0 z-20 shrink-0 bg-[#121316]/98 backdrop-blur-xl pt-3 px-5 pb-3 border-b border-white/[0.08]">
               {/* Grab handle indicator */}
-              <div className="mx-auto mb-2.5 h-1.5 w-12 rounded-full bg-neutral-300 dark:bg-neutral-600 cursor-grab active:cursor-grabbing" />
+              <div className="mx-auto mb-2.5 h-1.5 w-12 rounded-full bg-neutral-700 cursor-grab active:cursor-grabbing" />
 
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                    <span className="font-mono text-xs font-semibold uppercase tracking-wider text-amber-500 dark:text-amber-400">
+                    <span className="font-mono text-xs font-semibold uppercase tracking-wider text-white">
                       {location.code || 'VENUE'}
                     </span>
-                    <span className="text-[11px] font-mono text-neutral-500 capitalize">
+                    <span className="text-[11px] font-mono text-neutral-400 capitalize">
                       {location.category.replace('_', ' ')}
                     </span>
                     {location.capacity && (
@@ -110,10 +110,10 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                       </span>
                     )}
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold tracking-tight font-sans truncate">
+                  <h3 className="text-base sm:text-lg font-semibold tracking-tight font-sans truncate text-white">
                     {location.name}
                   </h3>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium truncate">
+                  <p className="text-xs text-neutral-400 font-medium truncate">
                     {location.faculty} {location.department ? `• ${location.department}` : ''}
                   </p>
                 </div>
@@ -121,7 +121,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                 {/* Always-Visible Exit / Terminate Button */}
                 <button
                   onClick={onClose}
-                  className="shrink-0 rounded-full bg-black/[0.05] dark:bg-white/[0.08] p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.1] dark:hover:bg-white/[0.15] transition-all active:scale-95"
+                  className="shrink-0 rounded-full bg-white/[0.08] p-2 text-neutral-400 hover:text-white hover:bg-white/[0.15] transition-all active:scale-95 cursor-pointer"
                   aria-label="Close details"
                   title="Close details (or scroll/drag down)"
                 >
@@ -139,7 +139,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
               {location.images && location.images.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                    <span className="text-[10px] font-mono text-neutral-400">
                       Photos ({location.images.length})
                     </span>
                   </div>
@@ -147,7 +147,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                     {location.images.map((img, idx) => (
                       <div
                         key={idx}
-                        className="relative shrink-0 w-44 sm:w-52 h-24 sm:h-28 rounded-lg overflow-hidden border border-black/[0.08] dark:border-white/[0.1] bg-black/[0.04] dark:bg-white/[0.04] snap-start group"
+                        className="relative shrink-0 w-44 sm:w-52 h-24 sm:h-28 rounded-lg overflow-hidden border border-white/[0.1] bg-white/[0.04] snap-start group"
                       >
                         <img
                           src={img.url}
@@ -175,25 +175,25 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
 
               {/* Description & Orientation Tips */}
               <div className="space-y-2.5">
-                <p className="text-xs leading-relaxed text-neutral-700 dark:text-neutral-300">
+                <p className="text-xs leading-relaxed text-neutral-300">
                   {location.description}
                 </p>
 
                 {/* Orientation Guide Box */}
-                <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02] p-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                    <GeminiIcon name="compass" size={14} className="text-amber-500 dark:text-amber-400" />
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-white">
+                    <GeminiIcon name="compass" size={14} className="text-white" />
                     <span>How to Get Here</span>
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
+                  <p className="mt-1 text-xs leading-relaxed text-neutral-300">
                     {location.orientation_tips}
                   </p>
                 </div>
 
                 {/* Coordinates line */}
-                <div className="flex items-center justify-between text-[11px] font-mono text-neutral-500 dark:text-neutral-400 pt-1">
+                <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-1">
                   <span className="flex items-center gap-1.5">
-                    <GeminiIcon name="pin" size={13} className="text-amber-500 dark:text-amber-400" />
+                    <GeminiIcon name="pin" size={13} className="text-neutral-400" />
                     {location.latitude.toFixed(5)}° N, {location.longitude.toFixed(5)}° E
                   </span>
                   <span>OOU Main Site</span>
@@ -205,7 +205,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
                 {onNavigate && (
                   <button
                     onClick={() => onNavigate(location)}
-                    className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 px-3 py-2.5 text-xs font-semibold text-neutral-950 transition-transform duration-150 hover:opacity-95 active:scale-[0.98]"
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-white hover:bg-neutral-200 px-3 py-2.5 text-xs font-bold text-neutral-950 transition-transform duration-150 active:scale-[0.98] cursor-pointer shadow-sm"
                   >
                     <GeminiIcon name="compass" size={14} />
                     <span>Show Route</span>
@@ -214,7 +214,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
 
                 <button
                   onClick={openGoogleMaps}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl border border-black/[0.1] dark:border-white/[0.12] bg-black/[0.02] dark:bg-white/[0.04] px-3 py-2.5 text-xs font-medium text-neutral-800 dark:text-white transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.98] ${
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.12] bg-white/[0.04] px-3 py-2.5 text-xs font-medium text-white transition-colors hover:bg-white/[0.08] active:scale-[0.98] cursor-pointer ${
                     !onNavigate ? 'col-span-2' : ''
                   }`}
                 >
@@ -224,7 +224,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
 
                 <button
                   onClick={handleShare}
-                  className="flex items-center justify-center gap-1.5 rounded-full border border-black/[0.1] dark:border-white/[0.12] bg-black/[0.02] dark:bg-white/[0.04] px-3 py-2.5 text-xs font-medium text-neutral-800 dark:text-white transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.98]"
+                  className="flex items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-2.5 text-xs font-medium text-white transition-colors hover:bg-white/[0.08] active:scale-[0.98] cursor-pointer"
                 >
                   <GeminiIcon name={copied ? 'check' : 'share'} size={14} />
                   <span>{copied ? 'Copied' : 'Share'}</span>
@@ -235,7 +235,7 @@ export const LocationSheet: React.FC<LocationSheetProps> = ({
               <div className="pt-1 text-center">
                 <button
                   onClick={onClose}
-                  className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                  className="text-[10px] font-mono text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
                 >
                   Drag down or tap X to close
                 </button>

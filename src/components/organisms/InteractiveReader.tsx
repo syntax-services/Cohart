@@ -656,7 +656,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setIsBooksDrawerOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400/15 text-amber-500 dark:text-amber-400 border border-amber-400/30 text-xs font-semibold shrink-0 cursor-pointer hover:bg-amber-400/25 transition-all active:scale-95"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-white border border-white/20 text-xs font-semibold shrink-0 cursor-pointer hover:bg-white/15 transition-all active:scale-95"
             title="Browse course textbooks"
           >
             <GeminiIcon name="book-open" size={12} />
@@ -675,7 +675,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 }}
                 className={`h-6 px-2 rounded-full text-[11px] font-mono transition-all shrink-0 cursor-pointer ${
                   selectedChapterId === ch.id && activeView === 'reader'
-                    ? 'bg-amber-400 text-neutral-950 font-bold shadow-xs'
+                    ? 'bg-white text-neutral-950 font-bold shadow-xs'
                     : 'bg-white/[0.04] text-neutral-400 hover:text-white'
                 }`}
                 title={ch.title}
@@ -723,13 +723,13 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       onClick={() => handleSelectVoice(v.id)}
                       className={`w-full text-left px-2 py-1.5 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
                         selectedVoice === v.id
-                          ? 'bg-amber-400/20 text-amber-400 font-medium'
+                          ? 'bg-white/10 text-white font-medium'
                           : 'text-neutral-300 hover:bg-white/[0.06]'
                       }`}
                     >
                       <span className="truncate">{v.label}</span>
                       {selectedVoice === v.id && (
-                        <GeminiIcon name="check" size={11} className="text-amber-400 shrink-0" />
+                        <GeminiIcon name="check" size={11} className="text-white shrink-0" />
                       )}
                     </button>
                   ))}
@@ -744,7 +744,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               onClick={() => setIsToolsPopoverOpen(!isToolsPopoverOpen)}
               className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
                 isToolsPopoverOpen || isBionic
-                  ? 'bg-amber-400/20 text-amber-400 border border-amber-400/30'
+                  ? 'bg-white/10 text-white border border-white/20'
                   : 'bg-white/[0.04] text-neutral-300 hover:bg-white/[0.08]'
               }`}
               title="Reading display & tools"
@@ -770,7 +770,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                           key={s}
                           onClick={() => setFontSize(s)}
                           className={`px-2 py-0.5 rounded text-[11px] font-mono ${
-                            fontSize === s ? 'bg-amber-400 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'
+                            fontSize === s ? 'bg-white text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'
                           }`}
                         >
                           {s.toUpperCase()}
@@ -786,7 +786,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       onClick={handleToggleBionic}
                       className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold transition-all ${
                         isBionic
-                          ? 'bg-amber-400 text-neutral-950'
+                          ? 'bg-white text-neutral-950'
                           : 'bg-white/[0.06] text-neutral-400 hover:text-white'
                       }`}
                     >
@@ -850,9 +850,9 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
       {/* Quota Notice Pill */}
       {quotaExceededNotice && (
-        <div className="mb-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs flex items-center justify-between">
+        <div className="mb-3 p-2.5 rounded-xl bg-white/[0.05] border border-white/15 text-neutral-200 text-xs flex items-center justify-between">
           <span>{quotaExceededNotice}</span>
-          <button onClick={() => setQuotaExceededNotice(null)} className="text-amber-500">
+          <button onClick={() => setQuotaExceededNotice(null)} className="text-neutral-400 hover:text-white">
             <GeminiIcon name="close" size={12} />
           </button>
         </div>
@@ -861,17 +861,17 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
       {/* Vault View */}
       {activeView === 'vault' ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08]">
+          <div className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-[#121316] border border-white/[0.08]">
             <div className="flex items-center gap-2">
-              <GeminiIcon name="bookmark" size={16} className="text-purple-500" />
+              <GeminiIcon name="bookmark" size={16} className="text-white" />
               <div>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Your Academic Vault</h3>
-                <p className="text-[10px] text-neutral-500">Saved explanations & AI breakdowns</p>
+                <h3 className="text-sm font-bold text-white">Your Academic Vault</h3>
+                <p className="text-[10px] text-neutral-400">Saved explanations & AI breakdowns</p>
               </div>
             </div>
             <button
               onClick={() => setActiveView('reader')}
-              className="px-3 py-1 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-semibold cursor-pointer"
+              className="px-3 py-1 rounded-full bg-white text-neutral-950 text-xs font-semibold cursor-pointer"
             >
               Back to Reader
             </button>
@@ -886,16 +886,16 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               {filteredVault.map((item) => (
                 <div
                   key={item.id}
-                  className="p-3.5 rounded-2xl bg-white dark:bg-[#1E1F20] border border-black/[0.06] dark:border-white/[0.08] text-xs space-y-2"
+                  className="p-3.5 rounded-2xl bg-[#121316] border border-white/[0.08] text-xs space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                    <span className="font-mono text-[10px] text-white font-bold">
                       {item.course_code} • {item.context_topic}
                     </span>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleCopyNote(item)}
-                        className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+                        className="p-1 text-neutral-400 hover:text-white cursor-pointer"
                       >
                         <GeminiIcon name={copiedNoteId === item.id ? 'check' : 'copy'} size={12} />
                       </button>
@@ -907,10 +907,10 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       </button>
                     </div>
                   </div>
-                  <div className="italic text-neutral-500 border-l-2 border-amber-400/30 pl-2">
+                  <div className="italic text-neutral-400 border-l-2 border-white/30 pl-2">
                     &ldquo;{item.selected_text}&rdquo;
                   </div>
-                  <p className="text-neutral-800 dark:text-neutral-200 whitespace-pre-line leading-relaxed">
+                  <p className="text-neutral-200 whitespace-pre-line leading-relaxed">
                     {item.ai_explanation}
                   </p>
                 </div>
@@ -927,28 +927,28 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             ========================================================================
           */}
           {selectedText && (
-            <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[65] w-[95%] max-w-xl flex flex-col gap-2 p-2.5 rounded-2xl bg-white/95 dark:bg-[#161922]/95 border border-amber-400/30 dark:border-amber-400/30 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-3">
+            <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[65] w-[95%] max-w-xl flex flex-col gap-2 p-2.5 rounded-2xl bg-[#121316]/98 border border-white/20 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-3">
               {/* Inline Quick Lookup Popover Card */}
               {quickLookupWord && (
-                <div className="p-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] text-xs">
+                <div className="p-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase truncate">
+                    <span className="font-mono text-[10px] text-white font-bold uppercase truncate">
                       Definition: {quickLookupWord.slice(0, 30)}
                     </span>
                     <button
                       onClick={() => setQuickLookupWord(null)}
-                      className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+                      className="text-neutral-400 hover:text-white cursor-pointer"
                     >
                       <GeminiIcon name="close" size={11} />
                     </button>
                   </div>
                   {isLoadingLookup ? (
-                    <div className="flex items-center gap-2 text-neutral-500 py-1 text-[11px] font-mono">
-                      <div className="h-3 w-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+                    <div className="flex items-center gap-2 text-neutral-400 py-1 text-[11px] font-mono">
+                      <div className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
                       <span>Looking up term...</span>
                     </div>
                   ) : (
-                    <p className="text-neutral-800 dark:text-neutral-200 text-xs leading-relaxed">
+                    <p className="text-neutral-200 text-xs leading-relaxed">
                       {quickLookupDef}
                     </p>
                   )}
@@ -957,7 +957,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
               {/* Main Selection Buttons Row */}
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                <span className="text-[11px] font-medium text-neutral-700 dark:text-neutral-300 truncate max-w-[110px] sm:max-w-[180px]">
+                <span className="text-[11px] font-medium text-neutral-300 truncate max-w-[110px] sm:max-w-[180px]">
                   &ldquo;{selectedText.slice(0, 30)}{selectedText.length > 30 ? '...' : ''}&rdquo;
                 </span>
 
@@ -965,7 +965,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   {/* 1. Explain More */}
                   <button
                     onClick={() => handleBreakDownGrammar()}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold hover:opacity-95 active:scale-95 transition-all cursor-pointer shadow-xs"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold hover:opacity-95 active:scale-95 transition-all cursor-pointer shadow-xs"
                     title="Explain with Nigerian analogies"
                   >
                     <GeminiIcon name="sparkle" size={12} />
@@ -990,7 +990,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   {/* 3. Quick Lookup */}
                   <button
                     onClick={() => handleQuickLookup()}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] text-neutral-800 dark:text-neutral-200 text-xs font-semibold transition-all cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-neutral-200 text-xs font-semibold transition-all cursor-pointer"
                     title="Quick definition"
                   >
                     <GeminiIcon name="search" size={12} />
@@ -1004,7 +1004,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         onOpenAiChat(`Can you explain this passage from ${selectedBook.courseCode}: "${selectedText}"?`);
                       }
                     }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] text-neutral-800 dark:text-neutral-200 text-xs font-semibold transition-all cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-neutral-200 text-xs font-semibold transition-all cursor-pointer"
                     title="Ask in Messages"
                   >
                     <GeminiIcon name="chat" size={12} />
@@ -1017,7 +1017,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                       setSelectedText('');
                       setQuickLookupWord(null);
                     }}
-                    className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+                    className="p-1 text-neutral-400 hover:text-white cursor-pointer"
                   >
                     <GeminiIcon name="close" size={13} />
                   </button>
@@ -1049,19 +1049,19 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           */}
           <article className="py-2 px-1 sm:px-2">
             {/* Chapter Header */}
-            <header className="mb-6 pb-3 border-b border-black/[0.05] dark:border-white/[0.06]">
+            <header className="mb-6 pb-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400 mb-1.5">
-                <span className="font-bold text-amber-600 dark:text-amber-400">{selectedBook.courseCode}</span>
+                <span className="font-bold text-white">{selectedBook.courseCode}</span>
                 <span>•</span>
                 <span className="truncate">{selectedBook.title}</span>
                 <span>•</span>
-                <span className="text-emerald-600 dark:text-emerald-400">{currentChapter.readTimeMinutes} min read</span>
+                <span className="text-emerald-400">{currentChapter.readTimeMinutes} min read</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                 {currentChapter.title}
               </h1>
               {currentChapter.subtitle && (
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                <p className="text-xs text-neutral-400 mt-1">
                   {currentChapter.subtitle}
                 </p>
               )}
@@ -1122,9 +1122,9 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         isBlended
                           ? 'p-3 bg-emerald-500/[0.04] border-l-2 border-emerald-500'
                           : isHighlighted
-                          ? 'p-3 bg-amber-400/[0.08] dark:bg-amber-400/[0.06] border-l-2 border-amber-400'
+                          ? 'p-3 bg-white/[0.08] border-l-2 border-white'
                           : isTapped
-                          ? 'p-2.5 bg-black/[0.02] dark:bg-white/[0.03] border-l-2 border-amber-400'
+                          ? 'p-2.5 bg-white/[0.04] border-l-2 border-white/40'
                           : ''
                       }`}
                     >
@@ -1132,7 +1132,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         <span>
                           {formatBionicText(activeParaText).map((token) => (
                             <span key={token.id} className="inline">
-                              <strong className="font-semibold text-neutral-950 dark:text-white">
+                              <strong className="font-semibold text-white">
                                 {token.bold}
                               </strong>
                               {token.regular}
@@ -1161,7 +1161,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                           e.stopPropagation();
                           handleBreakDownGrammar(activeParaText);
                         }}
-                        className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/[0.03] dark:bg-white/[0.05] hover:bg-amber-400/10 hover:text-amber-600 dark:hover:bg-amber-400/15 dark:hover:text-amber-400 text-[11px] font-mono text-neutral-500 transition-colors cursor-pointer"
+                        className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.05] hover:bg-white/10 hover:text-white text-[11px] font-mono text-neutral-400 transition-colors cursor-pointer"
                         title="Explain this entire paragraph"
                       >
                         <GeminiIcon name="sparkle" size={11} />
@@ -1174,7 +1174,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                           handleSimplifyAndBlend(activeParaText, index);
                         }}
                         disabled={isBlending && blendingParaIdx === index}
-                        className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/[0.03] dark:bg-white/[0.05] hover:bg-emerald-500/10 hover:text-emerald-600 text-[11px] font-mono text-neutral-500 transition-colors cursor-pointer disabled:opacity-50"
+                        className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.05] hover:bg-emerald-500/10 hover:text-emerald-400 text-[11px] font-mono text-neutral-400 transition-colors cursor-pointer disabled:opacity-50"
                         title="Rewrite this paragraph in-place"
                       >
                         {isBlending && blendingParaIdx === index ? (
@@ -1195,8 +1195,8 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         }}
                         className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono transition-colors cursor-pointer ${
                           isHighlighted
-                            ? 'bg-amber-400/20 text-amber-600 dark:text-amber-400 font-semibold'
-                            : 'bg-black/[0.03] dark:bg-white/[0.05] hover:bg-amber-400/10 hover:text-amber-500 text-neutral-500'
+                            ? 'bg-white/15 text-white font-semibold'
+                            : 'bg-white/[0.05] hover:bg-white/10 hover:text-white text-neutral-400'
                         }`}
                         title="Highlight paragraph"
                       >
@@ -1211,7 +1211,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                             onOpenAiChat(`I need help understanding this concept from ${selectedBook.courseCode}:\n"${activeParaText}"`);
                           }
                         }}
-                        className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-[11px] font-mono text-neutral-500 transition-colors cursor-pointer"
+                        className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.05] hover:bg-white/[0.08] text-[11px] font-mono text-neutral-400 transition-colors cursor-pointer"
                         title="Discuss in Messages"
                       >
                         <GeminiIcon name="chat" size={11} />
@@ -1221,12 +1221,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                     {/* Integrated Checkpoint Exam Drill */}
                     {checkpoint && (
-                      <div className="my-5 p-3.5 sm:p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] text-xs">
-                        <div className="flex items-center gap-1.5 mb-2 font-mono text-[10.5px] text-amber-600 dark:text-amber-400 font-bold">
+                      <div className="my-5 p-3.5 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs">
+                        <div className="flex items-center gap-1.5 mb-2 font-mono text-[10.5px] text-white font-bold">
                           <GeminiIcon name="zap" size={12} />
                           <span>Senate CBT Checkpoint</span>
                         </div>
-                        <p className="font-medium text-neutral-900 dark:text-white mb-2.5 leading-snug">
+                        <p className="font-medium text-white mb-2.5 leading-snug">
                           {checkpoint.prompt}
                         </p>
 
@@ -1236,12 +1236,12 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                             const isCorrect = checkpoint.correctIndex === oIdx;
                             const isLocked = revealed[checkpoint.id] === true;
 
-                            let btnStyle = 'bg-white dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] hover:border-amber-400/40';
+                            let btnStyle = 'bg-white/[0.04] border-white/[0.06] hover:border-white/30';
                             if (isLocked) {
                               if (isCorrect) {
-                                btnStyle = 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-500 text-emerald-900 dark:text-emerald-300 font-semibold';
+                                btnStyle = 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold';
                               } else if (isAnswered) {
-                                btnStyle = 'bg-rose-50 dark:bg-rose-500/20 border-rose-500 text-rose-900 dark:text-rose-300 line-through';
+                                btnStyle = 'bg-rose-500/20 border-rose-500 text-rose-300 line-through';
                               } else {
                                 btnStyle = 'opacity-40 border-transparent text-neutral-400';
                               }
@@ -1280,33 +1280,33 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           {/* AI Explanation Modal ("Break Down Big Grammar") */}
           {showAiSheet && (
             <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-md p-3 pb-28 sm:pb-5">
-              <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-[#121316] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
+              <div className="w-full max-w-lg rounded-3xl bg-[#121316] border border-white/[0.1] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-5">
                 {/* Mobile Drag Handle */}
-                <div className="w-10 h-1 rounded-full bg-neutral-300 dark:bg-white/20 mx-auto mb-3 sm:hidden" />
+                <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-3 sm:hidden" />
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/10 dark:bg-amber-400/15 text-amber-500 dark:text-amber-400">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white">
                       <GeminiIcon name="sparkle" size={14} />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Explain More</h3>
-                      <p className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+                      <h3 className="text-sm font-bold text-white">Explain More</h3>
+                      <p className="text-[10px] font-mono text-neutral-400">
                         Plain English with Nigerian campus analogies
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowAiSheet(false)}
-                    className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+                    className="p-1 rounded-full text-neutral-400 hover:text-white cursor-pointer"
                   >
                     <GeminiIcon name="close" size={14} />
                   </button>
                 </div>
 
-                <div className="min-h-[90px] text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed font-sans mb-4">
+                <div className="min-h-[90px] text-xs sm:text-sm text-neutral-200 leading-relaxed font-sans mb-4">
                   {isExplaining ? (
-                    <div className="flex items-center gap-2 text-neutral-500 py-6 justify-center">
-                      <div className="h-4 w-4 rounded-full border-2 border-amber-400 dark:border-amber-400 border-t-transparent animate-spin" />
+                    <div className="flex items-center gap-2 text-neutral-400 py-6 justify-center">
+                      <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                       <span className="font-mono text-xs">Breaking this down into everyday words...</span>
                     </div>
                   ) : (
@@ -1314,14 +1314,14 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-black/[0.06] dark:border-white/[0.07]">
+                <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
                   <button
                     onClick={handleSaveToVault}
                     disabled={isSaved || isExplaining}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium transition-all ${
                       isSaved
-                        ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30'
-                        : 'bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.08]'
+                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                        : 'bg-white/[0.06] text-neutral-300 hover:bg-white/[0.08]'
                     }`}
                   >
                     <GeminiIcon name={isSaved ? 'check' : 'copy'} size={12} />
@@ -1330,7 +1330,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
                   <button
                     onClick={() => setShowAiSheet(false)}
-                    className="px-4 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold hover:opacity-95 transition-all cursor-pointer"
+                    className="px-4 py-1.5 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold hover:opacity-95 transition-all cursor-pointer"
                   >
                     Got It
                   </button>
@@ -1342,19 +1342,19 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           {/* Books Library Drawer */}
           {isBooksDrawerOpen && (
             <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 backdrop-blur-md p-3 pb-28 sm:pb-5">
-              <div className="w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-5 shadow-2xl animate-in fade-in">
+              <div className="w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-3xl bg-[#121316] border border-white/[0.1] p-5 shadow-2xl animate-in fade-in">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                    <h3 className="text-base font-bold text-white">
                       Course Textbooks & Material Library
                     </h3>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-400">
                       Accredited NUC CCMAS syllabus curricula with solved exam checkpoints
                     </p>
                   </div>
                   <button
                     onClick={() => setIsBooksDrawerOpen(false)}
-                    className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+                    className="p-1 rounded-full text-neutral-400 hover:text-white cursor-pointer"
                   >
                     <GeminiIcon name="close" size={15} />
                   </button>
@@ -1368,8 +1368,8 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         key={book.id}
                         className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex gap-3 ${
                           isSelected
-                            ? 'border-amber-400 bg-amber-400/[0.04] dark:bg-amber-400/[0.06] ring-2 ring-amber-400/20'
-                            : 'border-black/[0.06] dark:border-white/[0.06] hover:border-amber-400/40 bg-white dark:bg-[#1E1F20]'
+                            ? 'border-white bg-white/[0.08] ring-2 ring-white/20'
+                            : 'border-white/[0.06] hover:border-white/30 bg-[#121316]'
                         }`}
                         onClick={() => {
                           setSelectedBookId(book.id);
@@ -1380,7 +1380,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                           setIsBooksDrawerOpen(false);
                         }}
                       >
-                        <div className="w-16 h-22 rounded-xl overflow-hidden shrink-0 border border-black/[0.06] dark:border-white/[0.06] bg-neutral-100 dark:bg-black/20 relative">
+                        <div className="w-16 h-22 rounded-xl overflow-hidden shrink-0 border border-white/[0.06] bg-black/20 relative">
                           <img
                             src={book.coverIllustration}
                             alt={book.title}
@@ -1390,19 +1390,19 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                         <div className="flex-1 min-w-0 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold">
+                              <span className="text-[10px] font-mono text-white font-bold">
                                 {book.courseCode}
                               </span>
                               <span className="text-[10px] font-mono text-neutral-400">• {book.units} Units</span>
                             </div>
-                            <h4 className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                            <h4 className="text-xs font-bold text-white truncate">
                               {book.title}
                             </h4>
-                            <p className="text-[11px] text-neutral-500 line-clamp-2 mt-0.5">
+                            <p className="text-[11px] text-neutral-400 line-clamp-2 mt-0.5">
                               {book.subtitle}
                             </p>
                           </div>
-                          <div className="text-[10.5px] font-mono text-amber-600 dark:text-amber-400 font-semibold mt-1">
+                          <div className="text-[10.5px] font-mono text-white font-semibold mt-1">
                             {book.chapters.length} Chapters &rarr;
                           </div>
                         </div>

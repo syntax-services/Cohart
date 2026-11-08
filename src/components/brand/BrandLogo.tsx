@@ -56,10 +56,10 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
               <stop offset="80%" stopColor="#FFFFFF" stopOpacity="0" />
             </linearGradient>
 
-            {/* Inner Bioluminescent Caustic Glow: Amber Core Singularity */}
+            {/* Inner Bioluminescent Caustic Glow: Platinum Glass Singularity */}
             <radialGradient id="auroraCoreHalo" cx="100" cy="65" r="85" fx="100" fy="50" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#FDE047" stopOpacity="0.75" />
-              <stop offset="40%" stopColor="#EAB308" stopOpacity="0.25" />
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.75" />
+              <stop offset="40%" stopColor="#9CA3AF" stopOpacity="0.25" />
               <stop offset="100%" stopColor="#111318" stopOpacity="0" />
             </radialGradient>
 
@@ -71,7 +71,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           </defs>
 
           {/* Sub-surface Caustic Orbit */}
-          <ellipse cx="100" cy="100" rx="60" ry="65" fill="url(#auroraCoreHalo)" opacity="0.4" />
+          <ellipse cx="100" cy="100" rx="60" ry="65" fill="url(#auroraCoreHalo)" opacity="0.3" />
 
           {/* Primary Monolithic Uncrossed 'Λ' Extraterrestrial Arch */}
           <path
@@ -120,7 +120,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
           {/* Extraterrestrial Apex Singularity Orb */}
           <circle cx="100" cy="52" r="4" fill="#FFFFFF" opacity="0.95" />
-          <circle cx="100" cy="52" r="9" fill="#FACC15" opacity="0.45" />
+          <circle cx="100" cy="52" r="9" fill="#FFFFFF" opacity="0.25" />
         </svg>
       </div>
 
@@ -131,7 +131,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             {/* Custom SVG Uncrossed Typographic Wordmark for AURORA */}
             <svg 
               viewBox="0 0 110 22" 
-              className="h-4 sm:h-[18px] w-auto overflow-visible fill-neutral-900 dark:fill-white transition-colors"
+              className="h-4 sm:h-[18px] w-auto overflow-visible fill-white transition-colors"
               aria-label="AURORA"
             >
               {/* Glyph 1: Uncrossed Λ */}
@@ -154,7 +154,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             </svg>
 
             {/* Liquid Glass OS Badge */}
-            <span className="px-1.5 py-0.2 text-[8.5px] font-mono tracking-wider text-amber-400 bg-amber-400/10 rounded-full border border-amber-400/25 font-bold shadow-xs">
+            <span className="px-1.5 py-0.2 text-[8.5px] font-mono tracking-wider text-white bg-white/10 rounded-full border border-white/20 font-bold shadow-xs">
               OS
             </span>
           </div>

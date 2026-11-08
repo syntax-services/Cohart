@@ -33,16 +33,16 @@ export const AnimatedRectangularClock: React.FC<AnimatedRectangularClockProps> =
   });
 
   return (
-    <div className="my-2.5 inline-flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] shadow-xs backdrop-blur-md">
+    <div className="my-2.5 inline-flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.08] shadow-xs backdrop-blur-md">
       {/* Time Display */}
       <div className="flex items-baseline gap-1">
-        <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+        <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-white">
           {paddedHours}
         </span>
-        <span className="font-mono text-base sm:text-lg font-bold text-amber-500 dark:text-amber-400 animate-pulse">
+        <span className="font-mono text-base sm:text-lg font-bold text-white/60 animate-pulse">
           :
         </span>
-        <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+        <span className="font-mono text-base sm:text-lg font-bold tracking-tight text-white">
           {paddedMinutes}
         </span>
         <span className="text-[10px] font-mono font-bold text-neutral-500 ml-0.5">
@@ -50,12 +50,12 @@ export const AnimatedRectangularClock: React.FC<AnimatedRectangularClockProps> =
         </span>
       </div>
 
-      <div className="h-4 w-[1px] bg-black/[0.1] dark:bg-white/[0.1]" />
+      <div className="h-4 w-[1px] bg-white/[0.1]" />
 
       {/* Timezone & Date Badge */}
-      <div className="flex items-center gap-1.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-        <span className="font-semibold text-neutral-700 dark:text-neutral-300">{formattedDate}</span>
-        <span className="px-1.5 py-0.2 rounded bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 text-[9px] font-bold">
+      <div className="flex items-center gap-1.5 text-[11px] font-mono text-neutral-400">
+        <span className="font-semibold text-neutral-300">{formattedDate}</span>
+        <span className="px-1.5 py-0.2 rounded bg-white/10 text-white border border-white/20 text-[9px] font-bold">
           {timezone}
         </span>
       </div>

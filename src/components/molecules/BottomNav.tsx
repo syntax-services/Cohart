@@ -70,12 +70,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                 aria-label={item.label}
                 className={`relative flex items-center justify-center rounded-full transition-all duration-200 active:scale-95 group ${
                   isCenterMap
-                    ? 'w-11 h-11 bg-amber-500/10 border border-amber-500/30 shadow-sm'
+                    ? 'w-11 h-11 bg-white/[0.08] border border-white/[0.16] shadow-sm'
                     : 'w-10 h-10'
                 } ${
                   isActive
-                    ? 'text-amber-400 dark:text-amber-400 font-bold'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    ? 'text-white font-bold'
+                    : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 {/* Active pill background */}
@@ -83,7 +83,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                   <motion.div
                     layoutId="activeNavBg"
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    className="absolute inset-0 rounded-full bg-white/70 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.14] shadow-xs"
+                    className="absolute inset-0 rounded-full bg-white/10 border border-white/20 shadow-xs"
                   />
                 )}
 
@@ -94,10 +94,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                     strokeWidth={isActive ? 2.5 : 2}
                     className={`transition-colors duration-200 ${
                       isActive
-                        ? 'text-amber-400 dark:text-amber-400'
+                        ? 'text-white'
                         : isCenterMap
-                          ? 'text-amber-400/90 dark:text-amber-400/90'
-                          : 'text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white'
+                          ? 'text-white'
+                          : 'text-neutral-400 group-hover:text-white'
                     }`}
                   />
                 </div>

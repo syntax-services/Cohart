@@ -151,15 +151,15 @@ export const WorkspaceModeDropdown: React.FC<WorkspaceModeDropdownProps> = ({
         aria-label="Switch Learning Mode"
         title={`Active Mode: ${activeMode === 'arena' ? 'Campus Arena (Fun & Games)' : 'Academic Study (Serious Mode)'} • Click to switch`}
         className={`group relative flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-full liquid-glass border border-white/[0.08] hover:border-white/[0.18] transition-all duration-300 active:scale-95 shadow-xs focus:outline-none cursor-pointer ${
-          isOpen ? 'border-amber-400/50 bg-white/[0.08]' : ''
+          isOpen ? 'border-white/30 bg-white/[0.08]' : ''
         }`}
       >
         {/* 1. Main Active Mode SVG */}
         <div className="flex items-center justify-center">
           {activeMode === 'arena' ? (
-            <ArenaModeIcon bold active className="text-rose-500" />
+            <ArenaModeIcon bold active className="text-rose-400" />
           ) : (
-            <ScholarModeIcon bold active className="text-amber-400" />
+            <ScholarModeIcon bold active className="text-white" />
           )}
         </div>
 
@@ -185,7 +185,7 @@ export const WorkspaceModeDropdown: React.FC<WorkspaceModeDropdownProps> = ({
               </span>
               <button
                 onClick={handleToggleMode}
-                className="text-[10px] font-mono text-amber-400 hover:underline cursor-pointer flex items-center gap-1"
+                className="text-[10px] font-mono text-neutral-300 hover:text-white cursor-pointer flex items-center gap-1"
               >
                 <span>Switch Now</span>
                 <span>&rarr;</span>
@@ -197,12 +197,12 @@ export const WorkspaceModeDropdown: React.FC<WorkspaceModeDropdownProps> = ({
               onClick={() => handleSelectMode('academic')}
               className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer ${
                 activeMode === 'academic'
-                  ? 'bg-amber-400/15 text-white font-bold border border-amber-400/30'
+                  ? 'bg-white/10 text-white font-bold border border-white/20'
                   : 'hover:bg-white/[0.05] text-neutral-300'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-7 w-7 rounded-lg bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0">
+                <div className="h-7 w-7 rounded-lg bg-white/10 text-white flex items-center justify-center shrink-0">
                   <ScholarModeIcon active={activeMode === 'academic'} bold={activeMode === 'academic'} />
                 </div>
                 <div className="min-w-0 text-left">
@@ -211,7 +211,7 @@ export const WorkspaceModeDropdown: React.FC<WorkspaceModeDropdownProps> = ({
                 </div>
               </div>
               {activeMode === 'academic' && (
-                <div className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.6)] shrink-0" />
+                <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)] shrink-0" />
               )}
             </button>
 

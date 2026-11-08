@@ -3,25 +3,17 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --bg-main: #F4F5F7;
-    --surface-main: #FFFFFF;
-    --text-primary: #111318;
-    --text-secondary: #4B5563;
-    --border-subtle: rgba(0, 0, 0, 0.08);
-    --gemini-blue: #EAB308;
-    --gemini-blue-container: rgba(234, 179, 8, 0.15);
-    color-scheme: light;
-  }
-
+  :root,
   .dark {
     --bg-main: #0B0D11;
-    --surface-main: #111318;
+    --surface-main: #121316;
+    --surface-elevated: #18191E;
     --text-primary: #F3F4F6;
     --text-secondary: #9CA3AF;
     --border-subtle: rgba(255, 255, 255, 0.08);
-    --gemini-blue: #FACC15;
-    --gemini-blue-container: rgba(250, 204, 21, 0.15);
+    --border-focus: rgba(255, 255, 255, 0.2);
+    --gemini-blue: #FFFFFF;
+    --gemini-blue-container: rgba(255, 255, 255, 0.1);
     color-scheme: dark;
   }
 

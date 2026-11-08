@@ -266,8 +266,8 @@ export default function AppHomePage() {
     return (
       <div className="h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex font-sans relative overflow-hidden">
         {/* Desktop Sidebar Skeleton */}
-        <aside className="hidden md:flex flex-col w-[260px] border-r border-black/[0.06] dark:border-white/[0.08] bg-[#FAFAFA] dark:bg-[#0c0d12] p-4 space-y-4 shrink-0">
-          <div className="flex items-center gap-2.5 pb-4 border-b border-black/[0.06] dark:border-white/[0.08]">
+        <aside className="hidden md:flex flex-col w-[260px] border-r border-white/[0.08] bg-[#0c0d12] p-4 space-y-4 shrink-0">
+          <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.08]">
             <div className="h-7 w-7 rounded-xl bg-white/[0.08] animate-pulse" />
             <div className="h-4 w-24 rounded bg-white/[0.08] animate-pulse" />
           </div>
@@ -276,7 +276,7 @@ export default function AppHomePage() {
               <div key={i} className="h-9 rounded-full bg-white/[0.04] animate-pulse" />
             ))}
           </div>
-          <div className="pt-4 border-t border-black/[0.06] dark:border-white/[0.08] flex items-center gap-3">
+          <div className="pt-4 border-t border-white/[0.08] flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-white/[0.08] animate-pulse" />
             <div className="space-y-1.5 flex-1">
               <div className="h-3 w-20 rounded bg-white/[0.08] animate-pulse" />
@@ -287,14 +287,14 @@ export default function AppHomePage() {
 
         {/* Main Content Skeleton */}
         <div className="flex-1 flex flex-col h-full overflow-y-auto">
-          <div className="h-12 border-b border-black/[0.05] dark:border-white/[0.06] flex items-center justify-between px-6">
+          <div className="h-12 border-b border-white/[0.06] flex items-center justify-between px-6">
             <div className="h-6 w-32 rounded-full bg-white/[0.05] animate-pulse" />
             <div className="h-7 w-48 rounded-full bg-white/[0.05] animate-pulse hidden md:block" />
             <div className="h-8 w-8 rounded-full bg-white/[0.05] animate-pulse" />
           </div>
 
           <div className="p-6 max-w-6xl mx-auto w-full space-y-6">
-            <div className="p-8 rounded-[2rem] bg-white dark:bg-[#12141A] ring-1 ring-white/[0.06] space-y-3">
+            <div className="p-8 rounded-[2rem] bg-[#121316] ring-1 ring-white/[0.06] space-y-3">
               <div className="flex gap-2">
                 <div className="h-5 w-24 rounded-full bg-white/[0.08] animate-pulse" />
                 <div className="h-5 w-32 rounded-full bg-white/[0.05] animate-pulse" />
@@ -304,8 +304,8 @@ export default function AppHomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-7 h-72 rounded-[2rem] bg-white dark:bg-[#12141A] ring-1 ring-white/[0.06] p-6 animate-pulse" />
-              <div className="md:col-span-5 h-72 rounded-[2rem] bg-white dark:bg-[#12141A] ring-1 ring-white/[0.06] p-6 animate-pulse" />
+              <div className="md:col-span-7 h-72 rounded-[2rem] bg-[#121316] ring-1 ring-white/[0.06] p-6 animate-pulse" />
+              <div className="md:col-span-5 h-72 rounded-[2rem] bg-[#121316] ring-1 ring-white/[0.06] p-6 animate-pulse" />
             </div>
           </div>
         </div>
@@ -316,8 +316,8 @@ export default function AppHomePage() {
   return (
     <div className="h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex font-sans transition-colors duration-200 relative overflow-hidden">
       {/* Desktop Sidebar (Spatial Navigation) */}
-      <aside className="hidden md:flex flex-col w-[260px] border-r border-black/[0.06] dark:border-white/[0.08] bg-[#FAFAFA] dark:bg-[#0c0d12] shrink-0">
-        <div className="p-4 border-b border-black/[0.06] dark:border-white/[0.08]">
+      <aside className="hidden md:flex flex-col w-[260px] border-r border-white/[0.08] bg-[#0c0d12] shrink-0">
+        <div className="p-4 border-b border-white/[0.08]">
           <div className="mb-3">
             <BrandLogo size={28} subtitle="Intelligence" />
           </div>
@@ -345,8 +345,8 @@ export default function AppHomePage() {
                 onClick={() => handleTabChange(item.id as NavTab)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-full transition-all font-medium text-sm text-left cursor-pointer ${
                   activeTab === item.id
-                    ? 'bg-black/[0.05] dark:bg-white/[0.1] text-amber-500 dark:text-amber-400 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] hover:text-neutral-900 dark:hover:text-white'
+                    ? 'bg-white/10 text-white border border-white/20 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'text-neutral-400 hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
                 <GeminiIcon name={item.icon as any} size={18} />
@@ -356,16 +356,16 @@ export default function AppHomePage() {
           </nav>
         </div>
         
-        <div className="mt-auto p-4 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="mt-auto p-4 border-t border-white/[0.08]">
           <button
             onClick={() => handleTabChange('profile')}
-            className="flex items-center gap-3 p-2 w-full hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-full transition-colors text-left cursor-pointer"
+            className="flex items-center gap-3 p-2 w-full hover:bg-white/[0.06] rounded-full transition-colors text-left cursor-pointer"
           >
-            <div className="h-9 w-9 rounded-full bg-amber-400/10 text-amber-500 dark:text-amber-400 flex items-center justify-center font-bold uppercase text-xs shrink-0 border border-amber-400/20">
+            <div className="h-9 w-9 rounded-full bg-white/10 text-white flex items-center justify-center font-bold uppercase text-xs shrink-0 border border-white/20">
               {profile?.full_name?.charAt(0) || 'S'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold truncate text-neutral-900 dark:text-white">
+              <p className="text-sm font-bold truncate text-white">
                 {profile?.full_name || 'Scholar'}
               </p>
               <p className="text-[10px] text-neutral-500 font-mono truncate">
@@ -538,18 +538,18 @@ export default function AppHomePage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '100%', opacity: 0.5 }}
               transition={{ type: 'spring', stiffness: 350, damping: 30, mass: 1 }}
-              className="fixed top-0 right-0 bottom-0 z-50 w-full md:w-[450px] lg:w-[500px] bg-white dark:bg-[#0c0d12] border-l border-black/[0.08] dark:border-white/[0.08] shadow-2xl flex flex-col"
+              className="fixed top-0 right-0 bottom-0 z-50 w-full md:w-[450px] lg:w-[500px] bg-[#0c0d12] border-l border-white/[0.08] shadow-2xl flex flex-col"
             >
-              <div className="flex items-center justify-between p-4 border-b border-black/[0.08] dark:border-white/[0.08] bg-white/80 dark:bg-[#12141A]/80 backdrop-blur-xl shrink-0">
-                <h2 className="text-sm font-bold flex items-center gap-2 text-neutral-900 dark:text-white">
-                  <div className="h-6 w-6 rounded-full bg-amber-400/10 flex items-center justify-center text-amber-500 dark:text-amber-400 border border-amber-400/20">
+              <div className="flex items-center justify-between p-4 border-b border-white/[0.08] bg-[#121316]/90 backdrop-blur-xl shrink-0">
+                <h2 className="text-sm font-bold flex items-center gap-2 text-white">
+                  <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/20">
                     <GeminiIcon name="sparkle" size={14} />
                   </div>
                   Aurora Intelligence
                 </h2>
                 <button
                   onClick={() => setIsLumenOpen(false)}
-                  className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
                   title="Close chat"
                   aria-label="Close"
                 >
@@ -576,9 +576,9 @@ export default function AppHomePage() {
 
       {/* Punchy Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] max-w-md w-[92%] sm:w-auto px-4 py-3 rounded-[2rem] bg-neutral-900/95 dark:bg-[#12141A]/95 border border-white/10 text-white shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] max-w-md w-[92%] sm:w-auto px-4 py-3 rounded-[2rem] bg-[#121316]/95 border border-white/10 text-white shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-top-4 duration-200">
           <div className="flex items-center gap-2.5">
-            <div className="h-2 w-2 rounded-full bg-amber-400 animate-ping shrink-0" />
+            <div className="h-2 w-2 rounded-full bg-white animate-ping shrink-0" />
             <p className="font-medium leading-snug">{toastMessage}</p>
           </div>
           <button

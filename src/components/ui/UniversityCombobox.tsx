@@ -178,35 +178,31 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
         aria-expanded={isOpen}
         className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all duration-150 flex items-center justify-between gap-2.5 ${
           isOpen
-            ? 'bg-neutral-100 dark:bg-[#1E1F20] border-amber-500 ring-2 ring-amber-500/20'
-            : 'bg-neutral-50 dark:bg-[#1E1F20] hover:bg-neutral-100/80 dark:hover:bg-[#252729] border-black/[0.08] dark:border-white/[0.08]'
+            ? 'bg-[#121316] border-white/40 ring-1 ring-white/20'
+            : 'bg-[#121316] hover:bg-white/[0.05] border-white/[0.08]'
         } border ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           {/* Acronym Badge */}
           <span
-            className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 border ${
-              selectedInstitution.category === 'Federal'
-                ? 'bg-amber-500/10 border-amber-500/25 text-amber-500 dark:text-amber-400'
-                : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-700 dark:text-emerald-400'
-            }`}
+            className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 border bg-white/10 border-white/20 text-white"
           >
             {selectedInstitution.shortName}
           </span>
 
           {/* Institution Info */}
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-medium text-neutral-900 dark:text-white truncate">
+            <div className="text-xs font-medium text-white truncate">
               {selectedInstitution.name}
             </div>
-            <div className="text-[10px] font-mono text-neutral-500 truncate flex items-center gap-1.5 mt-0.5">
+            <div className="text-[10px] font-mono text-neutral-400 truncate flex items-center gap-1.5 mt-0.5">
               <span>{selectedInstitution.locationState}</span>
               <span>•</span>
               <span>{selectedInstitution.category}</span>
               {selectedInstitution.hasMap && (
                 <>
                   <span>•</span>
-                  <span className="text-amber-500 dark:text-amber-400 font-semibold">
+                  <span className="text-white font-semibold">
                     Live Map
                   </span>
                 </>
@@ -218,7 +214,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
         {/* Chevron Indicator */}
         <div
           className={`shrink-0 text-neutral-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-neutral-900 dark:text-white' : ''
+            isOpen ? 'rotate-180 text-white' : ''
           }`}
         >
           <GeminiIcon name="chevron-down" size={16} />
@@ -233,11 +229,11 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.99 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute left-0 right-0 z-50 mt-1.5 rounded-2xl bg-white/95 dark:bg-[#18191A]/95 backdrop-blur-xl border border-black/[0.08] dark:border-white/[0.12] shadow-2xl shadow-black/25 overflow-hidden"
+            className="absolute left-0 right-0 z-50 mt-1.5 rounded-2xl bg-[#121316]/98 backdrop-blur-xl border border-white/[0.12] shadow-2xl shadow-black/60 overflow-hidden"
             role="listbox"
           >
             {/* Search Bar Input */}
-            <div className="p-2.5 border-b border-black/[0.06] dark:border-white/[0.08]">
+            <div className="p-2.5 border-b border-white/[0.08]">
               <div className="relative flex items-center">
                 <div className="absolute left-3 text-neutral-400 pointer-events-none">
                   <GeminiIcon name="search" size={14} />
@@ -252,7 +248,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                   }}
                   onKeyDown={handleKeyDown}
                   placeholder={placeholder}
-                  className="w-full pl-8 pr-8 py-2 text-xs bg-neutral-100 dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06] rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-amber-400"
+                  className="w-full pl-8 pr-8 py-2 text-xs bg-white/[0.05] border border-white/[0.08] rounded-xl text-white placeholder-neutral-400 focus:outline-none focus:border-white/40"
                 />
                 {searchQuery && (
                   <button
@@ -261,7 +257,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                       setSearchQuery('');
                       searchInputRef.current?.focus();
                     }}
-                    className="absolute right-2.5 p-1 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors"
+                    className="absolute right-2.5 p-1 rounded-md text-neutral-400 hover:text-white transition-colors"
                   >
                     <GeminiIcon name="close" size={12} />
                   </button>
@@ -275,8 +271,8 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                   onClick={() => setCategoryFilter('All')}
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'All'
-                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
+                      ? 'bg-white text-neutral-950 font-bold'
+                      : 'bg-white/[0.05] text-neutral-400 hover:bg-white/[0.1]'
                   }`}
                 >
                   All ({SUPPORTED_INSTITUTIONS.length})
@@ -286,8 +282,8 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                   onClick={() => setCategoryFilter('Federal')}
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'Federal'
-                      ? 'bg-amber-400 text-neutral-950 font-bold'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
+                      ? 'bg-white text-neutral-950 font-bold'
+                      : 'bg-white/[0.05] text-neutral-400 hover:bg-white/[0.1]'
                   }`}
                 >
                   Federal ({federalCount})
@@ -297,8 +293,8 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                   onClick={() => setCategoryFilter('State')}
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'State'
-                      ? 'bg-emerald-600 text-white dark:bg-emerald-400 dark:text-neutral-950'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
+                      ? 'bg-white text-neutral-950 font-bold'
+                      : 'bg-white/[0.05] text-neutral-400 hover:bg-white/[0.1]'
                   }`}
                 >
                   State ({stateCount})
@@ -308,8 +304,8 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                   onClick={() => setCategoryFilter('Private')}
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium transition-colors shrink-0 ${
                     categoryFilter === 'Private'
-                      ? 'bg-purple-600 text-white dark:bg-purple-400 dark:text-neutral-950'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80 dark:bg-white/[0.05] dark:text-neutral-400 dark:hover:bg-white/[0.1]'
+                      ? 'bg-white text-neutral-950 font-bold'
+                      : 'bg-white/[0.05] text-neutral-400 hover:bg-white/[0.1]'
                   }`}
                 >
                   Private ({privateCount})
@@ -334,7 +330,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                       setCategoryFilter('All');
                       searchInputRef.current?.focus();
                     }}
-                    className="mt-2 text-[11px] font-mono text-amber-400 hover:underline"
+                    className="mt-2 text-[11px] font-mono text-white hover:underline"
                   >
                     Clear search filter
                   </button>
@@ -354,32 +350,26 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                       onMouseEnter={() => setHighlightedIndex(index)}
                       className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between gap-2.5 transition-all ${
                         isSelected
-                          ? 'bg-amber-500/10 border border-amber-500/20'
+                          ? 'bg-white/15 border border-white/25'
                           : isHighlighted
-                          ? 'bg-neutral-100 dark:bg-white/[0.06] border border-transparent'
-                          : 'hover:bg-neutral-50 dark:hover:bg-white/[0.03] border border-transparent'
+                          ? 'bg-white/[0.06] border border-transparent'
+                          : 'hover:bg-white/[0.03] border border-transparent'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         {/* Short code chip */}
                         <span
-                          className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border ${
-                            inst.category === 'Federal'
-                              ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 dark:text-amber-400'
-                              : inst.category === 'State'
-                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
-                              : 'bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-400'
-                          }`}
+                          className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 border bg-white/10 border-white/20 text-white"
                         >
                           {inst.shortName}
                         </span>
 
                         {/* Name and State */}
                         <div className="min-w-0 flex-1">
-                          <div className="text-xs font-medium text-neutral-900 dark:text-white truncate">
+                          <div className="text-xs font-medium text-white truncate">
                             {inst.name}
                           </div>
-                          <div className="text-[10px] font-mono text-neutral-500 truncate flex items-center gap-1.5 mt-0.5">
+                          <div className="text-[10px] font-mono text-neutral-400 truncate flex items-center gap-1.5 mt-0.5">
                             <span>{inst.locationState}</span>
                             <span>•</span>
                             <span>{inst.category}</span>
@@ -392,7 +382,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
                             {inst.hasMap && (
                               <>
                                 <span>•</span>
-                                <span className="text-amber-500 dark:text-amber-400 font-semibold">
+                                <span className="text-white font-semibold">
                                   Live Map
                                 </span>
                               </>
@@ -403,7 +393,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
 
                       {/* Selected Checkmark */}
                       {isSelected && (
-                        <div className="shrink-0 text-amber-400">
+                        <div className="shrink-0 text-white">
                           <GeminiIcon name="check" size={14} />
                         </div>
                       )}
@@ -414,7 +404,7 @@ export const UniversityCombobox: React.FC<UniversityComboboxProps> = ({
             </div>
 
             {/* Micro Footer Notice */}
-            <div className="px-3 py-1.5 bg-neutral-50/50 dark:bg-white/[0.02] border-t border-black/[0.04] dark:border-white/[0.04] text-[10px] font-mono text-neutral-400 text-center">
+            <div className="px-3 py-1.5 bg-white/[0.02] border-t border-white/[0.06] text-[10px] font-mono text-neutral-400 text-center">
               All 250+ NUC-Accredited Federal, State & Private Higher Institutions
             </div>
           </motion.div>

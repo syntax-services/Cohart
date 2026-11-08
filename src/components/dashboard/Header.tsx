@@ -40,9 +40,9 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
           <BrandLogo size={34} />
 
           {/* Academic Countdown Tag */}
-          <div className="hidden md:flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1 border border-white/[0.07]">
-            <GeminiIcon name="calendar" size={14} className="text-amber-400" />
-            <span className="text-xs font-mono text-slate-300">
+          <div className="hidden md:flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1 border border-white/[0.08]">
+            <GeminiIcon name="calendar" size={14} className="text-white" />
+            <span className="text-xs font-mono text-neutral-300">
               Resumption: <span className="text-white font-semibold">Oct 5</span>
             </span>
           </div>
@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
         {/* Minimalist Search Bar */}
         <div className="flex-1 max-w-md mx-4 hidden sm:block">
           <div className="relative">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500">
               <GeminiIcon name="search" size={15} />
             </div>
             <input
@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
                 }
               }}
               placeholder="Search courses, lecture venues, topics..."
-              className="w-full rounded-full bg-white/[0.04] border border-white/[0.08] pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/30 transition-all font-sans"
+              className="w-full rounded-full bg-white/[0.04] border border-white/[0.08] pl-10 pr-4 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/15 transition-all font-sans"
             />
           </div>
         </div>
@@ -76,11 +76,11 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
           <div className="flex items-center gap-1.5">
             {isOnline ? (
               <Badge variant="emerald" className="text-[11px] py-0.5 px-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 <span className="hidden sm:inline">PWA Active</span>
               </Badge>
             ) : (
-              <Badge variant="amber" className="text-[11px] py-0.5 px-2">
+              <Badge variant="slate" className="text-[11px] py-0.5 px-2">
                 <span>Offline Cached</span>
               </Badge>
             )}
@@ -88,21 +88,21 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
 
           {/* Notifications / Alerts */}
           <button 
-            className="relative rounded-full border border-white/[0.08] bg-white/[0.04] p-2 text-slate-400 hover:text-white hover:border-white/[0.15] transition-colors"
+            className="relative rounded-full border border-white/[0.08] bg-white/[0.04] p-2 text-neutral-400 hover:text-white hover:border-white/[0.15] transition-colors"
             aria-label="Alerts"
           >
             <GeminiIcon name="bell" size={16} />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
           </button>
 
           {/* Student Avatar Tag */}
           <div className="flex items-center gap-2 pl-2 border-l border-white/[0.08]">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 font-mono text-xs font-bold">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white border border-white/20 font-mono text-xs font-bold">
               ST
             </div>
             <div className="hidden lg:flex flex-col text-left">
               <span className="text-xs font-medium text-white leading-tight">Student Scholar</span>
-              <span className="text-[10px] font-mono text-slate-500">Undergraduate</span>
+              <span className="text-[10px] font-mono text-neutral-500">Undergraduate</span>
             </div>
           </div>
         </div>

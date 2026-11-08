@@ -200,10 +200,10 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
   return (
     <div className="space-y-4 text-left font-sans">
       {/* Summit Badge Notice */}
-      <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs">
-        <GeminiIcon name="sparkle" size={14} className="text-amber-400 shrink-0" />
-        <p className="text-[11px] text-neutral-800 dark:text-neutral-200 leading-snug">
-          <strong className="text-amber-400">Ogun Tech Summit (Vs):</strong> Filtered strictly to accredited Ogun State tertiary institutions. Selecting your department instantly loads your semester timetable, course modules, and syllabus.
+      <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-xs">
+        <GeminiIcon name="sparkle" size={14} className="text-white shrink-0" />
+        <p className="text-[11px] text-neutral-300 leading-snug">
+          <strong className="text-white">Ogun Tech Summit (Vs):</strong> Filtered strictly to accredited Ogun State tertiary institutions. Selecting your department instantly loads your semester timetable, course modules, and syllabus.
         </p>
       </div>
 
@@ -215,10 +215,10 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
         <button
           type="button"
           onClick={() => setIsInstDropdownOpen(!isInstDropdownOpen)}
-          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white cursor-pointer hover:border-amber-400/50"
+          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white cursor-pointer hover:border-white/30"
         >
           <div className="flex items-center gap-2 truncate">
-            <span className="font-bold text-amber-400 font-mono shrink-0">
+            <span className="font-bold text-white font-mono shrink-0">
               {currentInstitution.shortName}
             </span>
             <span className="truncate">{currentInstitution.name}</span>
@@ -227,14 +227,14 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
         </button>
 
         {isInstDropdownOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl bg-white dark:bg-[#16171A] border border-black/[0.08] dark:border-white/[0.1] shadow-2xl p-2 max-h-60 overflow-y-auto no-scrollbar">
-            <div className="sticky top-0 bg-white dark:bg-[#16171A] pb-2 z-10">
+          <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl bg-[#121316] border border-white/[0.1] shadow-2xl p-2 max-h-60 overflow-y-auto no-scrollbar">
+            <div className="sticky top-0 bg-[#121316] pb-2 z-10">
               <input
                 type="text"
                 value={institutionSearch}
                 onChange={(e) => setInstitutionSearch(e.target.value)}
                 placeholder="Search Ogun institution (e.g. OOU, FUNAAB, TASUED)..."
-                className="w-full px-2.5 py-1.5 rounded-lg bg-black/[0.03] dark:bg-white/[0.06] text-xs text-neutral-900 dark:text-white focus:outline-none"
+                className="w-full px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-xs text-white focus:outline-none"
                 autoFocus
               />
             </div>
@@ -249,8 +249,8 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
                   }}
                   className={`w-full flex items-center justify-between p-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
                     selectedInstCode === inst.id
-                      ? 'bg-amber-500/15 text-amber-400 font-semibold'
-                      : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-neutral-800 dark:text-neutral-200'
+                      ? 'bg-white/15 text-white font-semibold'
+                      : 'hover:bg-white/[0.05] text-neutral-200'
                   }`}
                 >
                   <div className="truncate">
@@ -279,8 +279,8 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
                 onClick={() => setSelectedCampusId(campus.id)}
                 className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-all cursor-pointer text-left ${
                   selectedCampusId === campus.id
-                    ? 'border-amber-500/50 bg-amber-500/10 text-amber-400 font-semibold'
-                    : 'border-black/[0.06] dark:border-white/[0.06] text-neutral-700 dark:text-neutral-300 hover:border-neutral-400'
+                    ? 'border-white/40 bg-white/10 text-white font-semibold'
+                    : 'border-white/[0.06] text-neutral-300 hover:border-white/20'
                 }`}
               >
                 <div className="truncate pr-1">
@@ -288,7 +288,7 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
                   <span className="text-[9.5px] font-mono text-neutral-400">{campus.city}</span>
                 </div>
                 {selectedCampusId === campus.id && (
-                  <GeminiIcon name="check" size={12} className="text-amber-400 shrink-0" />
+                  <GeminiIcon name="check" size={12} className="text-white shrink-0" />
                 )}
               </button>
             ))}
@@ -304,10 +304,10 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
         <select
           value={selectedFaculty}
           onChange={(e) => setSelectedFaculty(e.target.value)}
-          className="w-full px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-amber-400 cursor-pointer"
+          className="w-full px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/30 cursor-pointer"
         >
           {availableFaculties.map((f) => (
-            <option key={f} value={f} className="dark:bg-[#1E1F20]">
+            <option key={f} value={f} className="bg-[#121316]">
               {f}
             </option>
           ))}
@@ -322,21 +322,21 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
         <button
           type="button"
           onClick={() => setIsDeptDropdownOpen(!isDeptDropdownOpen)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white cursor-pointer hover:border-amber-400/50"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white cursor-pointer hover:border-white/30"
         >
           <span className="truncate">{selectedDeptName || 'Select Department'}</span>
           <GeminiIcon name="chevron-down" size={12} className="text-neutral-400 shrink-0 ml-2" />
         </button>
 
         {isDeptDropdownOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl bg-white dark:bg-[#16171A] border border-black/[0.08] dark:border-white/[0.1] shadow-2xl p-2 max-h-52 overflow-y-auto no-scrollbar">
-            <div className="sticky top-0 bg-white dark:bg-[#16171A] pb-2 z-10">
+          <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl bg-[#121316] border border-white/[0.1] shadow-2xl p-2 max-h-52 overflow-y-auto no-scrollbar">
+            <div className="sticky top-0 bg-[#121316] pb-2 z-10">
               <input
                 type="text"
                 value={deptSearch}
                 onChange={(e) => setDeptSearch(e.target.value)}
                 placeholder="Search department (e.g. Economics, Law, Computer Science)..."
-                className="w-full px-2.5 py-1.5 rounded-lg bg-black/[0.03] dark:bg-white/[0.06] text-xs text-neutral-900 dark:text-white focus:outline-none"
+                className="w-full px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-xs text-white focus:outline-none"
                 autoFocus
               />
             </div>
@@ -352,8 +352,8 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
                   }}
                   className={`w-full flex items-center justify-between p-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
                     selectedDeptName === dept.name
-                      ? 'bg-amber-500/15 text-amber-400 font-semibold'
-                      : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-neutral-800 dark:text-neutral-200'
+                      ? 'bg-white/15 text-white font-semibold'
+                      : 'hover:bg-white/[0.05] text-neutral-200'
                   }`}
                 >
                   <div>
@@ -361,7 +361,7 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
                     <span className="text-[9.5px] font-mono text-neutral-400">{dept.degree}</span>
                   </div>
                   {selectedDeptName === dept.name && (
-                    <GeminiIcon name="check" size={12} className="text-amber-400 shrink-0" />
+                    <GeminiIcon name="check" size={12} className="text-white shrink-0" />
                   )}
                 </button>
               ))}
@@ -383,8 +383,8 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
               onClick={() => setSelectedLevel(lvl)}
               className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all cursor-pointer ${
                 selectedLevel === lvl
-                  ? 'bg-amber-400 text-neutral-950 font-bold shadow-xs'
-                  : 'bg-black/[0.03] dark:bg-white/[0.05] text-neutral-600 dark:text-neutral-400 hover:text-white'
+                  ? 'bg-white text-neutral-950 font-bold shadow-xs'
+                  : 'bg-white/[0.05] text-neutral-400 hover:text-white'
               }`}
             >
               {lvl}
@@ -394,12 +394,12 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08] flex items-center justify-end gap-2">
+      <div className="pt-3 border-t border-white/[0.08] flex items-center justify-end gap-2">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-1.5 rounded-full text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+            className="px-4 py-1.5 rounded-full text-xs font-semibold text-neutral-400 hover:text-white cursor-pointer"
           >
             Cancel
           </button>
@@ -407,7 +407,7 @@ export const OgunAcademicSelector: React.FC<OgunAcademicSelectorProps> = ({
         <button
           type="button"
           onClick={handleConfirm}
-          className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-sm shadow-amber-500/20"
+          className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-sm shadow-white/10"
         >
           <GeminiIcon name="check" size={13} />
           <span>Sync Department & Timetable</span>

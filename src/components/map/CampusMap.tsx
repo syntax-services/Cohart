@@ -307,14 +307,14 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     setRouteCoordinates(null);
   };
 
-  // Custom User Location Amber Marker
+  // Custom User Location Platinum Marker
   const createUserMarker = () => {
     return L.divIcon({
       className: 'custom-user-marker',
       html: `
         <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2" style="width: 24px; height: 24px; transform: rotate(${-rotationAngle}deg);">
-          <div class="absolute inset-0 rounded-full bg-amber-400/30 animate-ping"></div>
-          <div class="relative h-4 w-4 rounded-full bg-amber-400 border-2 border-neutral-950 shadow-lg flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full bg-white/30 animate-ping"></div>
+          <div class="relative h-4 w-4 rounded-full bg-white border-2 border-neutral-950 shadow-lg flex items-center justify-center">
             <div class="h-1.5 w-1.5 rounded-full bg-neutral-950"></div>
           </div>
         </div>
@@ -344,8 +344,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <!-- Circular Pin Badge -->
           <div class="relative flex items-center justify-center w-[30px] h-[30px] rounded-full shadow-md transition-transform duration-150 ${
             isSelected
-              ? 'bg-amber-400 text-neutral-950 scale-110 ring-2 ring-amber-400/50'
-              : 'bg-[#121316] text-amber-400 border-2 border-amber-400/60'
+              ? 'bg-white text-neutral-950 scale-110 ring-2 ring-white/50'
+              : 'bg-[#121316] text-white border-2 border-white/40'
           }">
             <span class="text-[9.5px] font-mono font-bold tracking-tighter uppercase leading-none">
               ${code.slice(0, 3)}
@@ -355,8 +355,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <!-- Pin Stem -->
           <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] -mt-[1px] ${
             isSelected
-              ? 'border-t-amber-400'
-              : 'border-t-amber-400/60'
+              ? 'border-t-white'
+              : 'border-t-white/40'
           }"></div>
         </div>
       `,
@@ -405,16 +405,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         {/* Left: Ogun Institution & Campus Selectors */}
         <div className="flex items-center gap-1.5 pointer-events-auto flex-wrap">
           {/* Institution Dropdown */}
-          <div className="flex items-center bg-white/95 dark:bg-[#121316]/95 px-2.5 py-1.5 rounded-xl backdrop-blur-md border border-black/[0.08] dark:border-white/[0.1] shadow-md">
-            <GeminiIcon name="compass" size={13} className="text-amber-500 dark:text-amber-400 mr-1.5 shrink-0" />
+          <div className="flex items-center bg-[#121316]/95 px-2.5 py-1.5 rounded-xl backdrop-blur-md border border-white/[0.1] shadow-md">
+            <GeminiIcon name="compass" size={13} className="text-white mr-1.5 shrink-0" />
             <select
               value={selectedInstId}
               onChange={(e) => handleInstitutionChange(e.target.value)}
               aria-label="Select Ogun State Institution"
-              className="bg-transparent text-xs font-semibold text-neutral-900 dark:text-white focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[180px] truncate"
+              className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[180px] truncate"
             >
               {OGUN_INSTITUTIONS.map((inst) => (
-                <option key={inst.id} value={inst.id} className="dark:bg-[#121316] dark:text-white">
+                <option key={inst.id} value={inst.id} className="bg-[#121316] text-white">
                   {inst.shortName} - {inst.name}
                 </option>
               ))}
@@ -423,15 +423,15 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
           {/* Campus Switcher (if institution has multiple campuses, e.g. OOU, Fed Poly Ilaro, TASUED) */}
           {currentInstitution.campuses.length > 1 && (
-            <div className="flex items-center bg-white/95 dark:bg-[#121316]/95 px-2 py-1.5 rounded-xl backdrop-blur-md border border-black/[0.08] dark:border-white/[0.1] shadow-md">
+            <div className="flex items-center bg-[#121316]/95 px-2 py-1.5 rounded-xl backdrop-blur-md border border-white/[0.1] shadow-md">
               <select
                 value={selectedCampusId}
                 onChange={(e) => handleCampusChange(e.target.value)}
                 aria-label="Select Campus Branch"
-                className="bg-transparent text-[11px] font-mono text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer max-w-[120px] sm:max-w-[150px] truncate"
+                className="bg-transparent text-[11px] font-mono text-neutral-300 focus:outline-none cursor-pointer max-w-[120px] sm:max-w-[150px] truncate"
               >
                 {currentInstitution.campuses.map((c) => (
-                  <option key={c.id} value={c.id} className="dark:bg-[#121316] dark:text-white">
+                  <option key={c.id} value={c.id} className="bg-[#121316] text-white">
                     {c.name}
                   </option>
                 ))}
@@ -442,16 +442,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           {/* Category Filter for OOU Main Campus */}
           {isOOUMain && (
             <div
-              className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-white/95 dark:bg-[#121316]/95 border border-black/[0.08] dark:border-white/[0.1] shadow-md backdrop-blur-md text-neutral-800 dark:text-neutral-200"
+              className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-[#121316]/95 border border-white/[0.1] shadow-md backdrop-blur-md text-neutral-200"
               title={activeCategory === 'all' ? 'Filter building types' : `Filter: ${activeCategory}`}
             >
               <GeminiIcon
                 name="filter"
                 size={13}
-                className={activeCategory !== 'all' ? 'text-amber-500 dark:text-amber-400' : 'text-neutral-500'}
+                className={activeCategory !== 'all' ? 'text-white' : 'text-neutral-400'}
               />
               {activeCategory !== 'all' && (
-                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400" />
+                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-white" />
               )}
               <select
                 value={activeCategory}
@@ -459,12 +459,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 aria-label="Filter locations by building type"
                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full rounded-xl"
               >
-                <option value="all" className="dark:bg-[#121316]">All Buildings ({locations.length})</option>
-                <option value="lecture_hall" className="dark:bg-[#121316]">Lecture Halls & Complexes</option>
-                <option value="faculty" className="dark:bg-[#121316]">Faculties & Departments</option>
-                <option value="library_lab" className="dark:bg-[#121316]">Libraries & CBT Labs</option>
-                <option value="amenity" className="dark:bg-[#121316]">Commercial, Hubs & Transit</option>
-                <option value="admin" className="dark:bg-[#121316]">Administrative Buildings</option>
+                <option value="all" className="bg-[#121316] text-white">All Buildings ({locations.length})</option>
+                <option value="lecture_hall" className="bg-[#121316] text-white">Lecture Halls & Complexes</option>
+                <option value="faculty" className="bg-[#121316] text-white">Faculties & Departments</option>
+                <option value="library_lab" className="bg-[#121316] text-white">Libraries & CBT Labs</option>
+                <option value="amenity" className="bg-[#121316] text-white">Commercial, Hubs & Transit</option>
+                <option value="admin" className="bg-[#121316] text-white">Administrative Buildings</option>
               </select>
             </div>
           )}
@@ -477,7 +477,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             <button
               onClick={handleResetNorth}
               title="Reset to North"
-              className="flex items-center justify-center h-8 w-8 rounded-xl bg-white/95 dark:bg-[#121316]/95 border border-black/[0.08] dark:border-white/[0.1] shadow-md transition-transform active:scale-95 cursor-pointer"
+              className="flex items-center justify-center h-8 w-8 rounded-xl bg-[#121316]/95 border border-white/[0.1] shadow-md transition-transform active:scale-95 cursor-pointer text-white"
             >
               <div
                 style={{ transform: `rotate(${-rotationAngle}deg)` }}
@@ -490,15 +490,15 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           )}
 
           {/* Roadmap Provider Toggle (Google Roadmap / OSM Roadmap) */}
-          <div className="flex items-center bg-white/95 dark:bg-[#121316]/95 px-2 py-1 rounded-xl backdrop-blur-md border border-black/[0.08] dark:border-white/[0.1] shadow-md">
+          <div className="flex items-center bg-[#121316]/95 px-2 py-1 rounded-xl backdrop-blur-md border border-white/[0.1] shadow-md">
             <select
               value={mapEngine}
               onChange={(e) => setMapEngine(e.target.value as 'google_roadmap' | 'osm_roadmap')}
               aria-label="Select Roadmap Provider"
-              className="bg-transparent text-[11px] font-mono text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-[11px] font-mono text-neutral-200 focus:outline-none cursor-pointer"
             >
-              <option value="google_roadmap" className="dark:bg-[#121316]">Google Roadmap</option>
-              <option value="osm_roadmap" className="dark:bg-[#121316]">OpenStreetMap</option>
+              <option value="google_roadmap" className="bg-[#121316] text-white">Google Roadmap</option>
+              <option value="osm_roadmap" className="bg-[#121316] text-white">OpenStreetMap</option>
             </select>
           </div>
 
@@ -507,12 +507,12 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             onClick={handleLocateMe}
             disabled={isLocating}
             title="Locate me on campus"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-xl bg-white/95 dark:bg-[#121316]/95 text-neutral-800 dark:text-neutral-200 border border-black/[0.08] dark:border-white/[0.1] backdrop-blur-md hover:border-amber-400/50 transition-all shadow-md active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-xl bg-[#121316]/95 text-neutral-200 border border-white/[0.1] backdrop-blur-md hover:border-white/40 transition-all shadow-md active:scale-95 cursor-pointer"
           >
             {isLocating ? (
-              <div className="h-3 w-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+              <div className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
             ) : (
-              <GeminiIcon name="compass" size={13} className="text-amber-500 dark:text-amber-400" />
+              <GeminiIcon name="compass" size={13} className="text-white" />
             )}
             <span className="hidden sm:inline font-sans font-semibold">GPS</span>
           </button>
@@ -521,7 +521,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
       {/* Geolocation Alert Toast */}
       {locationError && (
-        <div className="absolute top-16 left-3 right-3 z-30 mx-auto max-w-md p-2.5 rounded-xl bg-neutral-900/90 text-white text-xs backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-between gap-2 animate-in fade-in">
+        <div className="absolute top-16 left-3 right-3 z-30 mx-auto max-w-md p-2.5 rounded-xl bg-[#121316]/95 text-white text-xs backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-between gap-2 animate-in fade-in">
           <span>{locationError}</span>
           <button
             onClick={() => setLocationError(null)}
@@ -577,7 +577,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               <Polyline
                 positions={routeCoordinates}
                 pathOptions={{
-                  color: '#ffffff',
+                  color: '#000000',
                   weight: 7,
                   opacity: 0.8,
                   lineCap: 'round',
@@ -587,7 +587,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               <Polyline
                 positions={routeCoordinates}
                 pathOptions={{
-                  color: '#F59E0B',
+                  color: '#FFFFFF',
                   weight: 4,
                   opacity: 0.95,
                   dashArray: '8, 8',
@@ -598,7 +598,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </>
           )}
 
-          {/* Render User GPS Amber Marker */}
+          {/* Render User GPS Platinum Marker */}
           {userLocation && (
             <Marker
               position={userLocation}
@@ -633,31 +633,31 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       */}
       {!isOOUMain && (
         <div className="absolute bottom-4 left-3 right-3 z-30 mx-auto max-w-lg">
-          <div className="rounded-2xl bg-white/95 dark:bg-[#121316]/95 backdrop-blur-xl border border-black/[0.08] dark:border-white/[0.1] p-4 shadow-2xl flex flex-col gap-2.5">
+          <div className="rounded-2xl bg-[#121316]/95 backdrop-blur-xl border border-white/[0.1] p-4 shadow-2xl flex flex-col gap-2.5">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-500 dark:text-amber-400 font-bold uppercase">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white font-bold uppercase">
                     {currentInstitution.shortName}
                   </span>
-                  <span className="text-xs font-bold text-neutral-900 dark:text-white">
+                  <span className="text-xs font-bold text-white">
                     {currentCampus.name}
                   </span>
                 </div>
-                <p className="text-[11.5px] text-neutral-600 dark:text-neutral-300 leading-snug">
+                <p className="text-[11.5px] text-neutral-300 leading-snug">
                   {currentCampus.transitTips || currentInstitution.aiCampusKnowledge.overview}
                 </p>
               </div>
 
-              <div className="h-9 w-9 rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0">
                 <GeminiIcon name="sparkle" size={17} />
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-1 border-t border-black/[0.05] dark:border-white/[0.06]">
+            <div className="flex items-center gap-2 pt-1 border-t border-white/[0.06]">
               <button
                 onClick={handleAskAuroraForRoom}
-                className="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold shadow-md shadow-amber-500/10 transition-all active:scale-95 cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold shadow-md shadow-white/10 transition-all active:scale-95 cursor-pointer"
               >
                 <GeminiIcon name="chat" size={14} />
                 <span>Ask Aurora: Find My Lecture Room</span>

@@ -18,19 +18,17 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark');
+  const [theme, setThemeState] = useState<Theme>('dark');
+  const [resolvedTheme] = useState<ResolvedTheme>('dark');
   const [fontSize, setFontSizeState] = useState<FontSizeScale>('normal');
-  const [mounted, setMounted] = useState(false);
+  const [, setMounted] = useState(false);
 
   // Initialize theme and font scale from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('cohart_theme') as Theme | null;
-    if (saved && (saved === 'light' || saved === 'dark' || saved === 'system')) {
-      setThemeState(saved);
-    } else {
-      setThemeState('system');
-    }
+    localStorage.setItem('cohart_theme', 'dark');
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    document.documentElement.style.colorScheme = 'dark';
 
     const savedFont = localStorage.getItem('cohart_font_size') as FontSizeScale | null;
     if (savedFont && (savedFont === 'compact' || savedFont === 'normal' || savedFont === 'comfortable')) {
@@ -44,48 +42,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setMounted(true);
   }, []);
 
-  // Compute and apply resolved theme
-  useEffect(() => {
-    if (!mounted) return;
-
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const applyTheme = () => {
-      let resolved: ResolvedTheme = 'dark';
-      if (theme === 'system') {
-        resolved = media.matches ? 'dark' : 'light';
-      } else {
-        resolved = theme;
-      }
-
-      setResolvedTheme(resolved);
-
-      const root = document.documentElement;
-      if (resolved === 'dark') {
-        root.classList.add('dark');
-        root.classList.remove('light');
-        root.style.colorScheme = 'dark';
-      } else {
-        root.classList.remove('dark');
-        root.classList.add('light');
-        root.style.colorScheme = 'light';
-      }
-    };
-
-    applyTheme();
-
-    // Listen for OS theme changes when in 'system' mode
-    const listener = () => {
-      if (theme === 'system') applyTheme();
-    };
-
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, [theme, mounted]);
-
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem('cohart_theme', newTheme);
+    setThemeState('dark');
+    localStorage.setItem('cohart_theme', 'dark');
   };
 
   const setFontSize = (newSize: FontSizeScale) => {
@@ -95,11 +54,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const toggleTheme = () => {
-    if (resolvedTheme === 'dark') {
-      setTheme('light');
-    } else {
-      setTheme('dark');
-    }
+    // Pure Aurora design is strictly dark mode only
+    setThemeState('dark');
   };
 
   return (

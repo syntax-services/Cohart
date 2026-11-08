@@ -112,15 +112,15 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
   const getCategoryColor = (category: CampusNotification['category']) => {
     switch (category) {
       case 'exam':
-        return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
+        return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
       case 'academic':
-        return 'text-amber-500 dark:text-amber-400 bg-amber-500/10 border-amber-500/20';
+        return 'text-white bg-white/10 border-white/20';
       case 'system':
-        return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
       case 'campus':
         return 'text-neutral-300 bg-white/[0.06] border-white/[0.1]';
       default:
-        return 'text-neutral-400 bg-neutral-400/10 border-neutral-400/20';
+        return 'text-neutral-400 bg-white/[0.04] border-white/[0.08]';
     }
   };
 
@@ -129,13 +129,13 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       {/* Bell Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 transition-all active:scale-95 cursor-pointer shadow-2xs"
+        className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-neutral-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
         aria-label="Notifications"
         title="Campus Notifications & Alerts"
       >
         <GeminiIcon name="bell" size={16} />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-white dark:ring-[#050507] animate-pulse" />
+          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-white ring-2 ring-[#0B0D11] animate-pulse" />
         )}
       </button>
 
@@ -161,26 +161,26 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="w-full sm:w-[420px] max-w-full bg-white/95 dark:bg-[#0c0d12]/95 backdrop-blur-2xl border-l border-black/[0.08] dark:border-white/[0.08] shadow-2xl flex flex-col h-full"
+                className="w-full sm:w-[420px] max-w-full bg-[#0c0d12]/98 backdrop-blur-2xl border-l border-white/[0.08] shadow-2xl flex flex-col h-full"
               >
                 {/* Header */}
-                <div className="px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between bg-black/[0.01] dark:bg-white/[0.02]">
+                <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between bg-white/[0.02]">
                   <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-400/20">
+                    <div className="h-8 w-8 rounded-xl bg-white/10 text-white flex items-center justify-center border border-white/20">
                       <GeminiIcon name="bell" size={16} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-sm font-bold text-neutral-900 dark:text-white">
+                        <h2 className="text-sm font-bold text-white">
                           Campus Alerts
                         </h2>
                         {unreadCount > 0 && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white border border-white/20">
                             {unreadCount} new
                           </span>
                         )}
                       </div>
-                      <p className="text-[10.5px] font-mono text-neutral-500 dark:text-neutral-400">
+                      <p className="text-[10.5px] font-mono text-neutral-400">
                         {institution} • Live Broadcast Stream
                       </p>
                     </div>
@@ -190,14 +190,14 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                     {unreadCount > 0 && (
                       <button
                         onClick={markAllAsRead}
-                        className="text-[11px] text-amber-500 dark:text-amber-400 hover:underline cursor-pointer font-medium px-2 py-1 rounded-lg hover:bg-amber-400/10 transition-colors"
+                        className="text-[11px] text-neutral-300 hover:text-white hover:underline cursor-pointer font-medium px-2 py-1 rounded-lg hover:bg-white/10 transition-colors"
                       >
                         Mark all read
                       </button>
                     )}
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="p-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-white/[0.08] text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer transition-colors"
+                      className="p-1.5 rounded-xl hover:bg-white/[0.08] text-neutral-400 hover:text-white cursor-pointer transition-colors"
                       title="Close drawer"
                       aria-label="Close"
                     >
@@ -207,13 +207,13 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                 </div>
 
                 {/* Notification List */}
-                <div className="flex-1 overflow-y-auto divide-y divide-black/[0.04] dark:divide-white/[0.05] p-2 space-y-1">
+                <div className="flex-1 overflow-y-auto divide-y divide-white/[0.05] p-2 space-y-1">
                   {notifications.length === 0 ? (
                     <div className="py-20 text-center space-y-2">
-                      <div className="h-12 w-12 rounded-2xl bg-neutral-100 dark:bg-white/[0.04] text-neutral-400 flex items-center justify-center mx-auto">
+                      <div className="h-12 w-12 rounded-2xl bg-white/[0.04] text-neutral-400 flex items-center justify-center mx-auto">
                         <GeminiIcon name="bell" size={20} />
                       </div>
-                      <p className="text-xs font-semibold text-neutral-900 dark:text-white">All caught up!</p>
+                      <p className="text-xs font-semibold text-white">All caught up!</p>
                       <p className="text-[11px] text-neutral-500">No new notices for your department right now.</p>
                     </div>
                   ) : (
@@ -224,16 +224,16 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                         onClick={() => markAsRead(n.id)}
                         className={`p-3.5 rounded-2xl transition-all cursor-pointer text-left relative group ${
                           !n.read
-                            ? 'bg-amber-400/[0.06] dark:bg-amber-400/[0.08] border border-amber-400/20 hover:bg-amber-400/[0.1]'
-                            : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.03] border border-transparent'
+                            ? 'bg-white/[0.06] border border-white/20 hover:bg-white/[0.09]'
+                            : 'hover:bg-white/[0.03] border border-transparent'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <div className="flex items-center gap-2">
                             {!n.read && (
-                              <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+                              <span className="h-2 w-2 rounded-full bg-white shrink-0 animate-pulse" />
                             )}
-                            <span className="text-xs font-bold text-neutral-900 dark:text-white leading-snug">
+                            <span className="text-xs font-bold text-white leading-snug">
                               {n.title}
                             </span>
                           </div>
@@ -241,13 +241,13 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                             {n.category}
                           </span>
                         </div>
-                        <p className="text-[12px] text-neutral-600 dark:text-neutral-300 leading-relaxed pl-0.5">
+                        <p className="text-[12px] text-neutral-300 leading-relaxed pl-0.5">
                           {n.message}
                         </p>
                         <div className="flex items-center justify-between mt-2 pt-1 text-[10px] font-mono text-neutral-400 pl-0.5">
                           <span>{n.timestamp}</span>
                           {!n.read && (
-                            <span className="text-amber-500 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-neutral-300 opacity-0 group-hover:opacity-100 transition-opacity">
                               Click to mark read
                             </span>
                           )}
@@ -258,14 +258,14 @@ export const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
                 </div>
 
                 {/* Footer with Summit Badge & Close */}
-                <div className="p-4 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 text-neutral-500 font-mono text-[11px]">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <div className="p-4 bg-white/[0.02] border-t border-white/[0.08] flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-neutral-400 font-mono text-[11px]">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
                     <span>Summit Live Feed</span>
                   </div>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="px-3.5 py-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-neutral-700 dark:text-neutral-300 font-semibold cursor-pointer transition-colors text-xs"
+                    className="px-3.5 py-1 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-neutral-200 font-semibold cursor-pointer transition-colors text-xs"
                   >
                     Dismiss
                   </button>

@@ -60,7 +60,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
         {/* Top Header */}
         <header className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-amber-500 text-white font-bold shadow-lg shadow-rose-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#16181D] border border-white/20 text-white font-bold shadow-sm">
               <GeminiIcon name="zap" size={18} />
             </div>
             <div>
@@ -97,7 +97,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             onClick={() => setActiveTab('stream')}
             className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               activeTab === 'stream'
-                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
+                ? 'bg-white text-neutral-950 font-bold shadow-sm'
                 : 'text-neutral-400 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
@@ -107,7 +107,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             onClick={() => setActiveTab('payouts')}
             className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               activeTab === 'payouts'
-                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
+                ? 'bg-white text-neutral-950 font-bold shadow-sm'
                 : 'text-neutral-400 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
@@ -117,7 +117,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             onClick={() => setActiveTab('leagues')}
             className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               activeTab === 'leagues'
-                ? 'bg-amber-400 text-neutral-950 font-bold shadow-sm'
+                ? 'bg-white text-neutral-950 font-bold shadow-sm'
                 : 'text-neutral-400 hover:text-white hover:bg-white/[0.05]'
             }`}
           >
@@ -131,7 +131,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
             {/* Match Card Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold uppercase">
+                <span className="font-mono text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/20 font-bold uppercase">
                   {activeMatch.stageTitle}
                 </span>
                 <span className="text-neutral-400 font-mono text-[11px]">{activeMatch.schoolLeague}</span>
@@ -147,11 +147,11 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
               {/* Team A */}
               <div className={`p-4 rounded-2xl border transition-all ${
                 activeMatch.teamA.score > activeMatch.teamB.score
-                  ? 'bg-amber-400/10 border-amber-400/30 shadow-lg shadow-amber-500/10'
+                  ? 'bg-white/[0.08] border-white/30 shadow-lg shadow-white/5'
                   : 'bg-white/[0.02] border-white/10'
               }`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/20 font-mono text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20 font-mono text-[10px] font-bold">
                     {activeMatch.teamA.institution}
                   </span>
                   <span className="text-3xl font-extrabold font-mono text-white">
@@ -168,7 +168,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
                     disabled={Boolean(hasCheered)}
                     className={`px-3 py-1 rounded-xl text-xs font-semibold font-mono transition-all active:scale-95 cursor-pointer ${
                       hasCheered === 'A'
-                        ? 'bg-amber-400 text-neutral-950 font-bold'
+                        ? 'bg-white text-neutral-950 font-bold'
                         : 'bg-white/10 hover:bg-white/15 text-neutral-200'
                     }`}
                   >
@@ -226,7 +226,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
               {/* Progress bar */}
               <div className="mt-4 w-full h-1 bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-300 transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-white via-neutral-300 to-neutral-400 transition-all duration-1000"
                   style={{ width: `${(secondsLeft / 30) * 100}%` }}
                 />
               </div>
@@ -255,7 +255,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
         {activeTab === 'payouts' && (
           <div className="p-4 sm:p-6 space-y-4 flex-1">
             <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 text-xs text-neutral-300">
-              <span className="font-bold text-amber-400 font-mono uppercase text-[10px]">
+              <span className="font-bold text-white font-mono uppercase text-[10px]">
                 Earn Cash at Every Stage
               </span>
               <p className="leading-relaxed mt-1">
@@ -278,7 +278,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
                   </div>
                   <div className="pt-2 border-t border-white/[0.06] text-[11px] text-neutral-400 font-mono flex items-center justify-between">
                     <span>Reward: {stg.payoutDescription}</span>
-                    <span className="text-amber-400 font-bold">+{stg.bonusTones} Tones</span>
+                    <span className="text-white font-bold">+{stg.bonusTones} Tones</span>
                   </div>
                 </div>
               ))}
@@ -290,7 +290,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
         {activeTab === 'leagues' && (
           <div className="p-4 sm:p-6 space-y-4 flex-1">
             <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 text-xs text-neutral-300">
-              <span className="font-bold text-amber-400 font-mono uppercase text-[10px]">
+              <span className="font-bold text-white font-mono uppercase text-[10px]">
                 Categorized Collegiate Consortiums
               </span>
               <p className="leading-relaxed mt-1">
@@ -311,7 +311,7 @@ export const CampusArenaViewer: React.FC<CampusArenaViewerProps> = ({
                   
                   <div className="pt-2 flex flex-wrap gap-1.5">
                     {league.schools.map((s) => (
-                      <span key={s.code} className="px-2 py-0.5 rounded-lg bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 font-mono text-[10px] font-bold" title={s.name}>
+                      <span key={s.code} className="px-2 py-0.5 rounded-lg bg-white/10 text-white border border-white/20 font-mono text-[10px] font-bold" title={s.name}>
                         {s.code}
                       </span>
                     ))}

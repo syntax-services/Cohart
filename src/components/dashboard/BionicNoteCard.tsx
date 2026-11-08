@@ -29,12 +29,12 @@ export const BionicNoteCard: React.FC = () => {
         {/* Header with Bionic Switch */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white border border-white/15">
               <GeminiIcon name="reader" size={16} />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-white">Study Notes & Syntheses</h3>
-              <p className="text-[11px] font-mono text-slate-400">ECO 201 • Key Review Summary</p>
+              <p className="text-[11px] font-mono text-neutral-400">ECO 201 • Key Review Summary</p>
             </div>
           </div>
 
@@ -43,8 +43,8 @@ export const BionicNoteCard: React.FC = () => {
             onClick={() => setIsBionicEnabled(!isBionicEnabled)}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-medium transition-all ${
               isBionicEnabled
-                ? 'bg-amber-400 text-neutral-950 font-bold shadow-[0_0_15px_rgba(245,158,11,0.35)]'
-                : 'bg-white/[0.05] text-slate-400 border border-white/[0.08] hover:text-white'
+                ? 'bg-white text-neutral-950 font-bold shadow-sm'
+                : 'bg-white/[0.05] text-neutral-400 border border-white/[0.08] hover:text-white'
             }`}
           >
             <GeminiIcon name="zap" size={14} />
@@ -53,7 +53,7 @@ export const BionicNoteCard: React.FC = () => {
         </div>
 
         {/* Note Content Display Area */}
-        <div className="rounded-xl border border-white/[0.07] bg-[#06080D]/80 p-4 font-sans text-xs leading-relaxed text-slate-200 min-h-[140px] max-h-[180px] overflow-y-auto">
+        <div className="rounded-xl border border-white/[0.08] bg-[#0c0d12]/90 p-4 font-sans text-xs leading-relaxed text-neutral-200 min-h-[140px] max-h-[180px] overflow-y-auto">
           {isBionicEnabled ? (
             <div>
               {bionicTokens.map((token) => {
@@ -68,7 +68,7 @@ export const BionicNoteCard: React.FC = () => {
                     <strong className="font-bold text-white tracking-normal font-sans">
                       {token.bold}
                     </strong>
-                    <span className="text-slate-300 font-normal">
+                    <span className="text-neutral-300 font-normal">
                       {token.regular}
                     </span>
                   </span>
@@ -76,7 +76,7 @@ export const BionicNoteCard: React.FC = () => {
               })}
             </div>
           ) : (
-            <p className="whitespace-pre-line text-slate-300">
+            <p className="whitespace-pre-line text-neutral-300">
               {SAMPLE_NOTE_TEXT}
             </p>
           )}
@@ -84,17 +84,17 @@ export const BionicNoteCard: React.FC = () => {
       </div>
 
       {/* Footer info bar */}
-      <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
-        <div className="flex items-center gap-1.5 text-slate-400">
-          <GeminiIcon name="zap" size={14} className="text-amber-400" />
+      <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-neutral-400">
+        <div className="flex items-center gap-1.5 text-neutral-400">
+          <GeminiIcon name="zap" size={14} className="text-white" />
           <span>Fixation guided reading active</span>
         </div>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1 hover:text-white transition-colors"
         >
-          <GeminiIcon name={copied ? 'check' : 'copy'} size={14} className={copied ? 'text-emerald-400' : ''} />
-          <span className={copied ? 'text-emerald-400' : ''}>{copied ? 'Copied' : 'Copy Note'}</span>
+          <GeminiIcon name={copied ? 'check' : 'copy'} size={14} className={copied ? 'text-white' : ''} />
+          <span className={copied ? 'text-white font-bold' : ''}>{copied ? 'Copied' : 'Copy Note'}</span>
         </button>
       </div>
     </GlassCard>

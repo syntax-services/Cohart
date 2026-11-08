@@ -47,7 +47,7 @@ export function downloadAsDocx(filename: string, title: string, markdownContent:
     h3 { color: #334155; font-size: 12pt; }
     p { margin: 8px 0; }
     li { margin: 4px 0 4px 24px; }
-    .header-box { border-left: 4px solid #EAB308; padding-left: 12px; margin-bottom: 24px; color: #64748b; font-size: 9pt; }
+    .header-box { border-left: 4px solid #111827; padding-left: 12px; margin-bottom: 24px; color: #64748b; font-size: 9pt; }
   </style>
 </head>
 <body>
@@ -103,7 +103,7 @@ export function downloadAsPdf(filename: string, title: string, markdownContent: 
       padding: 24px;
     }
     .header {
-      border-bottom: 2px solid #EAB308;
+      border-bottom: 2px solid #111827;
       padding-bottom: 12px;
       margin-bottom: 24px;
       display: flex;

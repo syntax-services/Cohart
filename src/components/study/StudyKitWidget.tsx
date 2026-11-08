@@ -52,33 +52,33 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
   const questions = kit.quiz?.questions || [];
 
   return (
-    <div className="w-full my-3 rounded-2xl bg-white/90 dark:bg-[#121620]/90 border border-black/[0.08] dark:border-white/[0.1] shadow-xl overflow-hidden backdrop-blur-xl">
+    <div className="w-full my-3 rounded-2xl bg-[#121316]/95 border border-white/[0.1] shadow-xl overflow-hidden backdrop-blur-xl">
       {/* Kit Header Banner */}
-      <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-500/10 via-amber-500/10 to-purple-500/10 border-b border-black/[0.06] dark:border-white/[0.08]">
+      <div className="p-4 sm:p-5 bg-white/[0.03] border-b border-white/[0.08]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
                 AI Exam Done & Dusted Kit
               </span>
-              <span className="text-xs font-mono font-bold text-neutral-500 dark:text-neutral-400">
+              <span className="text-xs font-mono font-bold text-neutral-400">
                 {kit.courseCode}
               </span>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white font-sans">
+            <h3 className="text-base sm:text-lg font-bold text-white font-sans">
               {kit.title}
             </h3>
           </div>
 
           {/* Readiness Meter Badge */}
-          <div className="flex items-center gap-3 bg-black/[0.04] dark:bg-white/[0.06] px-3 py-2 rounded-xl border border-black/[0.06] dark:border-white/[0.08] shrink-0">
+          <div className="flex items-center gap-3 bg-white/[0.06] px-3 py-2 rounded-xl border border-white/[0.08] shrink-0">
             <div className="text-right">
               <span className="block text-[10px] font-mono uppercase text-neutral-500">Readiness Score</span>
-              <span className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
+              <span className="text-sm font-bold font-mono text-white">
                 {Math.max(kit.readinessScore || 75, progressPercent)}% Exam Ready
               </span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border-2 border-emerald-500/40 flex items-center justify-center font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            <div className="w-10 h-10 rounded-full bg-white/10 border-2 border-white/40 flex items-center justify-center font-mono text-xs font-bold text-white">
               {progressPercent}%
             </div>
           </div>
@@ -101,8 +101,8 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 shadow-md'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                    ? 'bg-white text-neutral-950 shadow-md'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/[0.06]'
                 }`}
               >
                 <span>{tab.label}</span>
@@ -116,10 +116,10 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
       <div className="p-4 sm:p-5">
         {/* Tab 1: Executive Notes */}
         {activeTab === 'summary' && (
-          <div className="space-y-4 text-sm text-neutral-800 dark:text-neutral-200">
+          <div className="space-y-4 text-sm text-neutral-200">
             <div>
               <h4 className="text-xs font-mono uppercase text-neutral-400 font-bold mb-1">Concept Overview</h4>
-              <p className="leading-relaxed bg-black/[0.02] dark:bg-white/[0.03] p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.06]">
+              <p className="leading-relaxed bg-white/[0.03] p-3 rounded-xl border border-white/[0.06]">
                 {kit.summary.overview}
               </p>
             </div>
@@ -131,12 +131,12 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                   {kit.summary.keyDefinitions.map((def, idx) => (
                     <div
                       key={idx}
-                      className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.06]"
+                      className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]"
                     >
-                      <span className="block font-bold text-xs text-amber-500 dark:text-amber-400 mb-0.5 font-mono">
+                      <span className="block font-bold text-xs text-white mb-0.5 font-mono">
                         {def.term}
                       </span>
-                      <span className="text-xs text-neutral-600 dark:text-neutral-300 leading-snug">
+                      <span className="text-xs text-neutral-300 leading-snug">
                         {def.meaning}
                       </span>
                     </div>
@@ -148,7 +148,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
             {kit.summary.lecturerEmphasis && kit.summary.lecturerEmphasis.length > 0 && (
               <div>
                 <h4 className="text-xs font-mono uppercase text-neutral-400 font-bold mb-1">Lecturer Emphasis (Exam Probable)</h4>
-                <ul className="space-y-1 pl-4 list-disc text-xs text-neutral-700 dark:text-neutral-300">
+                <ul className="space-y-1 pl-4 list-disc text-xs text-neutral-300">
                   {kit.summary.lecturerEmphasis.map((pt, idx) => (
                     <li key={idx} className="leading-relaxed">{pt}</li>
                   ))}
@@ -157,7 +157,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
             )}
 
             {kit.summary.examPitfalls && kit.summary.examPitfalls.length > 0 && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-700 dark:text-rose-300">
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
                 <span className="font-bold block mb-1">Common Student Pitfalls to Avoid in the Exam:</span>
                 <ul className="space-y-1 list-disc pl-4">
                   {kit.summary.examPitfalls.map((pit, idx) => (
@@ -179,24 +179,24 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
 
             <div
               onClick={() => setIsFlipped(!isFlipped)}
-              className="min-h-[170px] sm:min-h-[200px] p-6 rounded-2xl bg-gradient-to-br from-black/[0.03] to-black/[0.01] dark:from-white/[0.05] dark:to-white/[0.02] border border-black/[0.08] dark:border-white/[0.1] shadow-inner flex flex-col justify-between cursor-pointer transition-all hover:border-amber-500/40 group"
+              className="min-h-[170px] sm:min-h-[200px] p-6 rounded-2xl bg-white/[0.03] border border-white/[0.1] shadow-inner flex flex-col justify-between cursor-pointer transition-all hover:border-white/30 group"
             >
               <div>
                 <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-neutral-400 block mb-2">
                   {isFlipped ? 'Answer & Memory Hook' : 'Active Recall Question'}
                 </span>
-                <p className="text-sm sm:text-base font-semibold text-neutral-900 dark:text-white leading-relaxed">
+                <p className="text-sm sm:text-base font-semibold text-white leading-relaxed">
                   {isFlipped ? currentFlashcard.answer : currentFlashcard.question}
                 </p>
               </div>
 
               {isFlipped && currentFlashcard.memoryHook && (
-                <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.06] text-xs font-mono text-emerald-600 dark:text-emerald-400">
+                <div className="mt-4 pt-3 border-t border-white/[0.06] text-xs font-mono text-neutral-300">
                   Anchor: {currentFlashcard.memoryHook}
                 </div>
               )}
 
-              <div className="text-right text-[10px] font-mono text-neutral-400 group-hover:text-amber-400 transition-colors mt-2">
+              <div className="text-right text-[10px] font-mono text-neutral-400 group-hover:text-white transition-colors mt-2">
                 {isFlipped ? 'Tap to see Question' : 'Tap to Flip'}
               </div>
             </div>
@@ -205,7 +205,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
               <button
                 type="button"
                 onClick={handlePrevFlashcard}
-                className="px-4 py-2 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-bold text-neutral-800 dark:text-neutral-200 transition-all cursor-pointer"
+                className="px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold text-neutral-200 transition-all cursor-pointer"
               >
                 Previous
               </button>
@@ -213,7 +213,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
               <button
                 type="button"
                 onClick={handleNextFlashcard}
-                className="px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold transition-all cursor-pointer shadow-sm"
+                className="px-4 py-2 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold transition-all cursor-pointer shadow-sm"
               >
                 Next Card
               </button>
@@ -259,7 +259,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                               btnStyle = 'bg-rose-500/15 border border-rose-500/40 text-rose-600 dark:text-rose-400';
                             }
                           } else if (isOptionSelected) {
-                            btnStyle = 'bg-amber-500/15 border border-amber-500/40 text-amber-500 dark:text-amber-400 font-bold';
+                            btnStyle = 'bg-white/10 border border-white/30 text-white font-bold';
                           }
 
                           return (
@@ -313,7 +313,7 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                         })),
                       })
                     }
-                    className="w-full py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold text-xs transition-all cursor-pointer shadow-md shadow-amber-500/20 flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 font-bold text-xs transition-all cursor-pointer shadow-md shadow-white/10 flex items-center justify-center gap-2"
                   >
                     <span>Launch Full Screen CBT Exam Mode</span>
                   </button>
@@ -338,15 +338,15 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
                   onClick={() => toggleChecklist(item.id)}
                   className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 ${
                     item.completed
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-neutral-900 dark:text-white'
-                      : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/[0.05] dark:border-white/[0.06] text-neutral-600 dark:text-neutral-400'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-white'
+                      : 'bg-white/[0.03] border-white/[0.06] text-neutral-400'
                   }`}
                 >
                   <div
                     className={`w-5 h-5 rounded-lg border flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
                       item.completed
-                        ? 'bg-emerald-500 border-emerald-500 text-white'
-                        : 'border-neutral-400 dark:border-neutral-600'
+                        ? 'bg-white text-neutral-950 border-white'
+                        : 'border-white/20'
                     }`}
                   >
                     {item.completed && ''}
@@ -366,13 +366,13 @@ export const StudyKitWidget: React.FC<StudyKitWidgetProps> = ({ kit, onLaunchFul
 
         {/* Tab 5: Predictions & Panic Reliever */}
         {activeTab === 'predictions' && (
-          <div className="space-y-4 text-xs text-neutral-800 dark:text-neutral-200">
+          <div className="space-y-4 text-xs text-neutral-200">
             {kit.panicReliefTip && (
-              <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/25 space-y-1">
-                <span className="font-bold text-purple-700 dark:text-purple-300 font-mono text-[10px] uppercase block">
+              <div className="p-3.5 rounded-xl bg-white/[0.04] border border-white/[0.1] space-y-1">
+                <span className="font-bold text-white font-mono text-[10px] uppercase block">
                   Campus Exam Panic Reliever
                 </span>
-                <p className="text-xs text-purple-900 dark:text-purple-200 leading-relaxed font-sans">
+                <p className="text-xs text-neutral-300 leading-relaxed font-sans">
                   {kit.panicReliefTip}
                 </p>
               </div>

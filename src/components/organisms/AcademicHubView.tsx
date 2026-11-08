@@ -53,22 +53,22 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
   return (
     <div className="space-y-6 pb-32">
       {/* Clean Greeting Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-[#111318] ring-1 ring-black/[0.04] dark:ring-white/[0.08] shadow-sm transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 p-6 sm:p-8 rounded-[2rem] bg-[#121316] ring-1 ring-white/[0.08] shadow-sm transition-colors">
         <div>
           <div className="flex items-center gap-3 mb-3 flex-wrap">
-            <span className="text-xs font-mono uppercase tracking-wider px-3 py-1 rounded-full bg-amber-400/10 text-amber-500 dark:text-amber-400 font-semibold border border-amber-400/20">
+            <span className="text-xs font-mono uppercase tracking-wider px-3 py-1 rounded-full bg-white/[0.06] text-neutral-200 font-semibold border border-white/[0.1]">
               {profile.institution || 'Campus OS'}
             </span>
-            <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            <span className="text-sm font-medium text-neutral-400">
               {profile.department ? `${profile.department} • ${profile.level || '100L'}` : 'Academic Intelligence'}
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-white mt-1">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white mt-1">
             Welcome back, {studentFirstName}
           </h1>
 
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 font-medium">
+          <p className="text-sm text-neutral-400 mt-2 font-medium">
             {nextLecture ? `Next lecture: ${nextLecture.courseCode} at ${nextLecture.time}` : 'Your academic workspace is ready.'}
           </p>
         </div>
@@ -77,7 +77,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
           {hasCampusMap && (
             <button
               onClick={() => onSelectVenue(nextLecture ? nextLecture.locationId : 'SMS-LT1')}
-              className="flex items-center gap-2 px-5 py-3 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
+              className="flex items-center gap-2 px-5 py-3 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
             >
               <GeminiIcon name="compass" size={18} />
               <span>Find Lecture Hall</span>
@@ -86,7 +86,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
 
           <button
             onClick={() => onOpenAi?.()}
-            className="flex items-center gap-2 px-5 py-3 rounded-full bg-black/[0.03] dark:bg-white/[0.06] ring-1 ring-black/[0.06] dark:ring-white/[0.1] text-neutral-800 dark:text-neutral-200 text-sm font-semibold hover:bg-black/[0.06] dark:hover:bg-white/[0.1] transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/[0.06] ring-1 ring-white/[0.1] text-neutral-200 text-sm font-semibold hover:bg-white/[0.1] transition-all active:scale-95 cursor-pointer"
           >
             <GeminiIcon name="chat" size={18} />
             <span>Ask Aurora</span>
@@ -98,41 +98,41 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Next Lecture Card */}
         <div className="md:col-span-7">
-          <GeminiCard className="h-full flex flex-col justify-between p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-[#111318] ring-1 ring-black/[0.04] dark:ring-white/[0.08]">
+          <GeminiCard className="h-full flex flex-col justify-between p-6 sm:p-8 rounded-[2rem] bg-[#121316] ring-1 ring-white/[0.08]">
             <div>
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white border border-white/15">
                     <GeminiIcon name="calendar" size={22} />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Upcoming Class</h2>
-                    <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Timetable & Venue</p>
+                    <h2 className="text-base font-semibold text-white">Upcoming Class</h2>
+                    <p className="text-xs font-medium text-neutral-400">Timetable & Venue</p>
                   </div>
                 </div>
-                <Badge variant={nextLecture?.isLiveNow ? 'emerald' : 'amber'} size="md" className="rounded-full">
+                <Badge variant={nextLecture?.isLiveNow ? 'emerald' : 'slate'} size="md" className="rounded-full">
                   {nextLecture?.isLiveNow ? 'Happening Now' : 'Scheduled'}
                 </Badge>
               </div>
 
               {/* Lecture Details */}
-              <div className="p-6 rounded-[1.5rem] bg-black/[0.02] dark:bg-white/[0.03] ring-1 ring-black/[0.04] dark:ring-white/[0.06] space-y-4 mb-6">
+              <div className="p-6 rounded-[1.5rem] bg-white/[0.03] ring-1 ring-white/[0.06] space-y-4 mb-6">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-semibold px-3 py-1 rounded-full bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
+                  <span className="font-mono text-xs font-semibold px-3 py-1 rounded-full bg-white/[0.06] text-neutral-200 border border-white/[0.1]">
                     {nextLecture ? nextLecture.courseCode : 'ECO 201'}
                   </span>
-                  <span className="text-sm font-medium text-neutral-500">
+                  <span className="text-sm font-medium text-neutral-400">
                     {nextLecture ? nextLecture.time : '08:00 - 10:00 AM'}
                   </span>
                 </div>
 
-                <h3 className="text-lg font-semibold text-neutral-900 dark:text-white leading-tight">
+                <h3 className="text-lg font-semibold text-white leading-tight">
                   {nextLecture ? nextLecture.courseTitle : 'Principles of Microeconomics II'}
                 </h3>
 
-                <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300 font-medium">
-                  <GeminiIcon name="pin" size={16} className="text-amber-500 dark:text-amber-400" />
-                  <span>Venue: <strong className="font-semibold text-neutral-900 dark:text-white">{formatVenueDisplay(nextLecture?.venueName, nextLecture?.locationId)}</strong></span>
+                <div className="flex items-center gap-2 text-sm text-neutral-300 font-medium">
+                  <GeminiIcon name="pin" size={16} className="text-neutral-300" />
+                  <span>Venue: <strong className="font-semibold text-white">{formatVenueDisplay(nextLecture?.venueName, nextLecture?.locationId)}</strong></span>
                 </div>
               </div>
 
@@ -141,7 +141,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
                 {hasCampusMap && (
                   <button
                     onClick={() => onSelectVenue(nextLecture ? nextLecture.locationId : 'loc-sms-lt1')}
-                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/[0.08] text-neutral-800 dark:text-neutral-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-white/[0.04] ring-1 ring-white/[0.08] text-neutral-200 hover:bg-white/[0.08] transition-colors cursor-pointer"
                   >
                     <GeminiIcon name="compass" size={16} />
                     <span>Directions</span>
@@ -149,7 +149,7 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
                 )}
                 <button
                   onClick={onOpenReader}
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/[0.08] text-neutral-800 dark:text-neutral-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-white/[0.04] ring-1 ring-white/[0.08] text-neutral-200 hover:bg-white/[0.08] transition-colors cursor-pointer"
                 >
                   <GeminiIcon name="reader" size={16} />
                   <span>Study Notes</span>
@@ -157,9 +157,9 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
               </div>
             </div>
 
-            <div className="mt-8 pt-5 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            <div className="mt-8 pt-5 border-t border-white/[0.06] flex items-center justify-between text-sm font-medium text-neutral-400">
               <span>{timetable.length} classes this week</span>
-              <button onClick={onOpenSchedule} className="text-amber-500 dark:text-amber-400 hover:underline transition-colors cursor-pointer font-semibold">
+              <button onClick={onOpenSchedule} className="text-neutral-300 hover:text-white hover:underline transition-colors cursor-pointer font-semibold">
                 View Timetable &rarr;
               </button>
             </div>
@@ -168,57 +168,57 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
 
         {/* Class Attendance Summary Card */}
         <div className="md:col-span-5">
-          <GeminiCard className="h-full flex flex-col justify-between p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-[#111318] ring-1 ring-black/[0.04] dark:ring-white/[0.08]">
+          <GeminiCard className="h-full flex flex-col justify-between p-6 sm:p-8 rounded-[2rem] bg-[#121316] ring-1 ring-white/[0.08]">
             <div>
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white border border-white/15">
                     <GeminiIcon name="shield-check" size={22} />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Attendance</h2>
-                    <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Eligibility Metric</p>
+                    <h2 className="text-base font-semibold text-white">Attendance</h2>
+                    <p className="text-xs font-medium text-neutral-400">Eligibility Metric</p>
                   </div>
                 </div>
-                <Badge variant={isAttendanceQualified ? 'emerald' : 'amber'} size="md" className="rounded-full">
+                <Badge variant={isAttendanceQualified ? 'emerald' : 'slate'} size="md" className="rounded-full">
                   {isAttendanceQualified ? 'Qualified' : 'Below 75%'}
                 </Badge>
               </div>
 
               {/* Attendance Metric Hero */}
-              <div className="p-6 rounded-[1.5rem] bg-black/[0.02] dark:bg-white/[0.03] ring-1 ring-black/[0.04] dark:ring-white/[0.06] space-y-5">
+              <div className="p-6 rounded-[1.5rem] bg-white/[0.03] ring-1 ring-white/[0.06] space-y-5">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-4xl font-semibold font-mono text-neutral-900 dark:text-white tracking-tight">
+                  <span className="text-4xl font-semibold font-mono text-white tracking-tight">
                     {advice.rate}%
                   </span>
-                  <span className="text-sm font-medium text-neutral-500">
+                  <span className="text-sm font-medium text-neutral-400">
                     {logs.length} logged
                   </span>
                 </div>
 
-                <div className="w-full h-2 rounded-full bg-black/[0.06] dark:bg-white/[0.08] overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-white/[0.08] overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-1000 ease-out ${
                       advice.rate >= 75
-                        ? 'bg-emerald-500'
+                        ? 'bg-white'
                         : advice.rate >= 50
-                        ? 'bg-amber-400'
-                        : 'bg-amber-500'
+                        ? 'bg-neutral-300'
+                        : 'bg-neutral-400'
                     }`}
                     style={{ width: `${Math.min(100, Math.max(5, advice.rate))}%` }}
                   />
                 </div>
 
-                <p className="text-sm text-neutral-600 dark:text-neutral-300 font-medium leading-relaxed">
+                <p className="text-sm text-neutral-300 font-medium leading-relaxed">
                   {advice.text}
                 </p>
               </div>
             </div>
 
-            <div className="mt-8 pt-5 border-t border-black/[0.04] dark:border-white/[0.06]">
+            <div className="mt-8 pt-5 border-t border-white/[0.06]">
               <button
                 onClick={onOpenSchedule}
-                className="w-full py-3 px-4 rounded-full bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/[0.08] text-neutral-800 dark:text-neutral-200 text-sm font-semibold hover:bg-black/[0.05] dark:hover:bg-white/[0.06] transition-colors cursor-pointer text-center"
+                className="w-full py-3 px-4 rounded-full bg-white/[0.04] ring-1 ring-white/[0.08] text-neutral-200 text-sm font-semibold hover:bg-white/[0.08] transition-colors cursor-pointer text-center"
               >
                 Check In to Class
               </button>
@@ -231,35 +231,35 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <button
           onClick={() => onOpenAi?.('Set 10 objective CBT questions for my department courses', 'general')}
-          className="group relative overflow-hidden rounded-[2rem] p-6 bg-white dark:bg-[#111318] ring-1 ring-black/[0.04] dark:ring-white/[0.08] shadow-sm text-left flex flex-col h-full hover:ring-white/[0.16] hover:bg-white/[0.02] transition-all cursor-pointer active:scale-[0.98]"
+          className="group relative overflow-hidden rounded-[2rem] p-6 bg-[#121316] ring-1 ring-white/[0.08] shadow-sm text-left flex flex-col h-full hover:ring-white/[0.16] hover:bg-white/[0.02] transition-all cursor-pointer active:scale-[0.98]"
         >
-          <div className="h-12 w-12 mb-5 rounded-full bg-amber-400/10 flex items-center justify-center text-amber-500 dark:text-amber-400 border border-amber-400/20 group-hover:scale-110 transition-transform duration-300 ease-out">
+          <div className="h-12 w-12 mb-5 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/15 group-hover:scale-110 transition-transform duration-300 ease-out">
             <GeminiIcon name="zap" size={22} />
           </div>
-          <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-1">Generate Quiz</h3>
-          <p className="text-xs text-neutral-500 font-medium">Practice with 10 smart questions</p>
+          <h3 className="text-base font-semibold text-white mb-1">Generate Quiz</h3>
+          <p className="text-xs text-neutral-400 font-medium">Practice with 10 smart questions</p>
         </button>
 
         <button
           onClick={onOpenReader}
-          className="group relative overflow-hidden rounded-[2rem] p-6 bg-white dark:bg-[#111318] ring-1 ring-black/[0.04] dark:ring-white/[0.08] shadow-sm text-left flex flex-col h-full hover:ring-white/[0.16] hover:bg-white/[0.02] transition-all cursor-pointer active:scale-[0.98]"
+          className="group relative overflow-hidden rounded-[2rem] p-6 bg-[#121316] ring-1 ring-white/[0.08] shadow-sm text-left flex flex-col h-full hover:ring-white/[0.16] hover:bg-white/[0.02] transition-all cursor-pointer active:scale-[0.98]"
         >
-          <div className="h-12 w-12 mb-5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center text-neutral-800 dark:text-neutral-200 group-hover:scale-110 transition-transform duration-300 ease-out">
+          <div className="h-12 w-12 mb-5 rounded-full bg-white/[0.06] flex items-center justify-center text-white border border-white/10 group-hover:scale-110 transition-transform duration-300 ease-out">
             <GeminiIcon name="reader" size={22} />
           </div>
-          <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-1">Study Notes</h3>
-          <p className="text-xs text-neutral-500 font-medium">Continue where you left off</p>
+          <h3 className="text-base font-semibold text-white mb-1">Study Notes</h3>
+          <p className="text-xs text-neutral-400 font-medium">Continue where you left off</p>
         </button>
 
         <button
           onClick={() => onOpenAi?.('Test my exam readiness with 5 challenging course questions', 'grill_mode')}
-          className="group relative overflow-hidden rounded-[2rem] p-6 bg-white dark:bg-[#111318] ring-1 ring-black/[0.04] dark:ring-white/[0.08] shadow-sm text-left flex flex-col h-full hover:ring-white/[0.16] hover:bg-white/[0.02] transition-all cursor-pointer active:scale-[0.98]"
+          className="group relative overflow-hidden rounded-[2rem] p-6 bg-[#121316] ring-1 ring-white/[0.08] shadow-sm text-left flex flex-col h-full hover:ring-white/[0.16] hover:bg-white/[0.02] transition-all cursor-pointer active:scale-[0.98]"
         >
-          <div className="h-12 w-12 mb-5 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300 ease-out">
+          <div className="h-12 w-12 mb-5 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/15 group-hover:scale-110 transition-transform duration-300 ease-out">
             <GeminiIcon name="check-circle" size={22} />
           </div>
-          <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-1">Test Readiness</h3>
-          <p className="text-xs text-neutral-500 font-medium">Enter Grill Mode</p>
+          <h3 className="text-base font-semibold text-white mb-1">Test Readiness</h3>
+          <p className="text-xs text-neutral-400 font-medium">Enter Grill Mode</p>
         </button>
       </div>
     </div>

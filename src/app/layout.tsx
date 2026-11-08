@@ -27,10 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F0F4F9' },
-    { media: '(prefers-color-scheme: dark)', color: '#131314' },
-  ],
+  themeColor: '#0B0D11',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -44,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={plusJakartaSans.variable} suppressHydrationWarning>
+    <html lang="en" className={`${plusJakartaSans.variable} dark`} style={{ colorScheme: 'dark' }} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -55,18 +52,10 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var savedTheme = localStorage.getItem('cohart_theme');
-                  var supportDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var isDark = savedTheme === 'dark' || (!savedTheme || savedTheme === 'system') && supportDark;
-                  if (isDark) {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.classList.remove('light');
-                    document.documentElement.style.colorScheme = 'dark';
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.classList.add('light');
-                    document.documentElement.style.colorScheme = 'light';
-                  }
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                  document.documentElement.style.colorScheme = 'dark';
+                  localStorage.setItem('cohart_theme', 'dark');
                   var savedFont = localStorage.getItem('cohart_font_size');
                   if (savedFont) {
                     document.documentElement.setAttribute('data-font-size', savedFont);
@@ -79,7 +68,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] antialiased font-sans">
+      <body className="min-h-screen bg-[#0B0D11] text-[#F3F4F6] antialiased font-sans">
         <ThemeProvider>{children}</ThemeProvider>
 
         {/* Service Worker Registration for PWA */}

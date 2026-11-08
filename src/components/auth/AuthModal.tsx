@@ -226,10 +226,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="w-full max-w-sm rounded-[2rem] bg-white dark:bg-[#1E1F20] border border-black/[0.08] dark:border-white/[0.1] p-6 shadow-2xl relative">
+      <div className="w-full max-w-sm rounded-[2rem] bg-[#121316] border border-white/[0.1] p-6 shadow-2xl relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-400 hover:text-white transition-colors"
           aria-label="Close"
         >
           <GeminiIcon name="close" size={16} />
@@ -238,35 +238,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* MODE: VERIFY EMAIL SCREEN (Google / Linear / Stripe Grade) */}
         {mode === 'verify_email' ? (
           <div className="text-center py-2">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 mb-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white border border-white/20 mb-4">
               <GeminiIcon name="shield-check" size={24} />
             </div>
 
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
+            <h2 className="text-lg font-semibold tracking-tight text-white font-sans">
               Verify your student email
             </h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
+            <p className="text-xs text-neutral-400 mt-1.5 leading-relaxed">
               We sent a verification link to:
             </p>
 
-            <div className="my-2.5 inline-block max-w-full px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08]">
-              <span className="font-mono text-xs font-semibold text-amber-500 dark:text-amber-400 truncate block">
+            <div className="my-2.5 inline-block max-w-full px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+              <span className="font-mono text-xs font-semibold text-white truncate block">
                 {email || 'your email'}
               </span>
             </div>
 
-            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal px-2">
+            <p className="text-[11px] text-neutral-400 leading-normal px-2">
               Click the link in your inbox to verify your account. You cannot sign in until your email is confirmed.
             </p>
 
             {errorMsg && (
-              <div className="mt-3 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 text-xs font-sans text-left">
+              <div className="mt-3 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-sans text-left">
                 {errorMsg}
               </div>
             )}
 
             {infoMsg && (
-              <div className="mt-3 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-sans text-left">
+              <div className="mt-3 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-sans text-left">
                 {infoMsg}
               </div>
             )}
@@ -275,10 +275,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 onClick={handleCheckVerification}
                 disabled={loading}
-                className="w-full py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold transition-opacity active:scale-[0.98] flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold transition-opacity active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 {loading ? (
-                  <div className="h-3.5 w-3.5 rounded-full border-2 border-white dark:border-neutral-950 border-t-transparent animate-spin" />
+                  <div className="h-3.5 w-3.5 rounded-full border-2 border-neutral-950 border-t-transparent animate-spin" />
                 ) : (
                   <>
                     <span>I&apos;ve Verified My Email</span>
@@ -291,7 +291,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 type="button"
                 onClick={handleResendVerification}
                 disabled={loading || resendCooldown > 0}
-                className="w-full py-2 rounded-full border border-black/[0.08] dark:border-white/[0.08] text-xs font-mono text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors disabled:opacity-50"
+                className="w-full py-2 rounded-full border border-white/[0.08] text-xs font-mono text-neutral-300 hover:bg-white/[0.05] transition-colors disabled:opacity-50"
               >
                 {resendCooldown > 0
                   ? `Resend available in ${resendCooldown}s`
@@ -299,14 +299,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.07] flex items-center justify-between text-xs font-sans text-neutral-500">
+            <div className="mt-4 pt-3 border-t border-white/[0.08] flex items-center justify-between text-xs font-sans text-neutral-500">
               <button
                 onClick={() => {
                   setMode('signup');
                   setErrorMsg(null);
                   setInfoMsg(null);
                 }}
-                className="hover:text-neutral-900 dark:hover:text-white"
+                className="hover:text-white"
               >
                 Change email
               </button>
@@ -316,7 +316,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   setErrorMsg(null);
                   setInfoMsg(null);
                 }}
-                className="text-amber-500 dark:text-amber-400 font-medium"
+                className="text-white font-medium hover:underline"
               >
                 Back to Sign In
               </button>
@@ -326,13 +326,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           /* MODE: SIGN IN / SIGN UP */
           <>
             <div className="mb-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white border border-white/20 mb-3">
                 <GeminiIcon name="user" size={18} />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white font-sans">
+              <h2 className="text-lg font-semibold tracking-tight text-white font-sans">
                 {mode === 'signin' ? 'Sign in to Cohart' : 'Create student account'}
               </h2>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+              <p className="text-xs text-neutral-400 mt-1">
                 {mode === 'signin'
                   ? 'Enter your username or student email to continue.'
                   : 'Get started instantly with just a username and password.'}
@@ -340,13 +340,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {errorMsg && (
-              <div className="mb-4 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 text-xs font-sans">
+              <div className="mb-4 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-sans">
                 {errorMsg}
               </div>
             )}
 
             {infoMsg && (
-              <div className="mb-4 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-sans">
+              <div className="mb-4 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-sans">
                 {infoMsg}
               </div>
             )}
@@ -362,7 +362,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. Adewale Johnson"
                       required
-                      className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-amber-400/60"
+                      className="w-full mt-1 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-white/40"
                     />
                   </div>
 
@@ -389,7 +389,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   required
                   autoCapitalize="none"
                   autoCorrect="off"
-                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-amber-400/60"
+                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-white/40"
                 />
                 {mode === 'signup' && (
                   <p className="text-[10px] text-neutral-400 mt-1">
@@ -407,14 +407,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="••••••••"
                   required
                   minLength={6}
-                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-white/[0.03] border border-black/[0.08] dark:border-white/[0.08] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-amber-400/60"
+                  className="w-full mt-1 px-3.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-white/40"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold transition-opacity active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
+                className="w-full mt-2 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold transition-opacity active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
               >
                 {loading ? (
                   <div className="h-3.5 w-3.5 rounded-full border-2 border-neutral-950 border-t-transparent animate-spin" />
@@ -424,7 +424,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </form>
 
-            <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.07] text-center">
+            <div className="mt-4 pt-3 border-t border-white/[0.08] text-center">
               <button
                 type="button"
                 onClick={() => {
@@ -432,7 +432,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   setErrorMsg(null);
                   setInfoMsg(null);
                 }}
-                className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-amber-500 dark:hover:text-amber-400 font-sans"
+                className="text-xs text-neutral-400 hover:text-white font-sans"
               >
                 {mode === 'signin'
                   ? "Don't have an account? Sign up"

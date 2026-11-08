@@ -79,17 +79,17 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         className="absolute bottom-5 left-3 right-3 sm:left-4 sm:right-auto sm:w-[380px] z-40"
       >
-        <div className="rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-white/95 dark:bg-[#1E1F20]/95 p-4 backdrop-blur-xl shadow-2xl text-neutral-900 dark:text-neutral-100">
+        <div className="rounded-2xl border border-white/[0.12] bg-[#121316]/98 p-4 backdrop-blur-xl shadow-2xl text-neutral-100">
           {/* Header Row */}
-          <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] dark:border-white/[0.06]">
+          <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-amber-500 dark:text-amber-400">
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-white">
                 Walking Route
               </span>
             </div>
             <button
               onClick={onClose}
-              className="rounded-full p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              className="rounded-full p-1 text-neutral-400 hover:text-white transition-colors cursor-pointer"
               title="Close navigation route"
             >
               <GeminiIcon name="close" size={14} />
@@ -99,37 +99,37 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
           {/* Time & Distance Highlight */}
           <div className="mt-3 flex items-baseline justify-between">
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-mono tracking-tight text-neutral-900 dark:text-white">
+              <span className="text-2xl font-bold font-mono tracking-tight text-white">
                 {walkingTimeMinutes ? `${walkingTimeMinutes} min` : 'Direct Path'}
               </span>
-              <span className="font-mono text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+              <span className="font-mono text-xs text-neutral-400 font-medium">
                 ({formattedDistance})
               </span>
             </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-500 dark:text-amber-400 font-medium">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white font-medium">
               On Foot
             </span>
           </div>
 
           {/* Destination Details */}
-          <div className="mt-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.03] p-2.5 border border-black/[0.04] dark:border-white/[0.04]">
+          <div className="mt-2.5 rounded-xl bg-white/[0.04] p-2.5 border border-white/[0.08]">
             <div className="flex items-start gap-2">
-              <div className="mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-neutral-950 text-[10px] font-mono font-bold">
+              <div className="mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-white text-neutral-950 text-[10px] font-mono font-bold">
                 {destination.code?.slice(0, 3) || 'GO'}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
+                <p className="text-xs font-semibold text-white truncate">
                   {destination.name}
                 </p>
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                <p className="text-[11px] text-neutral-400 truncate">
                   {destination.faculty} {destination.department ? `• ${destination.department}` : ''}
                 </p>
               </div>
             </div>
 
             {destination.orientation_tips && (
-              <p className="mt-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.04] text-[11px] text-neutral-600 dark:text-neutral-300 leading-snug">
-                <span className="font-medium text-amber-500 dark:text-amber-400">Directions: </span>
+              <p className="mt-2 pt-2 border-t border-white/[0.06] text-[11px] text-neutral-300 leading-snug">
+                <span className="font-medium text-white">Directions: </span>
                 {destination.orientation_tips}
               </p>
             )}
@@ -139,13 +139,13 @@ export const CampusRouteNavigator: React.FC<CampusRouteNavigatorProps> = ({
           <div className="mt-3 flex items-center gap-2">
             <button
               onClick={onClose}
-              className="flex-1 py-2 px-3 rounded-full border border-black/[0.08] dark:border-white/[0.08] text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors text-center"
+              className="flex-1 py-2 px-3 rounded-full border border-white/[0.12] text-xs font-mono font-medium text-neutral-300 hover:bg-white/[0.06] transition-colors text-center cursor-pointer"
             >
               Close
             </button>
             <button
               onClick={openGoogleMaps}
-              className="flex-1 py-2 px-3 rounded-full bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-mono font-bold hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5 shadow-sm"
+              className="flex-1 py-2 px-3 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-mono font-bold transition-colors text-center flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
               <span>Open in Maps</span>
               <GeminiIcon name="pin" size={12} />

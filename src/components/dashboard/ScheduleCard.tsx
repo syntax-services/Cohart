@@ -53,15 +53,15 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ onSelectVenue }) => 
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white border border-white/15">
               <GeminiIcon name="clock" size={16} />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-white">Lecture Timetable</h3>
-              <p className="text-[11px] font-mono text-slate-400">OOU Economics • First Semester</p>
+              <p className="text-[11px] font-mono text-neutral-400">OOU Economics • First Semester</p>
             </div>
           </div>
-          <Badge variant="amber">3 Classes Today</Badge>
+          <Badge variant="slate">3 Classes Today</Badge>
         </div>
 
         {/* List of Lectures */}
@@ -72,27 +72,27 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ onSelectVenue }) => 
               onClick={() => onSelectVenue(lecture.locationId)}
               className={`group relative flex items-center justify-between rounded-xl border p-3 transition-all cursor-pointer ${
                 lecture.isLiveNow
-                  ? 'border-amber-400/40 bg-amber-400/[0.06] shadow-[0_0_15px_rgba(245,158,11,0.12)]'
+                  ? 'border-white/25 bg-white/[0.05] shadow-[0_0_15px_rgba(255,255,255,0.06)]'
                   : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.15] hover:bg-white/[0.04]'
               }`}
             >
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center pt-0.5">
-                  <span className="font-mono text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
+                  <span className="font-mono text-xs font-bold text-white group-hover:text-white transition-colors">
                     {lecture.courseCode}
                   </span>
                   {lecture.isLiveNow && (
-                    <span className="mt-1 inline-block h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="mt-1 inline-block h-2 w-2 rounded-full bg-white animate-pulse" />
                   )}
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-medium text-slate-200 line-clamp-1">
+                  <h4 className="text-xs font-medium text-neutral-200 line-clamp-1">
                     {lecture.courseTitle}
                   </h4>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono text-slate-400">
-                    <span className="text-slate-300">{lecture.time}</span>
-                    <span className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono text-neutral-400">
+                    <span className="text-neutral-300">{lecture.time}</span>
+                    <span className="flex items-center gap-1 text-neutral-300">
                       <GeminiIcon name="pin" size={12} />
                       <span>{lecture.venueName}</span>
                     </span>
@@ -101,7 +101,7 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ onSelectVenue }) => 
               </div>
 
               <div className="pl-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.04] text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.04] text-neutral-400 group-hover:bg-white/10 group-hover:text-white transition-colors">
                   <GeminiIcon name="chevron-right" size={14} />
                 </div>
               </div>
@@ -110,9 +110,9 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ onSelectVenue }) => 
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400">
+      <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-neutral-400">
         <span>Tap any class to pinpoint venue</span>
-        <span className="text-amber-500 dark:text-amber-400 hover:underline cursor-pointer">Full Schedule &rarr;</span>
+        <span className="text-neutral-300 hover:text-white hover:underline cursor-pointer">Full Schedule &rarr;</span>
       </div>
     </GlassCard>
   );

@@ -43,11 +43,11 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
   });
 
   return (
-    <div className="my-4 p-5 rounded-[2rem] bg-white/90 dark:bg-[#12151D]/90 border border-black/[0.08] dark:border-white/[0.1] shadow-xl backdrop-blur-2xl flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 max-w-xs mx-auto">
+    <div className="my-4 p-5 rounded-[2rem] bg-[#121316]/95 border border-white/[0.1] shadow-xl backdrop-blur-2xl flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 max-w-xs mx-auto">
       {/* Outer Glow Ring */}
-      <div className="relative w-44 h-44 rounded-full p-2 bg-gradient-to-br from-black/[0.04] to-black/[0.08] dark:from-white/[0.04] dark:to-white/[0.08] border border-black/[0.08] dark:border-white/[0.1] flex items-center justify-center shadow-inner">
+      <div className="relative w-44 h-44 rounded-full p-2 bg-gradient-to-br from-white/[0.04] to-white/[0.08] border border-white/[0.1] flex items-center justify-center shadow-inner">
         {/* Clock Face */}
-        <div className="relative w-full h-full rounded-full bg-white/90 dark:bg-[#181B24]/90 border border-black/[0.06] dark:border-white/[0.06] flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-full rounded-full bg-[#16181D] border border-white/[0.06] flex items-center justify-center overflow-hidden">
           {/* Hour markers */}
           {[...Array(12)].map((_, i) => {
             const rot = i * 30;
@@ -60,8 +60,8 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
                 <div
                   className={`w-0.5 rounded-full ${
                     i % 3 === 0
-                      ? 'h-3 bg-amber-400'
-                      : 'h-1.5 bg-neutral-300 dark:bg-neutral-700'
+                      ? 'h-3 bg-white'
+                      : 'h-1.5 bg-neutral-700'
                   }`}
                 />
               </div>
@@ -70,7 +70,7 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
 
           {/* Hour Hand */}
           <div
-            className="absolute w-1 rounded-full bg-neutral-800 dark:bg-neutral-100 origin-bottom transition-transform duration-200"
+            className="absolute w-1 rounded-full bg-white origin-bottom transition-transform duration-200"
             style={{
               height: '32px',
               bottom: '50%',
@@ -81,7 +81,7 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
 
           {/* Minute Hand */}
           <div
-            className="absolute w-0.5 rounded-full bg-neutral-600 dark:bg-neutral-300 origin-bottom transition-transform duration-200"
+            className="absolute w-0.5 rounded-full bg-neutral-300 origin-bottom transition-transform duration-200"
             style={{
               height: '46px',
               bottom: '50%',
@@ -90,9 +90,9 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
             }}
           />
 
-          {/* Second Hand (Warm Amber Sweep) */}
+          {/* Second Hand (White Platinum Sweep) */}
           <div
-            className="absolute w-[1.5px] rounded-full bg-amber-400 origin-bottom shadow-sm"
+            className="absolute w-[1.5px] rounded-full bg-neutral-400 origin-bottom shadow-sm"
             style={{
               height: '54px',
               bottom: '50%',
@@ -102,21 +102,21 @@ export const AnimatedCircularClock: React.FC<AnimatedCircularClockProps> = ({
           />
 
           {/* Centre Pin */}
-          <div className="absolute w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white dark:border-[#181B24] shadow-xs z-10" />
+          <div className="absolute w-2.5 h-2.5 rounded-full bg-white border-2 border-[#16181D] shadow-xs z-10" />
         </div>
       </div>
 
       {/* Digital Time & Date */}
       <div className="mt-3.5 space-y-0.5">
         <div className="flex items-center justify-center gap-1.5">
-          <span className="font-mono text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+          <span className="font-mono text-lg font-bold tracking-tight text-white">
             {formattedDigital}
           </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20 font-bold">
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white border border-white/20 font-bold">
             {timezone}
           </span>
         </div>
-        <p className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+        <p className="text-[11px] font-mono text-neutral-400">
           {formattedDate} • Campus Realtime
         </p>
       </div>
