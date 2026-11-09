@@ -52,6 +52,13 @@ export interface StudentProfile {
   subscription_tier?: 'free' | 'pro_monthly' | 'pro_semester';
   subscription_expires_at?: string;
   avatar_url?: string;
+  theme_palette?: string;
+  custom_theme_hex?: string;
+  icon_pack?: 'minimal' | 'rounded' | 'cosmic';
+  reading_zone?: 'deep_focus' | 'active_revision' | 'needs_warmup';
+  glass_transparency?: number;
+  glass_blur?: number;
+  space_mode?: boolean;
   created_at?: string;
   updated_at?: string;
 }

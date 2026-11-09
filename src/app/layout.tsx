@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { CosmicSpaceEngine } from '@/components/space/CosmicSpaceEngine';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -56,11 +57,23 @@ export default function RootLayout({
                   document.documentElement.classList.remove('light');
                   document.documentElement.style.colorScheme = 'dark';
                   localStorage.setItem('cohart_theme', 'dark');
+                  var savedPalette = localStorage.getItem('cohart_theme_palette');
+                  if (savedPalette) {
+                    document.documentElement.setAttribute('data-palette', savedPalette);
+                  }
+                  var savedSpace = localStorage.getItem('cohart_space_mode');
+                  if (savedSpace === 'true') {
+                    document.documentElement.setAttribute('data-space-theme', 'active');
+                  }
                   var savedFont = localStorage.getItem('cohart_font_size');
                   if (savedFont) {
                     document.documentElement.setAttribute('data-font-size', savedFont);
                   } else {
                     document.documentElement.setAttribute('data-font-size', 'normal');
+                  }
+                  var savedPack = localStorage.getItem('cohart_icon_pack');
+                  if (savedPack) {
+                    document.documentElement.setAttribute('data-icon-pack', savedPack);
                   }
                 } catch(e) {}
               })();
@@ -68,8 +81,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-[#0B0D11] text-[#F3F4F6] antialiased font-sans">
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className="min-h-screen bg-[#0B0D11] text-[#F3F4F6] antialiased font-sans relative">
+        <ThemeProvider>
+          <CosmicSpaceEngine />
+          <div className="relative z-10">{children}</div>
+        </ThemeProvider>
 
         {/* Service Worker Registration for PWA */}
         <script

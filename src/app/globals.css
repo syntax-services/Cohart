@@ -14,7 +14,83 @@
     --border-focus: rgba(255, 255, 255, 0.2);
     --gemini-blue: #FFFFFF;
     --gemini-blue-container: rgba(255, 255, 255, 0.1);
+
+    /* Dynamic Palette Defaults (Mature Deep Blue & Obsidian) */
+    --primary: #3B82F6;
+    --primary-foreground: #FFFFFF;
+    --primary-glow: rgba(59, 130, 246, 0.28);
+    --primary-subtle: rgba(59, 130, 246, 0.12);
+    --primary-ring: rgba(59, 130, 246, 0.4);
+    --accent-color: #3B82F6;
+
+    /* Dynamic Liquid Glass Defaults */
+    --glass-card-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: 28px;
+
+    /* iOS 27 Liquid Glass Device Tilt & Refraction Variables */
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --specular-x: 50%;
+    --specular-y: 50%;
+
     color-scheme: dark;
+  }
+
+  /* Preset Palettes */
+  [data-palette="deepblue"], :root:not([data-palette]) {
+    --primary: #3B82F6;
+    --primary-foreground: #FFFFFF;
+    --primary-glow: rgba(59, 130, 246, 0.28);
+    --primary-subtle: rgba(59, 130, 246, 0.12);
+    --primary-ring: rgba(59, 130, 246, 0.4);
+    --accent-color: #3B82F6;
+  }
+
+  [data-palette="mono"] {
+    --primary: #F3F4F6;
+    --primary-foreground: #0B0D11;
+    --primary-glow: rgba(255, 255, 255, 0.25);
+    --primary-subtle: rgba(255, 255, 255, 0.10);
+    --primary-ring: rgba(255, 255, 255, 0.35);
+    --accent-color: #FFFFFF;
+  }
+
+  [data-palette="spacegrey"] {
+    --primary: #94A3B8;
+    --primary-foreground: #0B0D11;
+    --primary-glow: rgba(148, 163, 184, 0.3);
+    --primary-subtle: rgba(148, 163, 184, 0.12);
+    --primary-ring: rgba(148, 163, 184, 0.35);
+    --accent-color: #94A3B8;
+  }
+
+  [data-palette="emerald"] {
+    --primary: #10B981;
+    --primary-foreground: #FFFFFF;
+    --primary-glow: rgba(16, 185, 129, 0.28);
+    --primary-subtle: rgba(16, 185, 129, 0.12);
+    --primary-ring: rgba(16, 185, 129, 0.35);
+    --accent-color: #10B981;
+  }
+
+  [data-palette="rose"] {
+    --primary: #F43F5E;
+    --primary-foreground: #FFFFFF;
+    --primary-glow: rgba(244, 63, 94, 0.28);
+    --primary-subtle: rgba(244, 63, 94, 0.12);
+    --primary-ring: rgba(244, 63, 94, 0.35);
+    --accent-color: #F43F5E;
+  }
+
+  /* Space Mode Extraterrestrial Theme */
+  [data-space-theme="active"] {
+    --bg-main: #07080B;
+    --surface-main: #0B0D12;
+    --surface-elevated: #10131A;
+    --border-subtle: rgba(148, 163, 184, 0.12);
+    --border-focus: rgba(148, 163, 184, 0.35);
+    --primary-glow: rgba(148, 163, 184, 0.45);
   }
 
   html[data-font-size="compact"],
@@ -38,7 +114,7 @@
   }
 
   body {
-    font-family: var(--font-sans), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-custom-stack, var(--font-sans), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     background-color: var(--bg-main);
     color: var(--text-primary);
     font-feature-settings: "rlig" 1, "calt" 1, "cv02" 1, "cv03" 1, "cv04" 1;
@@ -89,36 +165,55 @@
   scrollbar-width: none;
 }
 
-/* Liquid Glass System (Ultra-Transparent Translucent Glass with Specular Rim) */
+/* Liquid Glass System (Ultra-Transparent Translucent Glass with Specular Rim & Tilt Calibration) */
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass-card-bg, rgba(255, 255, 255, 0.04));
+  backdrop-filter: blur(var(--glass-blur, 28px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 28px));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+  transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease;
 }
 
 .liquid-glass-subtle {
   background: rgba(255, 255, 255, 0.025);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(var(--glass-blur, 20px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .liquid-glass-interactive {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass-card-bg, rgba(255, 255, 255, 0.04));
+  backdrop-filter: blur(var(--glass-blur, 24px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .liquid-glass-interactive:hover {
   background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25), 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* iOS 27 Liquid Specular Highlight Overlay */
+.liquid-specular {
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-specular::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--specular-x, 50%) var(--specular-y, 50%), rgba(255, 255, 255, 0.12) 0%, transparent 60%);
+  pointer-events: none;
+  opacity: 0.8;
+  mix-blend-mode: overlay;
+  transition: opacity 0.3s ease;
 }
 
 /* Leaflet map clean presentation without attribution watermarks */
@@ -128,7 +223,6 @@
   font-family: inherit !important;
 }
 
-/* Crucial anti-distortion reset: prevent Tailwind preflight from distorting tiles */
 .leaflet-container img,
 .leaflet-tile-pane img,
 .leaflet-tile {
@@ -180,18 +274,19 @@
   background-color: var(--gemini-blue-container) !important;
 }
 
-/* Leaflet custom marker reset so the pin-tip lands on exact coordinate */
 .custom-map-marker,
 .custom-user-marker {
   background: transparent !important;
   border: none !important;
 }
 
-/* Text selection styling */
+/* Clean text selection styling (Crisp white / Starlight sapphire glow) */
 ::selection {
-  background: rgba(250, 204, 21, 0.25);
+  background: rgba(59, 130, 246, 0.35);
+  color: #FFFFFF;
 }
 
 .dark ::selection {
-  background: rgba(250, 204, 21, 0.3);
+  background: rgba(59, 130, 246, 0.4);
+  color: #FFFFFF;
 }

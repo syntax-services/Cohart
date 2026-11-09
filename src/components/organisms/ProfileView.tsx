@@ -2,20 +2,15 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { GeminiIcon } from '@/components/atoms/GeminiIcon';
-import { StudentProfile, COHART_VOICES, DEFAULT_COHART_VOICE, SavedExplanation } from '@/lib/types';
-import { UniversityCombobox } from '@/components/ui/UniversityCombobox';
-import { useTheme } from '@/components/ThemeProvider';
-import { clearAllAiConversations, uploadAvatar, fetchSavedExplanations } from '@/lib/supabase';
+import { StudentProfile, SavedExplanation } from '@/lib/types';
+import { uploadAvatar, fetchSavedExplanations } from '@/lib/supabase';
 import { PaymentModal } from '@/components/payment/PaymentModal';
-import {
-  NIGERIAN_UNIVERSITIES,
-  getRandomCampusQuestion,
-  evaluateCampusAnswer,
-  CampusInsiderQuestion,
-} from '@/lib/campusVerification';
-import { ScholarModeIcon, ArenaModeIcon } from '@/components/molecules/WorkspaceModeDropdown';
-import { setWorkspaceModeCookie, getWorkspaceModeCookie } from '@/lib/telemetry';
-import { OgunAcademicSelector, OgunAcademicSelection } from '@/components/ui/OgunAcademicSelector';
+import { AppearanceCustomizer } from '@/components/profile/AppearanceCustomizer';
+import { ReadingHabitsManager, ReadingZone } from '@/components/profile/ReadingHabitsManager';
+import { StudentIdentityView } from '@/components/profile/StudentIdentityView';
+import { CampusProgramView } from '@/components/profile/CampusProgramView';
+import { FeedbackSupportView } from '@/components/profile/FeedbackSupportView';
+import { TermsHonorCodeView } from '@/components/profile/TermsHonorCodeView';
 
 interface ProfileViewProps {
   profile: StudentProfile;
@@ -26,6 +21,15 @@ interface ProfileViewProps {
   onSignOut?: () => void;
 }
 
+export type ProfileSubView =
+  | 'hub'
+  | 'identity'
+  | 'campus_program'
+  | 'appearance'
+  | 'reading_habits'
+  | 'feedback'
+  | 'terms';
+
 export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
   onUpdateProfile,
@@ -34,50 +38,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenAiChat,
   onSignOut,
 }) => {
-  const { theme, setTheme, fontSize, setFontSize } = useTheme();
-
-  // Dialog & Modal States
-  const [activeModal, setActiveModal] = useState<
-    'edit_profile' | 'university' | 'appearance' | 'help' | 'academic_program' | null
-  >(null);
+  // Navigation Router: Dedicated Sub-Pages instead of cramped floating modals
+  const [currentSubView, setCurrentSubView] = useState<ProfileSubView>('hub');
 
   // Avatar Upload State
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Payment Modal State
+  // Payment Modal State (for subscription checkout if needed)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [paymentPlan, setPaymentPlan] = useState<'monthly' | 'semester' | 'wallet'>('monthly');
-
-  // Profile Edit State
-  const [editName, setEditName] = useState(profile.full_name || '');
-  const [editMatric, setEditMatric] = useState(profile.matric_number || '');
-  const [editDepartment, setEditDepartment] = useState(profile.department || '');
-  const [editLevel, setEditLevel] = useState(profile.level || '100L');
-  const [editEmail, setEditEmail] = useState(profile.email || '');
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  // University Selection & Campus Verification State
-  const [selectedUniv, setSelectedUniv] = useState<string>(profile.institution || 'OOU');
-  const [currentInsiderQuestion, setCurrentInsiderQuestion] = useState<CampusInsiderQuestion | null>(null);
-  const [campusUserAnswer, setCampusUserAnswer] = useState('');
-  const [campusStep, setCampusStep] = useState<'question' | 'near_miss' | 'bluff' | 'verified' | 'failed'>('question');
-  const [campusNudge, setCampusNudge] = useState('');
-  const [campusBluff, setCampusBluff] = useState('');
-
-  // Voice Preview State
-  const [selectedVoice, setSelectedVoice] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('aurora_selected_voice') || DEFAULT_COHART_VOICE;
-    }
-    return DEFAULT_COHART_VOICE;
-  });
-
-  // Help & Feedback State
-  const [feedbackText, setFeedbackText] = useState('');
-  const [feedbackSent, setFeedbackSent] = useState(false);
 
   // Saved Vault Count for Bento Tile
   const [savedVaultNotes, setSavedVaultNotes] = useState<SavedExplanation[]>([]);
@@ -91,18 +61,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     loadNotes();
   }, [profile.id]);
 
-  // Safety Banner Reset & Terms State
-  const [isBannerReset, setIsBannerReset] = useState(false);
-  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
-  const [showPartnerInfo, setShowPartnerInfo] = useState(false);
-
-  const handleResetSafetyBanner = () => {
+  // Reading Zone status from localStorage
+  const [readingZone, setReadingZone] = useState<ReadingZone>('active_revision');
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('aurora_safety_banner_dismissed');
-      setIsBannerReset(true);
-      setTimeout(() => setIsBannerReset(false), 2500);
+      const savedZone = (localStorage.getItem('cohart_reading_zone') as ReadingZone) || 'active_revision';
+      setReadingZone(savedZone);
     }
-  };
+  }, [currentSubView]);
+
+  // String Ecosystem Synergy Accordion
+  const [showPartnerInfo, setShowPartnerInfo] = useState(false);
 
   const initials = profile.full_name?.trim()
     ? profile.full_name
@@ -113,83 +82,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         .slice(0, 2)
         .toUpperCase()
     : profile.matric_number?.slice(0, 2).toUpperCase() || 'AR';
-
-  // Handle saving profile changes
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingProfile(true);
-    try {
-      await onUpdateProfile({
-        full_name: editName.trim(),
-        matric_number: editMatric.trim(),
-        department: editDepartment.trim(),
-        level: editLevel.trim(),
-        email: editEmail.trim(),
-      });
-      setSaveSuccess(true);
-      setTimeout(() => {
-        setSaveSuccess(false);
-        setActiveModal(null);
-      }, 1000);
-    } finally {
-      setSavingProfile(false);
-    }
-  };
-
-  // Handle university question submission
-  const handleOpenUnivModal = () => {
-    const q = getRandomCampusQuestion(selectedUniv || 'OOU');
-    setCurrentInsiderQuestion(q);
-    setCampusUserAnswer('');
-    setCampusStep('question');
-    setCampusNudge('');
-    setCampusBluff('');
-    setActiveModal('university');
-  };
-
-  const handleSelectTargetUniv = (code: string) => {
-    setSelectedUniv(code);
-    const q = getRandomCampusQuestion(code);
-    setCurrentInsiderQuestion(q);
-    setCampusUserAnswer('');
-    setCampusStep('question');
-    setCampusNudge('');
-    setCampusBluff('');
-  };
-
-  const handleSubmitCampusAnswer = () => {
-    if (!currentInsiderQuestion || !campusUserAnswer.trim()) return;
-
-    const evalResult = evaluateCampusAnswer(currentInsiderQuestion, campusUserAnswer, false);
-    if (evalResult.status === 'correct') {
-      setCampusBluff(evalResult.bluffPrompt || currentInsiderQuestion.bluffChallenge);
-      setCampusStep('bluff');
-    } else if (evalResult.status === 'near_miss') {
-      setCampusNudge(evalResult.nudgePrompt || currentInsiderQuestion.nearMissNudge);
-      setCampusStep('near_miss');
-    } else {
-      setCampusNudge(evalResult.feedbackText);
-      setCampusStep('failed');
-    }
-  };
-
-  const handleAnswerBluff = async (rejectsBluff: boolean) => {
-    if (!currentInsiderQuestion) return;
-
-    if (rejectsBluff) {
-      setCampusStep('verified');
-      const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === selectedUniv);
-      const univName = univ ? `${univ.name} (${univ.shortName})` : selectedUniv;
-      await onUpdateProfile({ institution: univName });
-      setTimeout(() => {
-        setActiveModal(null);
-      }, 1400);
-      return;
-    }
-
-    setCampusStep('failed');
-    setCampusNudge('Verification challenge failed. Try again with the alternate question or verify via Aurora AI.');
-  };
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -228,18 +120,86 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
-  const currentMode = getWorkspaceModeCookie();
+  // ── Render Dedicated Sub-Views When Active (Zero Cramped Popups) ──
+  if (currentSubView === 'identity') {
+    return (
+      <StudentIdentityView
+        profile={profile}
+        onUpdateProfile={onUpdateProfile}
+        onBack={() => setCurrentSubView('hub')}
+        onNavigateToCatalog={() => setCurrentSubView('campus_program')}
+      />
+    );
+  }
 
+  if (currentSubView === 'campus_program') {
+    return (
+      <CampusProgramView
+        profile={profile}
+        onUpdateProfile={onUpdateProfile}
+        onBack={() => setCurrentSubView('hub')}
+      />
+    );
+  }
+
+  if (currentSubView === 'appearance') {
+    return (
+      <AppearanceCustomizer
+        onBack={() => setCurrentSubView('hub')}
+        onSaveToProfile={async (settings) => {
+          await onUpdateProfile(settings as Partial<StudentProfile>);
+        }}
+      />
+    );
+  }
+
+  if (currentSubView === 'reading_habits') {
+    return (
+      <ReadingHabitsManager
+        profile={profile}
+        onUpdateProfile={onUpdateProfile}
+        onBack={() => {
+          if (typeof window !== 'undefined') {
+            const z = (localStorage.getItem('cohart_reading_zone') as ReadingZone) || 'active_revision';
+            setReadingZone(z);
+          }
+          setCurrentSubView('hub');
+        }}
+      />
+    );
+  }
+
+  if (currentSubView === 'feedback') {
+    return (
+      <FeedbackSupportView
+        profile={profile}
+        onBack={() => setCurrentSubView('hub')}
+      />
+    );
+  }
+
+  if (currentSubView === 'terms') {
+    return (
+      <TermsHonorCodeView
+        onBack={() => setCurrentSubView('hub')}
+      />
+    );
+  }
+
+  // ── Main Mobile-First Profile Hub ──
   return (
-    <div className="max-w-md mx-auto space-y-5 pb-16 pt-3 animate-in fade-in duration-300 font-sans">
+    <div className="max-w-md mx-auto space-y-5 pb-20 pt-3 animate-in fade-in duration-300 font-sans">
       {/* 
         ========================================================================
-        1. STRING-STYLE PROFILE HERO BLOCK
-        Centered large glowing avatar, halo ring, verified pill, and institution tag.
+        1. STRING-STYLE SLEEK AVATAR & STUDENT HERO BLOCK
+        Centered glowing avatar, verified pill, and institution tag.
         ========================================================================
       */}
-      <div className="flex flex-col items-center text-center mt-3 space-y-3">
-        <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+      <div className="flex flex-col items-center text-center mt-2 space-y-3">
+        <div
+          className="relative group cursor-pointer"
+          onClick={() => avatarInputRef.current?.click()}
+        >
           <input
             type="file"
             ref={avatarInputRef}
@@ -247,13 +207,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             accept="image/*"
             className="hidden"
           />
-          {/* Glowing Ambient Gradient Ring from Aurora */}
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-white/30 via-white/50 to-white/20 opacity-25 group-hover:opacity-60 transition duration-500 blur-xs" />
+          {/* Subtle Ambient Glow Ring */}
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-white/20 via-white/40 to-white/10 opacity-30 group-hover:opacity-60 transition duration-500 blur-xs" />
 
-          <div className="relative h-28 w-28 rounded-full border-4 border-white/20 bg-[#121316] flex items-center justify-center overflow-hidden shadow-2xl">
+          <div className="relative h-28 w-28 rounded-full border-2 border-white/20 bg-[#121316] flex items-center justify-center overflow-hidden shadow-2xl">
             {isUploadingAvatar ? (
               <div className="flex flex-col items-center justify-center gap-1">
-                <GeminiIcon name="loader" size={20} className="text-white" />
+                <GeminiIcon name="loader" size={20} className="text-white animate-spin" />
                 <span className="text-[9px] font-bold text-neutral-400">Uploading...</span>
               </div>
             ) : profile.avatar_url ? (
@@ -263,19 +223,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
-              <span className="text-2xl font-bold font-mono text-white">
+              <span className="text-2xl font-bold font-mono text-white tracking-wider">
                 {initials}
               </span>
             )}
-            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white flex-col gap-1">
-              <GeminiIcon name="user" size={15} />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white flex-col gap-1">
+              <GeminiIcon name="user" size={16} />
               <span className="text-[9px] font-bold uppercase tracking-wider">Change</span>
             </div>
           </div>
         </div>
 
         {avatarError && (
-          <p className="text-[11px] font-medium text-rose-500 text-center animate-in fade-in">
+          <p className="text-[11px] font-medium text-rose-400 text-center animate-in fade-in">
             {avatarError}
           </p>
         )}
@@ -283,7 +243,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {/* Student Name & Verified Pill */}
         <div className="space-y-1">
           <h2 className="text-xl font-bold tracking-tight text-white flex items-center justify-center gap-1.5">
-            {profile.full_name || profile.matric_number || 'Scholar Profile'}
+            {profile.full_name || profile.matric_number || 'Student Scholar'}
             <span className="inline-flex items-center gap-1 bg-white/10 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">
               <GeminiIcon name="shield-check" size={10} />
               Verified
@@ -292,8 +252,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest font-mono">
             {profile.department || 'GENERAL STUDIES'} • {profile.level || '100L'}
           </p>
-          <div className="inline-flex items-center gap-1 bg-white/10 border border-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full mt-1 shadow-xs">
-            <GeminiIcon name="compass" size={10} />
+          <div className="inline-flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] text-white text-[10.5px] font-medium px-3 py-1 rounded-full mt-1">
+            <GeminiIcon name="compass" size={11} className="text-neutral-400" />
             <span>{profile.institution || 'Olabisi Onabanjo University'}</span>
           </div>
         </div>
@@ -301,47 +261,65 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* 
         ========================================================================
-        2. AURORA CAMPUS TOURNAMENT / ARENA CARD (Ultra-minimal Dark Liquid Glass)
+        2. STUDENT READING HABIT & COMMUNITY ZONE CARD
+        Replaces the removed competition banner with authentic reading empathy.
         ========================================================================
       */}
-      <div className="relative overflow-hidden rounded-3xl bg-[#121316] border border-white/[0.08] p-5 shadow-xl shadow-black/5">
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-          <GeminiIcon name="trophy" size={96} className="text-white" />
-        </div>
-        <div className="relative z-10 space-y-3">
-          <div className="flex items-center gap-2 text-white">
-            <GeminiIcon name="zap" size={14} />
-            <span className="text-[10px] font-black uppercase tracking-wider">Campus Competition</span>
-          </div>
-          <div>
-            <h3 className="font-bold text-base text-white">
-              Aurora Arena Inter-Faculty Battle
-            </h3>
-            <p className="text-xs text-neutral-400 mt-1 max-w-[270px] leading-relaxed">
-              Compete with students in live academic speed battles, climb faculty leaderboards, and win Tonnes cash prizes!
-            </p>
+      <div className="rounded-3xl bg-[#121316] border border-white/[0.08] p-5 shadow-xl relative overflow-hidden">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                readingZone === 'deep_focus'
+                  ? 'bg-emerald-400 animate-pulse'
+                  : readingZone === 'needs_warmup'
+                  ? 'bg-amber-400'
+                  : 'bg-sky-400'
+              }`}
+            />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+              Current Reading Habit Zone
+            </span>
           </div>
           <button
-            onClick={() => {
-              setWorkspaceModeCookie('arena');
-              window.location.search = '?tab=arena';
-            }}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white hover:bg-neutral-200 text-neutral-950 px-4 text-xs font-bold shadow-md active:scale-95 transition-all w-full max-w-[200px] cursor-pointer"
+            onClick={() => setCurrentSubView('reading_habits')}
+            className="text-[10px] font-mono text-white/80 hover:text-white font-bold hover:underline cursor-pointer"
           >
-            <GeminiIcon name="trophy" size={13} />
-            <span>Enter Arena Now</span>
+            Adjust Zone →
           </button>
+        </div>
+
+        <div>
+          <h3 className="font-bold text-base text-white">
+            {readingZone === 'deep_focus' && 'Deep Focus Flow'}
+            {readingZone === 'active_revision' && 'Active Revision Rhythm'}
+            {readingZone === 'needs_warmup' && 'Getting Into the Zone (Micro-Start)'}
+          </h3>
+          <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+            {readingZone === 'deep_focus' &&
+              'You are locked in. High-density textbook chapters, formula synthesis, and zero-distraction shielding.'}
+            {readingZone === 'active_revision' &&
+              'Steady textbook progress, past question checkpoints, and consistent daily comprehension.'}
+            {readingZone === 'needs_warmup' &&
+              'Out of the rhythm or struggling to read today? Start with a quick 5-min audio breakdown or bionic text summary.'}
+          </p>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
+          <span className="text-neutral-500">Reading Stamina:</span>
+          <span className="text-white font-semibold">
+            {profile.reading_speed_wpm || 240} WPM • Daily Active
+          </span>
         </div>
       </div>
 
       {/* 
         ========================================================================
-        3. AURORA BENTO MENU GRID & ACTION LIST
-        2x2 grid with divide-x and border-b, followed by clean vertical rows.
+        3. AURORA BENTO MENU GRID
+        2x2 grid with divide-x and border-b. Green summit button replaced with Reading Stats.
         ========================================================================
       */}
-      <div className="bg-[#121316] rounded-3xl border border-white/[0.08] overflow-hidden shadow-xl shadow-black/5">
-        {/* 2x2 Bento Action Tiles */}
+      <div className="bg-[#121316] rounded-3xl border border-white/[0.08] overflow-hidden shadow-xl">
         <div className="grid grid-cols-2 divide-x divide-white/[0.08] border-b border-white/[0.08]">
           {/* Tile 1: Course Textbooks */}
           <button
@@ -350,7 +328,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           >
             <div className="relative">
               <div className="h-10 w-10 rounded-2xl bg-white/[0.06] flex items-center justify-center group-hover:bg-white/10 group-hover:scale-105 transition-all duration-300">
-                <GeminiIcon name="book-open" size={18} className="text-neutral-400 group-hover:text-white transition-colors" />
+                <GeminiIcon
+                  name="book-open"
+                  size={18}
+                  className="text-neutral-400 group-hover:text-white transition-colors"
+                />
               </div>
               <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-white flex items-center justify-center px-1 text-[9px] font-bold text-neutral-950 shadow-xs ring-2 ring-[#121316]">
                 4
@@ -361,14 +343,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </span>
           </button>
 
-          {/* Tile 2: Senate Timetable */}
+          {/* Tile 2: Timetable & Schedule */}
           <button
             onClick={onOpenSchedule}
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-white/[0.04] active:bg-white/[0.08] transition-all duration-200 group cursor-pointer"
           >
             <div className="relative">
               <div className="h-10 w-10 rounded-2xl bg-white/[0.06] flex items-center justify-center group-hover:bg-white/10 group-hover:scale-105 transition-all duration-300">
-                <GeminiIcon name="calendar" size={18} className="text-neutral-400 group-hover:text-white transition-colors" />
+                <GeminiIcon
+                  name="calendar"
+                  size={18}
+                  className="text-neutral-400 group-hover:text-white transition-colors"
+                />
               </div>
             </div>
             <span className="text-[11px] font-bold text-neutral-400 group-hover:text-white transition-colors tracking-wide">
@@ -376,17 +362,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </span>
           </button>
 
-          {/* Tile 3: Personal Vault Notes */}
+          {/* Tile 3: Personal Notes Vault */}
           <button
             onClick={onOpenReader}
             className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-white/[0.04] active:bg-white/[0.08] transition-all duration-200 group cursor-pointer"
           >
             <div className="relative">
               <div className="h-10 w-10 rounded-2xl bg-white/[0.06] flex items-center justify-center group-hover:bg-white/10 group-hover:scale-105 transition-all duration-300">
-                <GeminiIcon name="bookmark" size={18} className="text-neutral-400 group-hover:text-white transition-colors" />
+                <GeminiIcon
+                  name="bookmark"
+                  size={18}
+                  className="text-neutral-400 group-hover:text-white transition-colors"
+                />
               </div>
               {savedVaultNotes.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-purple-600 flex items-center justify-center px-1 text-[9px] font-bold text-white shadow-xs ring-2 ring-[#121316]">
+                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-white flex items-center justify-center px-1 text-[9px] font-bold text-neutral-950 shadow-xs ring-2 ring-[#121316]">
                   {savedVaultNotes.length}
                 </span>
               )}
@@ -396,149 +386,138 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </span>
           </button>
 
-          {/* Tile 4: Summit Edition (Vs) Free Pass */}
-          <div className="flex flex-col items-center justify-center p-5 gap-2 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06]">
+          {/* Tile 4: Reading Habits & Flow Stats (Clean Monochrome - Removed Odd Green Button) */}
+          <button
+            onClick={() => setCurrentSubView('reading_habits')}
+            className="flex flex-col items-center justify-center p-5 gap-2 hover:bg-white/[0.04] active:bg-white/[0.08] transition-all duration-200 group cursor-pointer"
+          >
             <div className="relative">
-              <div className="h-10 w-10 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center ring-2 ring-emerald-500/30">
-                <GeminiIcon name="zap" size={18} />
+              <div className="h-10 w-10 rounded-2xl bg-white/[0.06] flex items-center justify-center group-hover:bg-white/10 group-hover:scale-105 transition-all duration-300">
+                <GeminiIcon
+                  name="brain"
+                  size={18}
+                  className="text-neutral-400 group-hover:text-white transition-colors"
+                />
               </div>
-              <span className="absolute -top-1 -right-1 h-3.5 px-1 rounded-full bg-emerald-500 text-[8px] font-extrabold text-black uppercase tracking-wider flex items-center justify-center">
-                Vs
+              <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-white flex items-center justify-center px-1 text-[9px] font-bold text-neutral-950 shadow-xs ring-2 ring-[#121316]">
+                {profile.reading_speed_wpm || 240}
               </span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-400 tracking-wide uppercase font-mono">
-              Summit Free Pass
+            <span className="text-[11px] font-bold text-neutral-400 group-hover:text-white transition-colors tracking-wide">
+              Reading Flow
             </span>
-          </div>
+          </button>
         </div>
 
-        {/* Vertical Action List below (String-style divide-y) */}
+        {/* 
+          ========================================================================
+          4. BIG-TECH STYLE SETTINGS NAVIGATION (Opens Dedicated Sub-Pages)
+          ========================================================================
+        */}
         <div className="divide-y divide-white/[0.08]">
-          {/* Mode Switcher Row */}
+          {/* Row 1: Student Identity & Matriculation */}
           <button
-            onClick={() => {
-              const next = currentMode === 'academic' ? 'arena' : 'academic';
-              setWorkspaceModeCookie(next);
-              window.location.search = `?tab=${next === 'arena' ? 'arena' : 'hub'}`;
-            }}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] active:bg-white/[0.08] transition-all duration-200 group text-left bg-gradient-to-r from-white/[0.03] to-transparent cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-white/10 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
-                {currentMode === 'arena' ? <ArenaModeIcon bold active /> : <ScholarModeIcon bold active />}
-              </div>
-              <div>
-                <span className="font-semibold text-white text-[13px] block leading-tight">
-                  Switch to {currentMode === 'arena' ? 'Scholar OS' : 'Campus Arena'}
-                </span>
-                <span className="text-[10px] text-neutral-500 font-mono">
-                  {currentMode === 'arena' ? 'Deep textbooks & lectures' : 'Live quiz battles & rewards'}
-                </span>
-              </div>
-            </div>
-            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-
-          {/* Campus Insider Status */}
-          <button
-            onClick={handleOpenUnivModal}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-white transition-colors">
-                <GeminiIcon name="compass" size={15} />
-              </div>
-              <span className="font-medium text-neutral-200 text-[13px]">
-                Campus Verification & University
-              </span>
-            </div>
-            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-
-          {/* Account Profile Edit */}
-          <button
-            onClick={() => {
-              setEditName(profile.full_name || '');
-              setEditMatric(profile.matric_number || '');
-              setEditDepartment(profile.department || '');
-              setEditLevel(profile.level || '100L');
-              setEditEmail(profile.email || '');
-              setActiveModal('edit_profile');
-            }}
+            onClick={() => setCurrentSubView('identity')}
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-white transition-colors">
                 <GeminiIcon name="settings" size={15} />
               </div>
-              <span className="font-medium text-neutral-200 text-[13px]">
-                Student Identity & Matric Settings
-              </span>
+              <div>
+                <span className="font-medium text-neutral-200 text-[13px] block leading-tight">
+                  Student Identity & Matriculation
+                </span>
+                <span className="text-[10px] text-neutral-500 font-mono">
+                  {profile.full_name || 'Set official name'} • {profile.matric_number || 'Matric'}
+                </span>
+              </div>
             </div>
-            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+            <GeminiIcon
+              name="chevron-right"
+              size={14}
+              className="text-neutral-400 group-hover:translate-x-0.5 transition-transform"
+            />
           </button>
 
-          {/* Appearance & AI Voice */}
+          {/* Row 2: Campus Program & Timetables */}
           <button
-            onClick={() => setActiveModal('appearance')}
+            onClick={() => setCurrentSubView('campus_program')}
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-white transition-colors">
-                <GeminiIcon name="sun" size={15} />
-              </div>
-              <span className="font-medium text-neutral-200 text-[13px]">
-                Display & AI Voice Reader
-              </span>
-            </div>
-            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-
-          {/* Safety & Rules Modal Trigger */}
-          <button
-            onClick={() => setIsTermsModalOpen(true)}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-white transition-colors">
-                <GeminiIcon name="shield" size={15} />
-              </div>
-              <span className="font-medium text-neutral-200 text-[13px]">
-                Terms, Privacy & Campus Rules
-              </span>
-            </div>
-            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-
-          {/* Ogun State Academic Program Selector */}
-          <button
-            onClick={() => setActiveModal('academic_program')}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-white/10 text-white flex items-center justify-center font-bold text-xs group-hover:scale-105 transition-transform">
                 <GeminiIcon name="book-open" size={15} />
               </div>
               <div>
-                <span className="font-semibold text-white text-[13px] block leading-tight">
-                  Ogun State Academic Program & Courses
+                <span className="font-medium text-neutral-200 text-[13px] block leading-tight">
+                  Campus Program & Academic Catalog
                 </span>
                 <span className="text-[10px] text-neutral-500 font-mono">
-                  {profile.institution || 'OOU'} • {profile.department || 'Select Department'} • {profile.level || '100L'}
+                  {profile.institution || 'OOU'} • {profile.department || 'Department'} • {profile.level || '100L'}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-mono text-white font-bold hidden sm:inline">
-                Change
-              </span>
-              <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
-            </div>
+            <GeminiIcon
+              name="chevron-right"
+              size={14}
+              className="text-neutral-400 group-hover:translate-x-0.5 transition-transform"
+            />
           </button>
 
-          {/* Submit Feedback */}
+          {/* Row 3: Appearance & Cosmic Space Lab */}
           <button
-            onClick={() => setActiveModal('help')}
+            onClick={() => setCurrentSubView('appearance')}
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-white transition-colors">
+                <GeminiIcon name="sparkle" size={15} />
+              </div>
+              <div>
+                <span className="font-medium text-neutral-200 text-[13px] block leading-tight">
+                  Appearance & Cosmic Space Lab
+                </span>
+                <span className="text-[10px] text-neutral-500 font-mono">
+                  Realtime palettes, liquid glass, icon packs & Grok craft
+                </span>
+              </div>
+            </div>
+            <GeminiIcon
+              name="chevron-right"
+              size={14}
+              className="text-neutral-400 group-hover:translate-x-0.5 transition-transform"
+            />
+          </button>
+
+          {/* Row 4: Reading Habits & Community Zone */}
+          <button
+            onClick={() => setCurrentSubView('reading_habits')}
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-white transition-colors">
+                <GeminiIcon name="brain" size={15} />
+              </div>
+              <div>
+                <span className="font-medium text-neutral-200 text-[13px] block leading-tight">
+                  Reading Habits & Community Zone
+                </span>
+                <span className="text-[10px] text-neutral-500 font-mono">
+                  Deep focus, revision pace & micro-start assistance
+                </span>
+              </div>
+            </div>
+            <GeminiIcon
+              name="chevron-right"
+              size={14}
+              className="text-neutral-400 group-hover:translate-x-0.5 transition-transform"
+            />
+          </button>
+
+          {/* Row 5: Support & Student Feedback */}
+          <button
+            onClick={() => setCurrentSubView('feedback')}
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
           >
             <div className="flex items-center gap-3">
@@ -546,27 +525,55 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <GeminiIcon name="chat" size={15} />
               </div>
               <span className="font-medium text-neutral-200 text-[13px]">
-                Submit Platform Feedback
+                Support & Student Feedback
               </span>
             </div>
-            <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+            <GeminiIcon
+              name="chevron-right"
+              size={14}
+              className="text-neutral-400 group-hover:translate-x-0.5 transition-transform"
+            />
           </button>
 
-          {/* Log Out */}
+          {/* Row 6: Terms & Campus Honor Code */}
+          <button
+            onClick={() => setCurrentSubView('terms')}
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 group text-left cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-white transition-colors">
+                <GeminiIcon name="shield" size={15} />
+              </div>
+              <span className="font-medium text-neutral-200 text-[13px]">
+                Terms & Academic Honor Code
+              </span>
+            </div>
+            <GeminiIcon
+              name="chevron-right"
+              size={14}
+              className="text-neutral-400 group-hover:translate-x-0.5 transition-transform"
+            />
+          </button>
+
+          {/* Row 7: Log Out */}
           {onSignOut && (
             <button
               onClick={onSignOut}
-              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-rose-500/[0.03] active:bg-rose-500/[0.06] transition-all duration-200 group text-left cursor-pointer"
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-rose-500/[0.04] active:bg-rose-500/[0.08] transition-all duration-200 group text-left cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-xl bg-white/[0.06] text-neutral-400 flex items-center justify-center group-hover:text-rose-500 transition-colors">
                   <GeminiIcon name="close" size={14} />
                 </div>
-                <span className="font-medium text-neutral-200 group-hover:text-rose-500 text-[13px]">
+                <span className="font-medium text-neutral-200 group-hover:text-rose-400 text-[13px]">
                   Log Out
                 </span>
               </div>
-              <GeminiIcon name="chevron-right" size={14} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
+              <GeminiIcon
+                name="chevron-right"
+                size={14}
+                className="text-neutral-400 group-hover:translate-x-0.5 transition-transform"
+              />
             </button>
           )}
         </div>
@@ -574,437 +581,45 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* 
         ========================================================================
-        4. STRING PARTNERSHIP & AMBASSADOR ACCORDION
+        5. STRING ECOSYSTEM SYNERGY ACCORDION
         ========================================================================
       */}
-      <div className="bg-[#121316] rounded-2xl border border-white/[0.08] overflow-hidden shadow-xl shadow-black/5">
+      <div className="bg-[#121316] rounded-2xl border border-white/[0.08] overflow-hidden shadow-xl">
         <button
           onClick={() => setShowPartnerInfo(!showPartnerInfo)}
           className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.04] transition-all duration-200 text-left cursor-pointer"
         >
-          <div className="flex items-center gap-3">
-            <GeminiIcon name="sparkle" size={15} className="text-white" />
-            <span className="font-semibold text-neutral-200 text-[11px] uppercase tracking-wider">
-              String & Aurora Ecosystem Synergy
+          <div className="flex items-center gap-2.5">
+            <GeminiIcon name="sparkle" size={14} className="text-white" />
+            <span className="font-semibold text-neutral-300 text-[11px] uppercase tracking-wider font-mono">
+              String & Cohart Ecosystem Synergy
             </span>
           </div>
           <GeminiIcon
             name="chevron-right"
             size={14}
-            className={`text-neutral-400 transition-transform duration-200 ${showPartnerInfo ? 'rotate-90' : ''}`}
+            className={`text-neutral-400 transition-transform duration-200 ${
+              showPartnerInfo ? 'rotate-90' : ''
+            }`}
           />
         </button>
 
         {showPartnerInfo && (
           <div className="p-4 bg-white/[0.02] border-t border-white/[0.06] space-y-2 text-left animate-in fade-in">
             <p className="text-[11px] text-neutral-400 leading-relaxed">
-              Aurora OS and String are unified student ecosystems across Nigerian universities. String empowers campus commerce and verified transactions, while Aurora OS delivers Senate exam intelligence and textbook study flows.
+              Cohart and String form a unified student ecosystem across Nigerian higher institutions. String handles campus peer commerce and verified merchant payments, while Cohart delivers Senate academic intelligence, textbook reading flow, and exam checkpoints.
             </p>
-            <div className="pt-2 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-emerald-400 font-semibold">
+            <div className="pt-2 flex items-center justify-between text-[10px] font-mono">
+              <span className="text-emerald-400 font-semibold">
                 OOU Campus Launch Active
               </span>
-              <button
-                onClick={handleResetSafetyBanner}
-                className="text-[10px] font-mono text-white hover:underline cursor-pointer"
-              >
-                {isBannerReset ? 'Banner Restored!' : 'Reset Chat Banner'}
-              </button>
+              <span className="text-neutral-500">Singularity Architecture</span>
             </div>
           </div>
         )}
       </div>
 
-      {/* 
-        ========================================================================
-        MODALS & DIALOGS (Preserved & Enhanced)
-        ========================================================================
-      */}
-
-      {/* Edit Profile Modal */}
-      {activeModal === 'edit_profile' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#121316] border border-white/[0.1] p-5 shadow-2xl animate-in fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white">Edit Student Profile</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-neutral-400 hover:text-white cursor-pointer">
-                <GeminiIcon name="close" size={14} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProfile} className="space-y-3 text-left">
-              <div>
-                <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">Full Name</label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/40"
-                  placeholder="e.g. Morenikeji Adetunji"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">Matric Number</label>
-                <input
-                  type="text"
-                  value={editMatric}
-                  onChange={(e) => setEditMatric(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/40"
-                  placeholder="e.g. SMS/2021/0045"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block">Department</label>
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal('academic_program')}
-                    className="text-[10px] font-mono text-white hover:underline font-bold"
-                  >
-                    Select from Catalog →
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  value={editDepartment}
-                  onChange={(e) => setEditDepartment(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/40"
-                  placeholder="e.g. Economics"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block mb-1">Level</label>
-                <select
-                  value={editLevel}
-                  onChange={(e) => setEditLevel(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/40"
-                >
-                  <option value="100L" className="bg-[#121316]">100L</option>
-                  <option value="200L" className="bg-[#121316]">200L</option>
-                  <option value="300L" className="bg-[#121316]">300L</option>
-                  <option value="400L" className="bg-[#121316]">400L</option>
-                  <option value="500L" className="bg-[#121316]">500L</option>
-                </select>
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveModal(null)}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold text-neutral-400 hover:text-white cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingProfile}
-                  className="px-4 py-1.5 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
-                >
-                  {savingProfile ? 'Saving...' : saveSuccess ? 'Saved!' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* University Modal */}
-      {activeModal === 'university' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#121316] border border-white/[0.1] p-5 shadow-2xl animate-in fade-in text-left">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-white">Campus Verification</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-neutral-400 hover:text-white cursor-pointer">
-                <GeminiIcon name="close" size={14} />
-              </button>
-            </div>
-
-            <div className="mb-3">
-              <UniversityCombobox value={selectedUniv} onChange={(code) => handleSelectTargetUniv(code)} />
-            </div>
-
-            {currentInsiderQuestion && (
-              <div className="space-y-3">
-                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-xs">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-white font-bold block mb-1">
-                    Campus Insider Check
-                  </span>
-                  <p className="text-neutral-200 font-medium">
-                    {currentInsiderQuestion.question}
-                  </p>
-                </div>
-
-                {campusStep === 'question' && (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={campusUserAnswer}
-                      onChange={(e) => setCampusUserAnswer(e.target.value)}
-                      placeholder="Type your campus answer..."
-                      className="w-full px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/40"
-                    />
-                    <button
-                      onClick={handleSubmitCampusAnswer}
-                      className="w-full py-2 rounded-xl bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold cursor-pointer shadow-xs active:scale-95 transition-all"
-                    >
-                      Verify Campus Identity
-                    </button>
-                  </div>
-                )}
-
-                {campusStep === 'bluff' && (
-                  <div className="space-y-2">
-                    <p className="text-xs text-white font-medium">
-                      {campusBluff}
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleAnswerBluff(true)}
-                        className="flex-1 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
-                      >
-                        Correct (Confirm)
-                      </button>
-                      <button
-                        onClick={() => handleAnswerBluff(false)}
-                        className="flex-1 py-1.5 rounded-xl bg-white/[0.06] text-neutral-300 text-xs font-semibold cursor-pointer"
-                      >
-                        False
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {campusStep === 'verified' && (
-                  <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 text-xs text-center font-bold">
-                    ✓ Verified as Campus Insider!
-                  </div>
-                )}
-
-                {campusStep === 'failed' && (
-                  <div className="space-y-2 text-center">
-                    <p className="text-xs text-rose-500 font-medium">{campusNudge}</p>
-                    <button
-                      onClick={handleOpenUnivModal}
-                      className="text-xs font-semibold text-white underline cursor-pointer"
-                    >
-                      Try another question
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Appearance & AI Voice Modal */}
-      {activeModal === 'appearance' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#121316] border border-white/[0.1] p-5 shadow-2xl animate-in fade-in text-left">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white">Display & Voice</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-neutral-400 hover:text-white cursor-pointer">
-                <GeminiIcon name="close" size={14} />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* Theme Selector */}
-              <div>
-                <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block mb-1.5">Theme</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setTheme('dark')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                      theme === 'dark'
-                        ? 'border-white bg-white/10 text-white'
-                        : 'border-white/[0.08] text-neutral-400'
-                    }`}
-                  >
-                    Dark Obsidian
-                  </button>
-                  <button
-                    onClick={() => setTheme('light')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                      theme === 'light'
-                        ? 'border-white bg-white/10 text-white'
-                        : 'border-white/[0.08] text-neutral-400'
-                    }`}
-                  >
-                    Light Minimal
-                  </button>
-                </div>
-              </div>
-
-              {/* Font Size Scale Selector */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block">Dashboard Font Scale</label>
-                  <span className="text-[10px] font-mono text-white font-bold capitalize">
-                    {fontSize}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {(['compact', 'normal', 'comfortable'] as const).map((scale) => {
-                    const isCurrent = fontSize === scale;
-                    const labels = {
-                      compact: 'Compact',
-                      normal: 'Standard',
-                      comfortable: 'Large',
-                    };
-                    const sampleTexts = {
-                      compact: '13.5px',
-                      normal: '15.5px',
-                      comfortable: '17.5px',
-                    };
-                    return (
-                      <button
-                        key={scale}
-                        type="button"
-                        onClick={() => setFontSize(scale)}
-                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                          isCurrent
-                            ? 'border-white bg-white/10 text-white font-bold shadow-2xs'
-                            : 'border-white/[0.08] text-neutral-400 hover:bg-white/[0.04]'
-                        }`}
-                      >
-                        <span className="text-xs block font-semibold">{labels[scale]}</span>
-                        <span className="text-[9.5px] font-mono text-neutral-400 block mt-0.5">{sampleTexts[scale]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Reader Voice */}
-              <div>
-                <label className="text-[10.5px] font-mono text-neutral-400 uppercase tracking-wider block mb-1.5">AI Reader Voice</label>
-                <div className="space-y-1">
-                  {COHART_VOICES.map((v) => (
-                    <button
-                      key={v.id}
-                      onClick={() => {
-                        setSelectedVoice(v.id);
-                        if (typeof window !== 'undefined') {
-                          localStorage.setItem('aurora_selected_voice', v.id);
-                        }
-                      }}
-                      className={`w-full text-left p-2 rounded-xl text-xs flex items-center justify-between cursor-pointer ${
-                        selectedVoice === v.id
-                          ? 'bg-white/10 text-white font-bold'
-                          : 'hover:bg-white/[0.04] text-neutral-300'
-                      }`}
-                    >
-                      <span>{v.label}</span>
-                      {selectedVoice === v.id && (
-                        <GeminiIcon name="check" size={12} className="text-white" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Platform Feedback Modal */}
-      {activeModal === 'help' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#121316] border border-white/[0.1] p-5 shadow-2xl animate-in fade-in text-left">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-white">Submit Feedback</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-neutral-400 hover:text-white cursor-pointer">
-                <GeminiIcon name="close" size={14} />
-              </button>
-            </div>
-
-            {feedbackSent ? (
-              <div className="py-6 text-center space-y-2">
-                <div className="h-10 w-10 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto">
-                  <GeminiIcon name="check" size={20} />
-                </div>
-                <p className="text-xs font-semibold text-white">Feedback Received</p>
-                <p className="text-[11px] text-neutral-400">Thank you for shaping Aurora OS with us.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <textarea
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="Share ideas, course requests, or bug reports..."
-                  rows={4}
-                  className="w-full p-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/40"
-                />
-                <button
-                  onClick={() => {
-                    if (feedbackText.trim()) {
-                      setFeedbackSent(true);
-                      setTimeout(() => {
-                        setFeedbackSent(false);
-                        setFeedbackText('');
-                        setActiveModal(null);
-                      }, 1800);
-                    }
-                  }}
-                  className="w-full py-2 rounded-xl bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold cursor-pointer shadow-xs active:scale-95 transition-all"
-                >
-                  Send Feedback
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Terms & Privacy Modal */}
-      {isTermsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl bg-[#121316] border border-white/[0.1] p-5 shadow-2xl animate-in fade-in text-left">
-            <div className="flex items-center justify-between mb-3 border-b border-white/[0.08] pb-3">
-              <div>
-                <h3 className="text-base font-bold text-white">Campus Terms & Privacy</h3>
-                <p className="text-[10px] font-mono text-neutral-400">Aurora OS Academic Framework</p>
-              </div>
-              <button onClick={() => setIsTermsModalOpen(false)} className="p-1 text-neutral-400 hover:text-white cursor-pointer">
-                <GeminiIcon name="close" size={15} />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs text-neutral-300 leading-relaxed">
-              <p>
-                <strong>1. Academic Integrity:</strong> Aurora OS is an interactive learning companion built to elevate study productivity and Senate exam readiness. It does not facilitate cheating or exam malpractice.
-              </p>
-              <p>
-                <strong>2. Copyright & Intellectual Property:</strong> Course curricula, solved checkpoints, and textbook materials are curated under statutory NUC guidelines. Commercial re-distribution without license is strictly prohibited.
-              </p>
-              <p>
-                <strong>3. Data Protection:</strong> Personal student metrics, note highlights, and chat sessions are encrypted and protected.
-              </p>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-white/[0.08] flex items-center justify-between">
-              <button
-                onClick={handleResetSafetyBanner}
-                className="text-xs font-mono text-white hover:underline cursor-pointer"
-              >
-                {isBannerReset ? 'Banner Restored to Messages!' : 'Show Banner in Messages Again'}
-              </button>
-              <button
-                onClick={() => setIsTermsModalOpen(false)}
-                className="px-4 py-1.5 rounded-full bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold cursor-pointer"
-              >
-                Understood
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Payment Modal */}
+      {/* Payment Modal (if triggered) */}
       {isPaymentOpen && (
         <PaymentModal
           isOpen={isPaymentOpen}
@@ -1014,52 +629,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             setIsPaymentOpen(false);
           }}
         />
-      )}
-      {/* Ogun Academic Program Selector Modal */}
-      {activeModal === 'academic_program' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-hidden rounded-3xl bg-white dark:bg-[#121316] border border-black/[0.08] dark:border-white/[0.1] shadow-2xl animate-in fade-in flex flex-col">
-            <div className="p-4 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <span>Ogun State Institutions Catalog</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-mono font-bold">
-                    Summit Edition
-                  </span>
-                </h3>
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                  Select your school, campus, department, and level to load official courses & timetables.
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="p-1.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-white/[0.08] text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
-              >
-                <GeminiIcon name="close" size={16} />
-              </button>
-            </div>
-
-            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
-              <OgunAcademicSelector
-                initialInstitution={profile.institution}
-                initialDepartment={profile.department}
-                initialLevel={profile.level}
-                onApply={async (selection: OgunAcademicSelection) => {
-                  await onUpdateProfile({
-                    institution: selection.institution,
-                    department: selection.department,
-                    level: selection.level,
-                  });
-                  setEditDepartment(selection.department);
-                  setEditLevel(selection.level);
-                  setSelectedUniv(selection.institutionCode.toUpperCase());
-                  setActiveModal(null);
-                }}
-                onCancel={() => setActiveModal(null)}
-              />
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
