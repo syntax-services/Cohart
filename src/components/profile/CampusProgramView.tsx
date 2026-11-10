@@ -69,6 +69,9 @@ export const CampusProgramView: React.FC<CampusProgramViewProps> = ({
       const univ = NIGERIAN_UNIVERSITIES.find((u) => u.code === selectedUniv);
       const univName = univ ? `${univ.name} (${univ.shortName})` : selectedUniv;
       await onUpdateProfile({ institution: univName });
+      setTimeout(() => {
+        onBack();
+      }, 900);
       return;
     }
 

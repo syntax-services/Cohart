@@ -87,7 +87,10 @@ export const ReadingHabitsManager: React.FC<ReadingHabitsManagerProps> = ({
         reading_speed_wpm: readingWpm,
       });
       setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 2000);
+      setTimeout(() => {
+        setSavedSuccess(false);
+        onBack();
+      }, 700);
     } finally {
       setSaving(false);
     }

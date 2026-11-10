@@ -37,7 +37,10 @@ export const StudentIdentityView: React.FC<StudentIdentityViewProps> = ({
         email: email.trim(),
       });
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
+      setTimeout(() => {
+        setSaveSuccess(false);
+        onBack();
+      }, 700);
     } finally {
       setSaving(false);
     }

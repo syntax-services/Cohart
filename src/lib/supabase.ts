@@ -820,30 +820,53 @@ export async function fetchProfile(userId: string): Promise<StudentProfile> {
 }
 
 export async function updateProfile(profile: Partial<StudentProfile> & { id: string }): Promise<StudentProfile> {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert(profile)
-      .select()
-      .single();
-
-    if (!error && data) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(data));
-      }
-      return data as StudentProfile;
-    }
-
-    if (typeof window !== 'undefined') {
+  // Always update local cache first for instant UI response and offline durability
+  if (typeof window !== 'undefined') {
+    try {
       localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(profile));
-    }
-    return profile as StudentProfile;
-  } catch {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(profile));
-    }
-    return profile as StudentProfile;
+      localStorage.setItem('cohart_saved_profile', JSON.stringify(profile));
+    } catch {}
   }
+
+  // Only attempt remote Supabase upsert if profile.id is a valid UUID
+  if (isValidUUID(profile.id)) {
+    try {
+      // Whitelist only valid DB columns so unknown client keys don't trigger PostgREST 400 errors
+      const dbPayload: Record<string, any> = {
+        id: profile.id,
+      };
+      if (profile.full_name !== undefined) dbPayload.full_name = profile.full_name;
+      if (profile.matric_number !== undefined) dbPayload.matric_number = profile.matric_number;
+      if (profile.institution !== undefined) dbPayload.institution = profile.institution;
+      if (profile.faculty !== undefined) dbPayload.faculty = profile.faculty;
+      if (profile.department !== undefined) dbPayload.department = profile.department;
+      if (profile.level !== undefined) dbPayload.level = profile.level;
+      if (profile.reading_speed_wpm !== undefined) dbPayload.reading_speed_wpm = profile.reading_speed_wpm;
+      if (profile.learning_style !== undefined) dbPayload.learning_style = profile.learning_style;
+      if (profile.wallet_balance !== undefined) dbPayload.wallet_balance = profile.wallet_balance;
+      if (profile.avatar_url !== undefined) dbPayload.avatar_url = profile.avatar_url;
+      if (profile.theme_palette !== undefined) dbPayload.theme_palette = profile.theme_palette;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(dbPayload)
+        .select()
+        .single();
+
+      if (!error && data) {
+        const merged = { ...profile, ...data };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`cohart_profile_${profile.id}`, JSON.stringify(merged));
+          localStorage.setItem('cohart_saved_profile', JSON.stringify(merged));
+        }
+        return merged as StudentProfile;
+      }
+    } catch (err) {
+      console.warn('Supabase remote profile update skipped/failed', err);
+    }
+  }
+
+  return profile as StudentProfile;
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

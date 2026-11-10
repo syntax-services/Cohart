@@ -456,6 +456,14 @@ export const AppearanceCustomizer: React.FC<AppearanceCustomizerProps> = ({
           })}
         </div>
       </div>
+
+      {/* Save / Apply Button */}
+      <button
+        onClick={onBack}
+        className="w-full py-3 rounded-2xl bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold shadow-lg active:scale-98 transition-all cursor-pointer"
+      >
+        ✓ Done & Return to Profile
+      </button>
     </div>
   );
 };

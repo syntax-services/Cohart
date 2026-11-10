@@ -12,8 +12,8 @@ export function useStudentProfile() {
         const cached = localStorage.getItem('cohart_saved_profile');
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (parsed && parsed.id && parsed.id !== 'usr_guest_scholar') {
-            return parsed;
+          if (parsed && typeof parsed === 'object') {
+            return { ...DEFAULT_STUDENT_PROFILE, ...parsed };
           }
         }
       } catch {}
@@ -63,13 +63,21 @@ export function useStudentProfile() {
             } catch {}
           }
         } else {
-          // If no session, reset to default if not logged in
-          if (isMounted && (!userId || userId === 'usr_guest_scholar')) {
-            setProfile(DEFAULT_STUDENT_PROFILE);
-            setUserId(null);
+          // If no session, preserve any user-customized profile saved in localStorage
+          if (typeof window !== 'undefined') {
             try {
-              localStorage.removeItem('cohart_saved_profile');
+              const cached = localStorage.getItem('cohart_saved_profile');
+              if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed && typeof parsed === 'object') {
+                  if (isMounted) setProfile((prev) => ({ ...prev, ...parsed }));
+                  return;
+                }
+              }
             } catch {}
+          }
+          if (isMounted && !userId) {
+            setProfile(DEFAULT_STUDENT_PROFILE);
           }
         }
       } catch (e) {
@@ -116,16 +124,18 @@ export function useStudentProfile() {
   const saveProfile = useCallback(async (updated: Partial<StudentProfile>) => {
     setIsSaving(true);
     try {
-      const targetId = userId || profile.id || 'usr_demo_student_01';
+      const targetId = userId || profile.id || 'usr_guest_scholar';
       const merged = { ...profile, ...updated, id: targetId };
       setProfile(merged);
       try {
         localStorage.setItem('cohart_saved_profile', JSON.stringify(merged));
+        localStorage.setItem(`cohart_profile_${targetId}`, JSON.stringify(merged));
       } catch {}
       const saved = await updateProfile(merged);
       setProfile(saved);
       try {
         localStorage.setItem('cohart_saved_profile', JSON.stringify(saved));
+        localStorage.setItem(`cohart_profile_${targetId}`, JSON.stringify(saved));
       } catch {}
     } catch (err) {
       console.error('Failed to update profile', err);
