@@ -147,11 +147,60 @@ export function applyPalette(palette: Palette, customHex?: string) {
   document.documentElement.setAttribute('data-palette', palette);
   localStorage.setItem('cohart_theme_palette', palette);
 
-  if (palette === 'custom') {
+  let primary = '#3B82F6';
+  let accent = '#3B82F6';
+  let glow = 'rgba(59, 130, 246, 0.35)';
+  let subtle = 'rgba(59, 130, 246, 0.15)';
+  let ring = 'rgba(59, 130, 246, 0.5)';
+  let fg = '#FFFFFF';
+
+  if (palette === 'mono') {
+    primary = '#F3F4F6';
+    accent = '#FFFFFF';
+    glow = 'rgba(255, 255, 255, 0.3)';
+    subtle = 'rgba(255, 255, 255, 0.12)';
+    ring = 'rgba(255, 255, 255, 0.4)';
+    fg = '#0B0D11';
+  } else if (palette === 'spacegrey') {
+    primary = '#94A3B8';
+    accent = '#94A3B8';
+    glow = 'rgba(148, 163, 184, 0.35)';
+    subtle = 'rgba(148, 163, 184, 0.15)';
+    ring = 'rgba(148, 163, 184, 0.45)';
+    fg = '#0B0D11';
+  } else if (palette === 'emerald') {
+    primary = '#10B981';
+    accent = '#10B981';
+    glow = 'rgba(16, 185, 129, 0.35)';
+    subtle = 'rgba(16, 185, 129, 0.15)';
+    ring = 'rgba(16, 185, 129, 0.45)';
+    fg = '#FFFFFF';
+  } else if (palette === 'rose') {
+    primary = '#F43F5E';
+    accent = '#F43F5E';
+    glow = 'rgba(244, 63, 94, 0.35)';
+    subtle = 'rgba(244, 63, 94, 0.15)';
+    ring = 'rgba(244, 63, 94, 0.45)';
+    fg = '#FFFFFF';
+  } else if (palette === 'custom') {
     const hex = customHex || localStorage.getItem('cohart_custom_hex') || '#3B82F6';
+    const [h, s, l] = hexToHsl(hex);
+    primary = hex;
+    accent = hex;
+    fg = l > 60 ? '#0B0D11' : '#FFFFFF';
+    glow = `hsla(${h}, ${Math.min(s, 70)}%, ${Math.min(Math.max(l, 45), 65)}%, 0.35)`;
+    subtle = `hsla(${h}, ${Math.min(s, 65)}%, ${Math.min(Math.max(l, 45), 65)}%, 0.15)`;
+    ring = `hsla(${h}, ${Math.min(s, 65)}%, ${Math.min(Math.max(l, 45), 65)}%, 0.45)`;
     injectCustomStyle(hex);
     localStorage.setItem('cohart_custom_hex', hex);
   }
+
+  document.documentElement.style.setProperty('--primary', primary);
+  document.documentElement.style.setProperty('--primary-foreground', fg);
+  document.documentElement.style.setProperty('--primary-glow', glow);
+  document.documentElement.style.setProperty('--primary-subtle', subtle);
+  document.documentElement.style.setProperty('--primary-ring', ring);
+  document.documentElement.style.setProperty('--accent-color', accent);
 }
 
 export function applyIconPack(pack: IconPack) {

@@ -343,10 +343,20 @@ export default function AppHomePage() {
               <button
                 key={item.id}
                 onClick={() => handleTabChange(item.id as NavTab)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-full transition-all font-medium text-sm text-left cursor-pointer ${
+                style={
                   activeTab === item.id
-                    ? 'bg-white/10 text-white border border-white/20 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                    : 'text-neutral-400 hover:bg-white/[0.04] hover:text-white'
+                    ? {
+                        backgroundColor: 'var(--primary-subtle)',
+                        color: 'var(--accent-color)',
+                        borderColor: 'var(--primary-ring)',
+                        boxShadow: '0 0 16px var(--primary-glow)',
+                      }
+                    : undefined
+                }
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-full transition-all font-medium text-sm text-left cursor-pointer border ${
+                  activeTab === item.id
+                    ? 'font-bold'
+                    : 'border-transparent text-neutral-400 hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
                 <GeminiIcon name={item.icon as any} size={18} />

@@ -110,6 +110,38 @@ export const AppearanceCustomizer: React.FC<AppearanceCustomizerProps> = ({
           </span>
         </div>
 
+        {/* Live Theme Preview Bar */}
+        <div 
+          className="p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between"
+          style={{
+            backgroundColor: 'var(--primary-subtle)',
+            borderColor: 'var(--primary-ring)',
+            boxShadow: '0 0 20px var(--primary-glow)',
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            <span 
+              className="h-3 w-3 rounded-full animate-pulse shadow-sm"
+              style={{ backgroundColor: 'var(--accent-color)' }}
+            />
+            <div>
+              <p className="text-xs font-bold text-white capitalize">{palette} Active Aura</p>
+              <p className="text-[10px] text-neutral-400 font-mono">Realtime CSS variables injected across Cohart</p>
+            </div>
+          </div>
+          <button 
+            type="button"
+            className="px-3 py-1 rounded-full text-[11px] font-bold shadow-sm transition-all"
+            style={{
+              backgroundColor: 'var(--primary)',
+              color: 'var(--primary-foreground)',
+              boxShadow: '0 0 12px var(--primary-glow)',
+            }}
+          >
+            Preview Glow
+          </button>
+        </div>
+
         {/* Preset Swatches */}
         <div className="grid grid-cols-3 gap-2.5">
           {PRESET_PALETTES.map((p) => {

@@ -78,12 +78,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                     : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                {/* Active pill background */}
+                {/* Active pill background with dynamic theme accent glow */}
                 {isActive && (
                   <motion.div
                     layoutId="activeNavBg"
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    className="absolute inset-0 rounded-full bg-white/10 border border-white/20 shadow-xs"
+                    className="absolute inset-0 rounded-full border transition-all duration-300"
+                    style={{
+                      backgroundColor: 'var(--primary-subtle)',
+                      borderColor: 'var(--primary-ring)',
+                      boxShadow: '0 0 16px var(--primary-glow)',
+                    }}
                   />
                 )}
 
@@ -92,9 +97,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, in
                     name={item.icon}
                     size={isActive ? 21 : 19}
                     strokeWidth={isActive ? 2.5 : 2}
+                    style={{ color: isActive ? 'var(--accent-color)' : undefined }}
                     className={`transition-colors duration-200 ${
                       isActive
-                        ? 'text-white'
+                        ? ''
                         : isCenterMap
                           ? 'text-white'
                           : 'text-neutral-400 group-hover:text-white'

@@ -181,7 +181,8 @@ export const DailyMicroDrill: React.FC<DailyMicroDrillProps> = ({ profile, onDri
 
           <button
             onClick={() => handleStartDrill(selectedZone)}
-            className="w-full py-2.5 rounded-2xl bg-white hover:bg-neutral-200 text-neutral-950 text-xs font-bold shadow-md active:scale-98 transition-all cursor-pointer"
+            style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)', boxShadow: '0 0 20px var(--primary-glow)' }}
+            className="w-full py-2.5 rounded-2xl text-xs font-bold shadow-md active:scale-98 transition-all cursor-pointer hover:opacity-90"
           >
             Start 3-Minute Micro-Drill →
           </button>
