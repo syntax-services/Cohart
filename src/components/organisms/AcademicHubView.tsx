@@ -7,6 +7,7 @@ import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile, Location } from '@/lib/types';
 import { useAttendanceTracker } from '@/hooks/useAttendanceTracker';
 import { isOouStudent } from '@/lib/campusVerification';
+import { DailyRetentionSuite } from '@/components/retention/DailyRetentionSuite';
 
 interface AcademicHubViewProps {
   profile: StudentProfile;
@@ -93,6 +94,15 @@ export const AcademicHubView: React.FC<AcademicHubViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Daily Engagement & Retention Suite */}
+      <DailyRetentionSuite
+        profile={profile}
+        onOpenSchedule={onOpenSchedule}
+        onSelectVenue={onSelectVenue}
+        onOpenReader={onOpenReader}
+        onOpenVault={onOpenReader}
+      />
 
       {/* Industrial Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
