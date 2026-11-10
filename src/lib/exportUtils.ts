@@ -175,6 +175,53 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
+/**
+ * Generates and downloads a structured CSV file compatible with Microsoft Excel and Google Sheets.
+ */
+export function downloadAsCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+  const safeFilename = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  const escapeCsv = (val: string | number) => {
+    const str = String(val ?? '');
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+  const csvContent = [
+    headers.map(escapeCsv).join(','),
+    ...rows.map((row) => row.map(escapeCsv).join(',')),
+  ].join('\r\n');
+
+  const blob = new Blob(['\ufeff', csvContent], { type: 'text/csv;charset=utf-8' });
+  triggerDownload(blob, safeFilename);
+}
+
+/**
+ * Downloads the structured CSV and launches Google Sheets (sheets.new) for seamless cloud import.
+ */
+export function openInGoogleSheets(filename: string, headers: string[], rows: (string | number)[][]) {
+  downloadAsCsv(filename, headers, rows);
+  if (typeof window !== 'undefined') {
+    window.open('https://sheets.new', '_blank');
+  }
+}
+
+/**
+ * Pre-formatted export for Departmental Course Catalogs into Google Sheets / CSV.
+ */
+export function exportCoursesToSpreadsheet(courses: { code: string; title: string; units: number; level: string; semester: number; category?: string }[]) {
+  const headers = ['Course Code', 'Course Title', 'Credit Units', 'Level', 'Semester', 'Category'];
+  const rows = courses.map((c) => [
+    c.code,
+    c.title,
+    c.units,
+    c.level,
+    c.semester === 1 ? 'First Semester' : 'Second Semester',
+    c.category || 'Core',
+  ]);
+  openInGoogleSheets('Cohart_Economics_Department_Courses.csv', headers, rows);
+}
+
 function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

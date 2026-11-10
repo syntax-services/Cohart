@@ -5,12 +5,31 @@ import { GeminiIcon } from '@/components/atoms/GeminiIcon';
 import { StudentProfile } from '@/lib/types';
 import { UniversityCombobox } from '@/components/ui/UniversityCombobox';
 import { OgunAcademicSelector, OgunAcademicSelection } from '@/components/ui/OgunAcademicSelector';
+import { exportCoursesToSpreadsheet, downloadAsCsv } from '@/lib/exportUtils';
 import {
   NIGERIAN_UNIVERSITIES,
   getRandomCampusQuestion,
   evaluateCampusAnswer,
   CampusInsiderQuestion,
 } from '@/lib/campusVerification';
+
+const ECONOMICS_COURSES = [
+  { code: 'ECO 101', title: 'Principles of Economics I (Micro)', units: 3, level: '100L', semester: 1, category: 'Core' },
+  { code: 'ECO 102', title: 'Principles of Economics II (Macro)', units: 3, level: '100L', semester: 2, category: 'Core' },
+  { code: 'ECO 201', title: 'Microeconomic Theory I (Consumer & Firm)', units: 3, level: '200L', semester: 1, category: 'Core' },
+  { code: 'ECO 202', title: 'Microeconomic Theory II (Oligopoly & General Equilibrium)', units: 3, level: '200L', semester: 2, category: 'Core' },
+  { code: 'ECO 203', title: 'Applied Statistics for Economists', units: 3, level: '200L', semester: 1, category: 'Core' },
+  { code: 'ECO 205', title: 'Mathematics for Economists I', units: 3, level: '200L', semester: 1, category: 'Core' },
+  { code: 'ECO 209', title: 'Structure of the Nigerian Economy', units: 2, level: '200L', semester: 1, category: 'Core' },
+  { code: 'ECO 301', title: 'Intermediate Microeconomic Theory', units: 3, level: '300L', semester: 1, category: 'Core' },
+  { code: 'ECO 303', title: 'Intermediate Macroeconomic Theory', units: 3, level: '300L', semester: 1, category: 'Core' },
+  { code: 'ECO 305', title: 'Introductory Econometrics I', units: 3, level: '300L', semester: 1, category: 'Core' },
+  { code: 'ECO 307', title: 'Public Sector Economics', units: 2, level: '300L', semester: 1, category: 'Core' },
+  { code: 'ECO 401', title: 'Advanced Microeconomics', units: 3, level: '400L', semester: 1, category: 'Core' },
+  { code: 'ECO 403', title: 'Advanced Macroeconomics', units: 3, level: '400L', semester: 1, category: 'Core' },
+  { code: 'ECO 405', title: 'Applied Econometrics & Forecasting', units: 3, level: '400L', semester: 1, category: 'Core' },
+  { code: 'ECO 499', title: 'Final Year Research Project', units: 6, level: '400L', semester: 1, category: 'Core' },
+];
 
 interface CampusProgramViewProps {
   profile: StudentProfile;
@@ -153,6 +172,50 @@ export const CampusProgramView: React.FC<CampusProgramViewProps> = ({
             onApply={handleApplyAcademicSelection}
             onCancel={onBack}
           />
+
+          {/* Department Course Spreadsheet Export */}
+          <div className="pt-4 border-t border-white/[0.08] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-bold text-white">Department Course Spreadsheets</h4>
+                <p className="text-[10.5px] text-neutral-400">
+                  Export complete Economics course data to Google Sheets & Excel
+                </p>
+              </div>
+              <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                16 Courses
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => exportCoursesToSpreadsheet(ECONOMICS_COURSES)}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-semibold text-white transition-all cursor-pointer shadow-xs group"
+              >
+                <GeminiIcon name="external-link" size={13} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+                <span>Google Sheets</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const headers = ['Course Code', 'Course Title', 'Credit Units', 'Level', 'Semester', 'Category'];
+                  const rows = ECONOMICS_COURSES.map((c) => [
+                    c.code,
+                    c.title,
+                    c.units,
+                    c.level,
+                    c.semester === 1 ? 'First Semester' : 'Second Semester',
+                    c.category,
+                  ]);
+                  downloadAsCsv('Cohart_Economics_Department_Courses.csv', headers, rows);
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-semibold text-white transition-all cursor-pointer shadow-xs group"
+              >
+                <GeminiIcon name="download" size={13} className="text-sky-400 group-hover:scale-110 transition-transform" />
+                <span>Download CSV</span>
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         /* Campus Insider Verification */
