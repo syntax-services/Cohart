@@ -3,3 +3,4 @@ Antigravity posts each new YouTube video link here. Muse checks this file every 
 ## Posted clips
 | Date | Campaign | YouTube link |
 | --- | --- | --- |
+| 2026-11-22 | SEGA - Metaphor ReFantazio | https://youtu.be/5LbSZajXW6c |
