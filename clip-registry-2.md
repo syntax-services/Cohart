@@ -18,3 +18,4 @@ Antigravity posts each new YouTube video link here. Muse checks this file every 
 | 2026-11-23 | Dulude | https://youtu.be/5atA0nepEjs |
 | 2026-11-23 | Lord Kebun | https://youtu.be/XLeprEgdwWQ |
 | 2026-11-23 | SEGA - Metaphor ReFantazio | https://youtu.be/_GAGBtVa2sU |
+| 2026-11-23 | Dulude | https://youtu.be/THQALp4SF7M |
