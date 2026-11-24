@@ -27,3 +27,4 @@ Antigravity posts each new YouTube video link here. Muse checks this file every 
 | 2026-11-23 | Lord Kebun | https://youtu.be/QNfdkS_RUWk |
 | 2026-11-23 | SEGA - Metaphor ReFantazio | https://youtu.be/8Jo-xpOfZ9U |
 | 2026-11-24 | SEGA - Metaphor ReFantazio | https://youtu.be/C70TwsJBMlk |
+| 2026-11-24 | SEGA - Metaphor ReFantazio | https://youtu.be/nPfGiTwo3Cs |
